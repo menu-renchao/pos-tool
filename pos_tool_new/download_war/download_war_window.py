@@ -1,0 +1,85 @@
+import os
+
+from PyQt6.QtWidgets import QHBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox
+
+from pos_tool_new.main import BaseTabWidget
+from .download_war_service import DownloadWarService
+
+
+class DownloadWarTabWidget(BaseTabWidget):
+    def __init__(self, parent=None):
+        super().__init__("Download War", parent)
+        self.parent_window = parent
+        self.service = DownloadWarService()
+        self.worker = None
+        self.init_ui()
+
+    def init_ui(self):
+        layout = self.layout
+        url_layout = QHBoxLayout()
+        url_label = QLabel('下载URL:')
+        self.url_input = QLineEdit()
+        url_layout.addWidget(url_label)
+        url_layout.addWidget(self.url_input)
+        layout.addLayout(url_layout)
+        button_layout = QHBoxLayout()
+        self.download_btn = QPushButton('开始下载')
+        self.download_btn.setMaximumWidth(120)  # 设置最大宽度，防止按钮过长
+        self.download_btn.clicked.connect(self.start_download)
+        button_layout.addStretch()  # 左侧留空，使按钮靠右
+        button_layout.addWidget(self.download_btn)
+        button_layout.addStretch()  # 右侧留空，按钮居中或靠右
+        layout.addLayout(button_layout)
+
+    def start_download(self):
+        url = self.url_input.text().strip()
+        if not url:
+            QMessageBox.warning(self, '警告', '请输入下载URL')
+            return
+
+        # 重置进度条
+        if self.parent_window:
+            self.parent_window.progress_bar.setVisible(True)
+            self.parent_window.progress_bar.setValue(0)
+            self.parent_window.progress_bar.setFormat("正在下载war...")
+            self.parent_window.speed_label.setVisible(True)
+            self.parent_window.speed_label.clear()
+
+        self.download_btn.setEnabled(False)
+        self.append_log("开始下载任务...")
+
+        from pos_tool_new.work_threads import DownloadWarWorker
+        self.worker = DownloadWarWorker(url, self.service, expected_size_mb=217)
+        self.worker.progress.connect(self.log_progress)
+        self.worker.finished.connect(self.download_finished)
+        self.worker.start()
+
+    def log_progress(self, percent, speed=None, downloaded=None, total=None):
+        # 更新主窗口进度条
+        if self.parent_window:
+            self.parent_window.progress_bar.setValue(percent)
+            if speed:
+                self.parent_window.speed_label.setText(f"下载速率: {speed}")
+
+    def download_finished(self, success, message):
+        # 重置UI状态
+        self.download_btn.setEnabled(True)
+
+        if self.parent_window:
+            self.parent_window.progress_bar.setVisible(False)
+            self.parent_window.speed_label.setVisible(False)
+            self.parent_window.progress_bar.update()
+
+        if success:
+            abs_path = os.path.abspath(message)
+            self.append_log(f"下载成功! 文件保存为: {abs_path}")
+            QMessageBox.information(self, '成功', f'文件已保存为: {abs_path}')
+        else:
+            self.append_log(f"下载失败: {message}")
+            QMessageBox.critical(self, '失败', message)
+
+    def append_log(self, msg):
+        if self.parent_window and hasattr(self.parent_window, 'append_log'):
+            self.parent_window.append_log(msg)
+        else:
+            print(msg)

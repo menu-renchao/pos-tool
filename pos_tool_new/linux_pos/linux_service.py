@@ -1,0 +1,723 @@
+import os
+import posixpath
+import re
+import tempfile
+import time
+from typing import List, Tuple, Optional, Callable
+
+import paramiko
+
+from pos_tool_new.backend import Backend
+
+
+class LinuxService(Backend):
+    # 常量定义
+    TOMCAT_HOME = "/opt/tomcat7"
+    WEBAPPS_DIR = f"{TOMCAT_HOME}/webapps"
+    BACKUP_DIR = "/opt/backup"
+    MENU_HOME = "/home/menu"
+
+    def __init__(self):
+        super().__init__()
+        # Define file paths and their corresponding patterns for local scanning
+        self.file_paths = [
+            f"{self.WEBAPPS_DIR}/kpos/front/js/cloudUrlConfig.json",
+            f"{self.WEBAPPS_DIR}/kpos/front2/json/cloudUrlConfig.json",
+            f"{self.WEBAPPS_DIR}/kpos/front3/js/cloudUrlConfig.json",
+            f"{self.WEBAPPS_DIR}/kpos/waitlist/cloudUrl.json"
+        ]
+
+        # CloudDatahub application.properties path
+        self.cloud_datahub_app_prop_path = f"{self.WEBAPPS_DIR}/cloudDatahub/WEB-INF/classes/application.properties"
+
+    def _validate_connection_params(self, host: str, username: str, password: str) -> None:
+        """验证连接参数的有效性"""
+        if not all([host, username, password]):
+            raise ValueError("主机、用户名和密码不能为空")
+
+        # 验证IP地址格式
+        ip_pattern = r'^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$'
+        match = re.match(ip_pattern, host)
+        if not match:
+            raise ValueError("参数错误", "请填写有效的主机IP地址！")
+
+        # 验证IP地址各部分是否在有效范围内
+        if not all(0 <= int(part) <= 255 for part in match.groups()):
+            raise ValueError("参数错误", "请填写有效的主机IP地址！")
+
+    def test_ssh(self, host: str, username: str, password: str) -> bool:
+        """测试SSH连接是否成功"""
+        try:
+            self.log(f"正在尝试连接到 {username}@{host}...")
+            with paramiko.SSHClient() as ssh:
+                ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                ssh.connect(host, username=username, password=password, timeout=10)
+                _, stdout, _ = ssh.exec_command("echo '连接测试成功'")
+                output = stdout.read().decode().strip()
+
+                if output == "连接测试成功":
+                    self.log("连接成功!")
+                    return True
+                else:
+                    self.log("连接失败，返回意外输出")
+                    return False
+        except Exception as e:
+            self.log(f"连接失败: {str(e)}")
+            return False
+
+    def _connect_ssh(self, host: str, username: str, password: str) -> paramiko.SSHClient:
+        """建立SSH连接"""
+        self._validate_connection_params(host, username, password)
+
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(host, username=username, password=password, timeout=10)
+        return ssh
+
+    def _execute_command(self, ssh: paramiko.SSHClient, command: str,
+                         timeout: int = 30) -> Tuple[str, str, int]:
+        """执行远程命令并返回结果"""
+        stdin, stdout, stderr = ssh.exec_command(command, timeout=timeout)
+        exit_status = stdout.channel.recv_exit_status()
+        out = stdout.read().decode().strip()
+        err = stderr.read().decode().strip()
+        return out, err, exit_status
+
+    def _check_file_exists(self, ssh: paramiko.SSHClient, remote_path: str) -> bool:
+        """检查远程文件是否存在"""
+        out, _, exit_status = self._execute_command(ssh, f"[ -f '{remote_path}' ] && echo '存在' || echo '未找到'")
+        return out == '存在' and exit_status == 0
+
+    def _read_remote_file(self, ssh: paramiko.SSHClient, remote_path: str) -> str:
+        """读取远程文件内容"""
+        out, err, exit_status = self._execute_command(ssh, f"cat '{remote_path}'")
+        if exit_status != 0:
+            raise IOError(f"无法读取文件 {remote_path}: {err}")
+        return out
+
+    def _write_remote_file(self, ssh: paramiko.SSHClient, remote_path: str, content: str) -> None:
+        """写入内容到远程文件"""
+        # 使用SFTP上传文件内容
+        with ssh.open_sftp() as sftp:
+            # 创建临时文件
+            with tempfile.NamedTemporaryFile(mode='w', delete=False, encoding='utf-8') as temp_file:
+                temp_file.write(content)
+                temp_path = temp_file.name
+
+            try:
+                # 上传文件
+                sftp.put(temp_path, remote_path)
+            finally:
+                # 清理临时文件
+                os.unlink(temp_path)
+
+    def _modify_remote_file(self, ssh: paramiko.SSHClient, remote_path: str, env: str) -> Tuple[bool, bool]:
+        """修改单个远程文件"""
+        if not self._check_file_exists(ssh, remote_path):
+            self.log(f"文件不存在: {remote_path}")
+            return False, False
+
+        content = self._read_remote_file(ssh, remote_path)
+        new_content = self.replace_domain(content, env)
+
+        if new_content == content:
+            self.log("文件已是目标值，无需修改")
+            return False, True
+
+        self._write_remote_file(ssh, remote_path, new_content)
+        self.log("文件已修改")
+        return True, False
+
+    def _modify_cloud_datahub_properties(self, ssh: paramiko.SSHClient, env: str) -> Tuple[bool, bool]:
+        """修改cloudDatahub的application.properties文件"""
+        app_prop_path = self.cloud_datahub_app_prop_path
+        self.log(f"正在处理远程文件: {app_prop_path}")
+
+        if not self._check_file_exists(ssh, app_prop_path):
+            self.log(f"文件不存在: {app_prop_path}")
+            return False, False
+
+        content = self._read_remote_file(ssh, app_prop_path)
+        env_type = self.get_env_type_value(env)
+        target_line = f"application.environmentType = {env_type}"
+
+        # 检查是否已经是目标值
+        if target_line in content.splitlines():
+            self.log("application.properties 本来就是目标值，无需修改")
+            return False, True
+
+        # 修改或追加配置
+        try:
+            if "application.environmentType" in content:
+                new_content = re.sub(
+                    r"^application\.environmentType\s*=.*$",
+                    target_line,
+                    content,
+                    flags=re.MULTILINE
+                )
+                self._write_remote_file(ssh, app_prop_path, new_content)
+                self.log("application.properties 已修改")
+            else:
+                with ssh.open_sftp() as sftp:
+                    with sftp.file(app_prop_path, 'a') as f:
+                        f.write(f"\n{target_line}\n")
+                self.log("application.properties 已添加目标配置")
+            return True, False
+        except Exception as e:
+            self.log(f"修改配置失败: {str(e)}")
+            return False, False
+
+    def modify_remote_files(self, host: str, username: str, password: str, env: str) -> None:
+        """修改远程服务器上所有目标文件"""
+        try:
+            with self._connect_ssh(host, username, password) as ssh:
+                modified_count, already_target_count = 0, 0
+
+                # 处理所有配置文件
+                for i, remote_path in enumerate(self.file_paths):
+                    self.log(f"处理远程文件 {i + 1}: {remote_path}")
+                    modified, already_target = self._modify_remote_file(ssh, remote_path, env)
+                    modified_count += modified
+                    already_target_count += already_target
+
+                # 处理 cloudDatahub application.properties
+                modified, already_target = self._modify_cloud_datahub_properties(ssh, env)
+                modified_count += modified
+                already_target_count += already_target
+
+                self.log(f"{host}已修改为{env}环境，修改 {modified_count} 个文件，目标值 {already_target_count} 个。")
+        except Exception as e:
+            self.log(f"远程修改出错: {str(e)}")
+            raise
+
+    def restart_pos_linux(self, host: str, username: str, password: str) -> None:
+        """远程一键重启 MenuSifu POS 应用"""
+        try:
+            self.log("正在重启远程POS服务...")
+            commands = [
+                ('[INFO] Killing menusifu_pos_extention', "/opt/menusifu/menusifu_pos_extention"),
+                ('[INFO] Killing do_pos_start', "/opt/POS/do_pos_start"),
+                ('[INFO] Killing show_pos_icon', "/opt/POS/show_pos_icon"),
+                ('[INFO] Killing tomcat7', "tomcat7"),
+                ('[INFO] 启动POS服务', "DISPLAY=:0 /usr/local/bin/pos_start")
+            ]
+
+            with self._connect_ssh(host, username, password) as ssh:
+                for info, process in commands[:-1]:
+                    self.log(info)
+                    cmd = f"echo '{password}' | sudo -S pkill -9 -f '{process}'"
+                    out, err, _ = self._execute_command(ssh, cmd, timeout=240)
+                    if out:
+                        self.log(out)
+                    if err:
+                        self.log(f"错误: {err}")
+
+                # 启动POS服务
+                self.log(commands[-1][0])
+                out, err, _ = self._execute_command(ssh, commands[-1][1], timeout=240)
+                if out:
+                    self.log(out)
+                if err:
+                    self.log(f"错误: {err}")
+
+            self.log("重启完成。")
+        except Exception as e:
+            self.log(f"重启过程中出错: {str(e)}")
+            raise
+
+    def _upload_file_with_progress(self, sftp, local_path: str, remote_path: str,
+                                   progress_signal: Optional[Callable] = None,
+                                   speed_signal: Optional[Callable] = None,
+                                   progress_range: Tuple[int, int] = (0, 100)) -> None:
+        """带进度显示的文件上传"""
+        file_size = os.path.getsize(local_path)
+        chunk_size = 256 * 1024  # 256KB
+        uploaded = 0
+        low, high = progress_range
+
+        with open(local_path, 'rb') as local_file, sftp.file(remote_path, 'wb') as remote_file:
+            last_time = time.time()
+            last_uploaded = 0
+
+            while chunk := local_file.read(chunk_size):
+                remote_file.write(chunk)
+                uploaded += len(chunk)
+
+                # 更新进度
+                if progress_signal:
+                    progress_signal(min(low + int(uploaded / file_size * (high - low)), high))
+
+                # 更新速度
+                if speed_signal and (time.time() - last_time >= 0.5):
+                    speed = (uploaded - last_uploaded) / (time.time() - last_time)
+                    speed_signal(f"上传速率：{speed / 1024 / 1024:.2f} MB/s")
+                    last_time = time.time()
+                    last_uploaded = uploaded
+
+    from typing import Optional, Callable
+
+    def replace_war_linux(self, host: str, username: str, password: str, local_war_path: str,
+                          progress_signal: Optional[Callable] = None,
+                          speed_signal: Optional[Callable] = None) -> None:
+        """替换远程服务器上的war包"""
+        try:
+            self.log(f"连接到 {host} ...")
+            with self._connect_ssh(host, username, password) as ssh:
+                remote_dir = self.WEBAPPS_DIR
+                remote_war = f"{remote_dir}/kpos.war"
+                remote_kpos = f"{remote_dir}/kpos"
+
+                # 删除旧war包
+                self._execute_command(ssh, f"rm -f {remote_war}")
+                self.log("旧war包已删除")
+                if progress_signal:
+                    progress_signal(20)
+
+                # 上传新war包
+                self.log("上传新war包...")
+                with ssh.open_sftp() as sftp:
+                    self._upload_file_with_progress(sftp, local_war_path, remote_war, progress_signal, speed_signal,
+                                                    (20, 80))
+                self.log("上传完成")
+                if progress_signal:
+                    progress_signal(85)
+
+                # 检查远程文件大小
+                local_size = os.path.getsize(local_war_path)
+                for _ in range(15):
+                    out, _, exit_status = self._execute_command(ssh, f"stat -c %s {remote_war}")
+                    if exit_status == 0 and out.strip().isdigit() and int(out.strip()) == local_size:
+                        self.log(f"远程文件大小一致: {out.strip()} 字节")
+                        break
+                    time.sleep(1)
+                else:
+                    raise Exception("远程文件未就绪或大小不一致")
+
+                # 删除旧kpos文件夹并解压新war包
+                self._execute_command(ssh, f"rm -rf {remote_kpos}")
+                self._execute_command(ssh, f"mkdir -p {remote_kpos}")
+                self.log("解压新war包...")
+                out, err, exit_status = self._execute_command(ssh, f"unzip -o -DD -q {remote_war} -d {remote_kpos}")
+                if progress_signal:
+                    progress_signal(100)
+                time.sleep(5) # 等待解压完成
+                if exit_status == 0:
+                    self.log("解压成功")
+                else:
+                    real_errors = '\n'.join(
+                        [line for line in err.splitlines() if not line.lower().startswith('warning:')])
+                    self.log(f"解压失败: {real_errors}" if real_errors else "解压过程中有警告，但无致命错误")
+        except Exception as e:
+            self.log(f"替换war包出错: {str(e)}")
+            raise
+
+    def scan_upgrade_packages(self, ssh: paramiko.SSHClient, remote_base_path: str) -> List[str]:
+        """扫描远程目标路径下符合条件的升级包，并按文件夹修改时间倒序排序"""
+        try:
+            self.log(f"正在扫描远程路径: {remote_base_path} ...")
+            out, err, _ = self._execute_command(ssh, f"ls -d {remote_base_path}/1.8.0.30.* 2>/dev/null")
+            if err:
+                self.log(f"扫描目录时出错: {err}")
+                return []
+
+            valid_dirs = []
+            for d in filter(None, out.splitlines()):
+                is_valid, _, _ = self._execute_command(ssh, f"test -f {d}/update.sh && echo 'valid' || echo 'invalid'")
+                if is_valid.strip() == "valid":
+                    mtime_out, _, _ = self._execute_command(ssh, f"stat -c %Y {d}")
+                    mtime = int(mtime_out.strip()) if mtime_out.strip().isdigit() else 0
+                    valid_dirs.append((d, mtime))
+
+            if not valid_dirs:
+                self.log("未找到符合条件的升级包！")
+                return []
+
+            return [d for d, _ in sorted(valid_dirs, key=lambda x: x[1], reverse=True)]
+        except Exception as e:
+            self.log(f"扫描远程路径时出错: {str(e)}")
+            return []
+
+    def upload_and_execute_upgrade(self, ssh: paramiko.SSHClient, local_package_path: str,
+                                   remote_target_path: str, progress_signal: Optional[Callable] = None) -> None:
+        """上传升级包并执行 update.sh"""
+        try:
+            if progress_signal:
+                progress_signal(10)
+
+            # 删除远程同名文件
+            remote_package_path = posixpath.join(remote_target_path, os.path.basename(local_package_path))
+            self.log(f"删除远程同名文件: {remote_package_path}")
+            self._execute_command(ssh, f"sudo rm -f {remote_package_path}")
+
+            if progress_signal:
+                progress_signal(40)
+
+            # 上传升级包
+            self.log(f"上传升级包到 {remote_package_path} ...")
+            with ssh.open_sftp() as sftp:
+                sftp.put(local_package_path, remote_package_path)
+            self.log("上传完成")
+
+            if progress_signal:
+                progress_signal(70)
+
+            # 执行 update.sh
+            self.log("执行 update.sh ...")
+            update_script = posixpath.join(remote_target_path, "update.sh")
+            out, err, _ = self._execute_command(ssh, f"cd {remote_target_path} && sudo bash {update_script}")
+
+            if out:
+                self.log(out)
+            if err:
+                self.log(f"执行脚本时出错: {err}")
+            else:
+                self.log("升级完成")
+
+            if progress_signal:
+                progress_signal(100)
+        except Exception as e:
+            self.log(f"升级过程中出错: {str(e)}")
+            if progress_signal:
+                progress_signal(0)
+            raise
+
+    def get_file_md5(self, ssh: paramiko.SSHClient, remote_path: str) -> Optional[str]:
+        """获取远程文件的 MD5 值"""
+        try:
+            out, err, _ = self._execute_command(ssh, f"md5sum {remote_path}")
+            if err:
+                self.log(f"获取 MD5 值时出错: {err}")
+                return None
+            return out.split()[0]  # 返回 MD5 值
+        except Exception as e:
+            self.log(f"获取 MD5 值过程中出错: {str(e)}")
+            return None
+
+    def scan_remote_logs(self, ssh: paramiko.SSHClient) -> List[str]:
+        """扫描 /opt/tomcat7/logs 下所有 .log 文件"""
+        out, _, _ = self._execute_command(ssh, 'ls /opt/tomcat7/logs/*.log 2>/dev/null')
+        files = [f for f in out.splitlines() if f]
+        return [os.path.basename(f) for f in files]
+
+    def download_remote_log(self, ssh: paramiko.SSHClient, remote_file: str, local_dir: str) -> str:
+        """下载指定远程日志文件到本地目录"""
+        with ssh.open_sftp() as sftp:
+            base = os.path.basename(remote_file)
+            timestamp = time.strftime('%Y%m%d_%H%M%S')
+            name, ext = os.path.splitext(base)
+            local_file = os.path.join(local_dir, f"{name}_{timestamp}{ext}")
+            sftp.get(remote_file, local_file)
+        return local_file
+
+    def upload_and_extract_package(self, host: str, username: str, password: str, local_file: str,
+                                   progress_signal: Optional[Callable] = None,
+                                   speed_signal: Optional[Callable] = None) -> None:
+        """上传并解压升级包"""
+        try:
+            if progress_signal:
+                progress_signal(10)
+
+            with self._connect_ssh(host, username, password) as ssh:
+                remote_file = posixpath.join(self.MENU_HOME, os.path.basename(local_file))
+
+                # 删除远程同名文件
+                self.log(f"删除远程文件: {remote_file}")
+                self._execute_command(ssh, f"sudo rm -f {remote_file}")
+                if progress_signal:
+                    progress_signal(20)
+
+                # 上传文件
+                self.log(f"上传文件到 {remote_file} ...")
+                with ssh.open_sftp() as sftp:
+                    self._upload_file_with_progress(sftp, local_file, remote_file, progress_signal, speed_signal,
+                                                    (20, 80))
+                self.log("上传完成")
+                if progress_signal:
+                    progress_signal(85)
+
+                # 解压文件
+                self.log("解压文件 ...")
+                out, err, exit_status = self._execute_command(ssh,
+                                                              f"sudo unzip -o {remote_file} -d {self.MENU_HOME} && sync")
+                if exit_status == 0:
+                    self.log("解压成功")
+                else:
+                    self.log(f"解压失败: {err}")
+                if progress_signal:
+                    progress_signal(100)
+        except Exception as e:
+            self.log(f"操作失败: {str(e)}")
+            if progress_signal:
+                progress_signal(0)
+            raise
+
+    def restart_tomcat(self, host: str, username: str, password: str) -> None:
+        """远程重启Tomcat服务"""
+        try:
+            self.log("正在重启Tomcat服务...")
+            with self._connect_ssh(host, username, password) as ssh:
+                cmd = "sudo systemctl stop tomcat.service && sudo systemctl start tomcat.service"
+                stdin, stdout, stderr = ssh.exec_command(cmd, get_pty=True)
+                stdin.write(f"{password}\n")
+                stdin.flush()
+
+                err = stderr.read().decode()
+                if err:
+                    self.log(f"错误: {err.strip()}")
+
+                self.log("Tomcat服务已重启完成。")
+        except Exception as e:
+            self.log(f"重启Tomcat服务时出错: {str(e)}")
+            raise
+
+    def list_backup_items(self, host: str, username: str, password: str) -> List[str]:
+        """列出/opt/backup下所有.zip和文件夹，按时间倒序"""
+        try:
+            with self._connect_ssh(host, username, password) as ssh:
+                # 获取所有.zip和文件夹，按时间倒序
+                out, _, _ = self._execute_command(
+                    ssh, "ls -dt /opt/backup/*.zip /opt/backup/*/ 2>/dev/null"
+                )
+                items = [
+                    os.path.basename(line.strip().rstrip('/'))
+                    for line in out.splitlines() if line.strip()
+                ]
+                return items
+        except Exception as e:
+            self.log(f"获取备份项失败: {str(e)}")
+            return []
+
+    def upgrade_with_package(self, host: str, username: str, password: str, local_package_path: str, env: str,
+                             progress_signal: Optional[Callable] = None):
+        """
+        一键升级包升级主流程：上传升级包、解压、执行升级、进度分阶段递增
+        """
+        self.log(f"正在连接到 {host} ...")
+        with self._connect_ssh(host, username, password) as ssh:
+            remote_dir = "/home/menu"
+            remote_zip = f"{remote_dir}/{os.path.basename(local_package_path)}"
+            # 上传升级包
+            self.log(f"上传升级包到 {remote_zip}")
+            with ssh.open_sftp() as sftp:
+                sftp.put(local_package_path, remote_zip)
+            if progress_signal:
+                progress_signal(20)
+            # 解压升级包
+            self.log(f"解压升级包 {remote_zip}")
+            unzip_cmd = f"unzip -o {remote_zip} -d {remote_dir}"
+            self._execute_command(ssh, unzip_cmd)
+            if progress_signal:
+                progress_signal(40)
+            # 查找升级工具目录
+            upgrade_dirs = self.scan_upgrade_packages(ssh, remote_dir)
+            if not upgrade_dirs:
+                raise Exception("未找到升级工具目录")
+            # 选择第一个升级工具目录
+            selected_dir = upgrade_dirs[0]
+            self.log(f"执行升级工具: {selected_dir}")
+            upgrade_cmd = f"cd {selected_dir} && sh upgrade.sh {env}"
+            self._execute_command(ssh, upgrade_cmd)
+            if progress_signal:
+                progress_signal(60)
+        self.log("升级包升级流程完成")
+
+    def restore_data(self, host, username, password, item_name, is_zip, progress_callback=None, error_callback=None, log_callback=None):
+        """
+        通过SSH连接到服务器，解压（如需要）并执行数据恢复。
+        :param host: 服务器地址
+        :param username: 用户名
+        :param password: 密码
+        :param item_name: 恢复项名称
+        :param is_zip: 是否为zip文件
+        :param progress_callback: 进度回调函数
+        :param error_callback: 错误回调函数
+        :param log_callback: 日志回调函数
+        """
+        import time
+        try:
+            if log_callback:
+                log_callback(f"开始数据恢复: {host}, 恢复项: {item_name}")
+            ssh = self._connect_ssh(host, username, password)
+            folder_name = item_name
+            progress = 5
+            if progress_callback:
+                progress_callback(progress)
+            # 解压zip
+            if is_zip:
+                if log_callback:
+                    log_callback(f"解压zip文件: /opt/backup/{item_name}")
+                unzip_cmd = f"unzip /opt/backup/{item_name} -d /opt/backup/"
+                stdin, stdout, stderr = ssh.exec_command(unzip_cmd)
+                unzip_progress = progress
+                while not stdout.channel.exit_status_ready():
+                    time.sleep(0.5)
+                    unzip_progress = min(unzip_progress + 5, 30)
+                    if progress_callback:
+                        progress_callback(unzip_progress)
+                for line in stdout:
+                    if log_callback:
+                        log_callback(line.strip())
+                err = stderr.read().decode()
+                if err:
+                    if log_callback:
+                        log_callback(f"解压错误: {err}")
+                    if error_callback:
+                        error_callback(err)
+                folder_name = item_name.replace('.zip', '')
+                progress = 30
+                if progress_callback:
+                    progress_callback(progress)
+            # 修正：文件夹恢复时自动加斜杠
+            if not is_zip and not folder_name.endswith('/'):
+                folder_name = folder_name + '/'
+            if log_callback:
+                log_callback(f"执行dbrestore: cd /opt/backup && dbrestore {folder_name}")
+            restore_cmd = f"cd /opt/backup && dbrestore {folder_name}"
+            stdin, stdout, stderr = ssh.exec_command(restore_cmd)
+            restore_progress = progress
+            while not stdout.channel.exit_status_ready():
+                time.sleep(0.5)
+                restore_progress = min(restore_progress + 5, 95)
+                if progress_callback:
+                    progress_callback(restore_progress)
+            for line in stdout:
+                if log_callback:
+                    log_callback(line.strip())
+            err = stderr.read().decode()
+            if err:
+                if log_callback:
+                    log_callback(f"恢复错误: {err}")
+                if error_callback:
+                    error_callback(err)
+            ssh.close()
+            if log_callback:
+                log_callback("数据恢复完成")
+            if progress_callback:
+                progress_callback(100)
+        except Exception as e:
+            if log_callback:
+                log_callback(f"数据恢复异常: {str(e)}")
+            if error_callback:
+                error_callback(str(e))
+
+    def backup_data(self, host, username, password, progress_callback=None, error_callback=None, log_callback=None):
+        """
+        通过SSH连接到服务器，执行数据备份。
+        :param host: 服务器地址
+        :param username: 用户名
+        :param password: 密码
+        :param progress_callback: 进度回调函数
+        :param error_callback: 错误回调函数
+        :param log_callback: 日志回调函数
+        """
+        import time
+        try:
+            if log_callback:
+                log_callback(f"开始数据备份: {host}")
+            ssh = self._connect_ssh(host, username, password)
+            if log_callback:
+                log_callback("执行备份脚本: cd /opt/backup && sh backup.sh")
+            cmd = "cd /opt/backup && sh backup.sh"
+            stdin, stdout, stderr = ssh.exec_command(cmd)
+            progress = 5
+            if progress_callback:
+                progress_callback(progress)
+            # 进度递增模拟
+            while not stdout.channel.exit_status_ready():
+                time.sleep(0.5)
+                progress = min(progress + 3, 90)
+                if progress_callback:
+                    progress_callback(progress)
+            # 命令完成后处理输出
+            for line in stdout:
+                if log_callback:
+                    log_callback(line.strip())
+            err = stderr.read().decode()
+            if err:
+                if log_callback:
+                    log_callback(f"备份脚本错误: {err}")
+                if error_callback:
+                    error_callback(err)
+            ssh.close()
+            if log_callback:
+                log_callback("数据备份完成")
+            if progress_callback:
+                progress_callback(100)
+        except Exception as e:
+            if log_callback:
+                log_callback(f"数据备份异常: {str(e)}")
+            if error_callback:
+                error_callback(str(e))
+
+    def pipeline_package_upgrade(self, host, username, password, selected_dir, war_file, env, progress_callback=None, speed_callback=None, log_callback=None, progress_text_callback=None):
+        """
+        一键升级包升级主流程：上传war包、执行升级脚本、修改配置、重启POS。
+        :param host: 服务器地址
+        :param username: 用户名
+        :param password: 密码
+        :param selected_dir: 远程升级目录
+        :param war_file: 本地war文件路径
+        :param env: 环境变量
+        :param progress_callback: 进度回调
+        :param speed_callback: 速率回调
+        :param log_callback: 日志回调
+        :param progress_text_callback: 进度文本回调
+        """
+        import time
+        try:
+            def log_and_emit(msg):
+                if log_callback:
+                    log_callback(msg)
+                if progress_text_callback:
+                    progress_text_callback(msg)
+
+            log_and_emit("一键升级包升级开始")
+            # 上传war包
+            log_and_emit(f"正在上传kpos.war到{selected_dir} ...")
+            with self._connect_ssh(host, username, password) as ssh:
+                remote_war = f"{selected_dir}/kpos.war"
+                with ssh.open_sftp() as sftp, open(war_file, 'rb') as f_src:
+                    file_size = os.path.getsize(war_file)
+                    uploaded, last_uploaded, start_time = 0, 0, time.time()
+                    with sftp.file(remote_war, 'wb') as f_dst:
+                        while True:
+                            data = f_src.read(1024 * 1024)
+                            if not data:
+                                break
+                            f_dst.write(data)
+                            uploaded += len(data)
+                            percent = int(uploaded / file_size * 40)  # 0~40区间
+                            if progress_callback:
+                                progress_callback(percent)
+                            # 速率
+                            elapsed = time.time() - start_time
+                            if elapsed > 0 and speed_callback:
+                                speed = (uploaded - last_uploaded) / elapsed / 1024 / 1024  # MB/s
+                                speed_callback(f"上传速率：{speed:.2f} MB/s")
+                                last_uploaded, start_time = uploaded, time.time()
+                if speed_callback:
+                    speed_callback("")  # 清空速率显示
+            if progress_callback:
+                progress_callback(40)
+            # 执行升级脚本
+            log_and_emit("正在执行升级脚本 ...")
+            with self._connect_ssh(host, username, password) as ssh:
+                self._execute_command(ssh, f"cd {selected_dir} && sh update.sh")
+            if progress_callback:
+                progress_callback(70)
+            # 修改配置文件
+            log_and_emit("正在修改配置文件 ...")
+            self.modify_remote_files(host, username, password, env)
+            if progress_callback:
+                progress_callback(85)
+            # 重启POS
+            log_and_emit("正在重启POS ...")
+            self.restart_pos_linux(host, username, password)
+            if progress_callback:
+                progress_callback(100)
+            log_and_emit("一键升级包升级已完成！")
+        except Exception as e:
+            if log_callback:
+                log_callback(f"升级异常: {str(e)}")
+            raise
+
