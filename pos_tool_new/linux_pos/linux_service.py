@@ -8,6 +8,7 @@ from typing import List, Tuple, Optional, Callable
 import paramiko
 
 from pos_tool_new.backend import Backend
+from pos_tool_new.utils import log_manager
 
 
 class LinuxService(Backend):
@@ -29,8 +30,10 @@ class LinuxService(Backend):
 
         # CloudDatahub application.properties path
         self.cloud_datahub_app_prop_path = f"{self.WEBAPPS_DIR}/cloudDatahub/WEB-INF/classes/application.properties"
+        self.log_manager = log_manager
 
-    def _validate_connection_params(self, host: str, username: str, password: str) -> None:
+    @staticmethod
+    def _validate_connection_params(host: str, username: str, password: str) -> None:
         """验证连接参数的有效性"""
         if not all([host, username, password]):
             raise ValueError("主机、用户名和密码不能为空")
@@ -48,7 +51,7 @@ class LinuxService(Backend):
     def test_ssh(self, host: str, username: str, password: str) -> bool:
         """测试SSH连接是否成功"""
         try:
-            self.log(f"正在尝试连接到 {username}@{host}...")
+            self.log(f"正在尝试连接到 {username}@{host}...", level="info")
             with paramiko.SSHClient() as ssh:
                 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
                 ssh.connect(host, username=username, password=password, timeout=10)
@@ -56,13 +59,13 @@ class LinuxService(Backend):
                 output = stdout.read().decode().strip()
 
                 if output == "连接测试成功":
-                    self.log("连接成功!")
+                    self.log("连接成功!", level="success")
                     return True
                 else:
-                    self.log("连接失败，返回意外输出")
+                    self.log("连接失败，返回意外输出", level="error")
                     return False
         except Exception as e:
-            self.log(f"连接失败: {str(e)}")
+            self.log(f"连接失败: {str(e)}", level="error")
             return False
 
     def _connect_ssh(self, host: str, username: str, password: str) -> paramiko.SSHClient:
@@ -74,7 +77,8 @@ class LinuxService(Backend):
         ssh.connect(host, username=username, password=password, timeout=10)
         return ssh
 
-    def _execute_command(self, ssh: paramiko.SSHClient, command: str,
+    @staticmethod
+    def _execute_command(ssh: paramiko.SSHClient, command: str,
                          timeout: int = 30) -> Tuple[str, str, int]:
         """执行远程命令并返回结果"""
         stdin, stdout, stderr = ssh.exec_command(command, timeout=timeout)
@@ -114,27 +118,27 @@ class LinuxService(Backend):
     def _modify_remote_file(self, ssh: paramiko.SSHClient, remote_path: str, env: str) -> Tuple[bool, bool]:
         """修改单个远程文件"""
         if not self._check_file_exists(ssh, remote_path):
-            self.log(f"文件不存在: {remote_path}")
+            self.log(f"文件不存在: {remote_path}", level="error")
             return False, False
 
         content = self._read_remote_file(ssh, remote_path)
         new_content = self.replace_domain(content, env)
 
         if new_content == content:
-            self.log("文件已是目标值，无需修改")
+            self.log("文件已是目标值，无需修改", level="info")
             return False, True
 
         self._write_remote_file(ssh, remote_path, new_content)
-        self.log("文件已修改")
+        self.log("文件已修改", level="info")
         return True, False
 
     def _modify_cloud_datahub_properties(self, ssh: paramiko.SSHClient, env: str) -> Tuple[bool, bool]:
         """修改cloudDatahub的application.properties文件"""
         app_prop_path = self.cloud_datahub_app_prop_path
-        self.log(f"正在处理远程文件: {app_prop_path}")
+        self.log(f"正在处理远程文件: {app_prop_path}", level="info")
 
         if not self._check_file_exists(ssh, app_prop_path):
-            self.log(f"文件不存在: {app_prop_path}")
+            self.log(f"文件不存在: {app_prop_path}", level="error")
             return False, False
 
         content = self._read_remote_file(ssh, app_prop_path)
@@ -143,7 +147,7 @@ class LinuxService(Backend):
 
         # 检查是否已经是目标值
         if target_line in content.splitlines():
-            self.log("application.properties 本来就是目标值，无需修改")
+            self.log("application.properties 本来就是目标值，无需修改", level="info")
             return False, True
 
         # 修改或追加配置
@@ -156,15 +160,15 @@ class LinuxService(Backend):
                     flags=re.MULTILINE
                 )
                 self._write_remote_file(ssh, app_prop_path, new_content)
-                self.log("application.properties 已修改")
+                self.log("application.properties 已修改", level="info")
             else:
                 with ssh.open_sftp() as sftp:
                     with sftp.file(app_prop_path, 'a') as f:
                         f.write(f"\n{target_line}\n")
-                self.log("application.properties 已添加目标配置")
+                self.log("application.properties 已添加目标配置", level="info")
             return True, False
         except Exception as e:
-            self.log(f"修改配置失败: {str(e)}")
+            self.log(f"修改配置失败: {str(e)}", level="error")
             return False, False
 
     def modify_remote_files(self, host: str, username: str, password: str, env: str) -> None:
@@ -175,7 +179,7 @@ class LinuxService(Backend):
 
                 # 处理所有配置文件
                 for i, remote_path in enumerate(self.file_paths):
-                    self.log(f"处理远程文件 {i + 1}: {remote_path}")
+                    self.log(f"处理远程文件 {i + 1}: {remote_path}", level="info")
                     modified, already_target = self._modify_remote_file(ssh, remote_path, env)
                     modified_count += modified
                     already_target_count += already_target
@@ -185,15 +189,16 @@ class LinuxService(Backend):
                 modified_count += modified
                 already_target_count += already_target
 
-                self.log(f"{host}已修改为{env}环境，修改 {modified_count} 个文件，目标值 {already_target_count} 个。")
+                self.log(f"{host}已修改为{env}环境，修改 {modified_count} 个文件，目标值 {already_target_count} 个。",
+                         level="info")
         except Exception as e:
-            self.log(f"远程修改出错: {str(e)}")
+            self.log(f"远程修改出错: {str(e)}", level="error")
             raise
 
     def restart_pos_linux(self, host: str, username: str, password: str) -> None:
         """远程一键重启 MenuSifu POS 应用"""
         try:
-            self.log("正在重启远程POS服务...")
+            self.log("正在重启远程POS服务...", level="info")
             commands = [
                 ('[INFO] Killing menusifu_pos_extention', "/opt/menusifu/menusifu_pos_extention"),
                 ('[INFO] Killing do_pos_start', "/opt/POS/do_pos_start"),
@@ -204,30 +209,30 @@ class LinuxService(Backend):
 
             with self._connect_ssh(host, username, password) as ssh:
                 for info, process in commands[:-1]:
-                    self.log(info)
+                    self.log(info, level="info")
                     cmd = f"echo '{password}' | sudo -S pkill -9 -f '{process}'"
                     out, err, _ = self._execute_command(ssh, cmd, timeout=240)
                     if out:
-                        self.log(out)
+                        self.log(out, level="info")
                     if err:
-                        self.log(f"错误: {err}")
+                        self.log(f"错误: {err}", level="error")
 
                 # 启动POS服务
-                self.log(commands[-1][0])
+                self.log(commands[-1][0], level="info")
                 out, err, _ = self._execute_command(ssh, commands[-1][1], timeout=240)
                 if out:
-                    self.log(out)
+                    self.log(out, level="info")
                 if err:
-                    self.log(f"错误: {err}")
+                    self.log(f"错误: {err}", level="error")
 
-            self.log("重启完成。")
+            self.log("重启完成。", level="info")
         except Exception as e:
-            self.log(f"重启过程中出错: {str(e)}")
+            self.log(f"重启过程中出错: {str(e)}", level="error")
             raise
 
     def _upload_file_with_progress(self, sftp, local_path: str, remote_path: str,
-                                   progress_signal: Optional[Callable] = None,
-                                   speed_signal: Optional[Callable] = None,
+                                   progress_callback: Optional[Callable] = None,
+                                   speed_callback: Optional[Callable] = None,
                                    progress_range: Tuple[int, int] = (0, 100)) -> None:
         """带进度显示的文件上传"""
         file_size = os.path.getsize(local_path)
@@ -244,21 +249,22 @@ class LinuxService(Backend):
                 uploaded += len(chunk)
 
                 # 更新进度
-                if progress_signal:
-                    progress_signal(min(low + int(uploaded / file_size * (high - low)), high))
+                if progress_callback:
+                    current_progress = min(low + int(uploaded / file_size * (high - low)), high)
+                    progress_callback(current_progress)
 
                 # 更新速度
-                if speed_signal and (time.time() - last_time >= 0.5):
-                    speed = (uploaded - last_uploaded) / (time.time() - last_time)
-                    speed_signal(f"上传速率：{speed / 1024 / 1024:.2f} MB/s")
-                    last_time = time.time()
+                current_time = time.time()
+                if speed_callback and (current_time - last_time >= 0.5):
+                    speed = (uploaded - last_uploaded) / (current_time - last_time)
+                    speed_text = f"上传速率：{speed / 1024 / 1024:.2f} MB/s"
+                    speed_callback(speed_text)
+                    last_time = current_time
                     last_uploaded = uploaded
 
-    from typing import Optional, Callable
-
     def replace_war_linux(self, host: str, username: str, password: str, local_war_path: str,
-                          progress_signal: Optional[Callable] = None,
-                          speed_signal: Optional[Callable] = None) -> None:
+                          progress_callback: Optional[Callable] = None,
+                          speed_callback: Optional[Callable] = None) -> None:
         """替换远程服务器上的war包"""
         try:
             self.log(f"连接到 {host} ...")
@@ -270,17 +276,17 @@ class LinuxService(Backend):
                 # 删除旧war包
                 self._execute_command(ssh, f"rm -f {remote_war}")
                 self.log("旧war包已删除")
-                if progress_signal:
-                    progress_signal(20)
+                if progress_callback:
+                    progress_callback(20)
 
                 # 上传新war包
                 self.log("上传新war包...")
                 with ssh.open_sftp() as sftp:
-                    self._upload_file_with_progress(sftp, local_war_path, remote_war, progress_signal, speed_signal,
-                                                    (20, 80))
+                    self._upload_file_with_progress(sftp, local_war_path, remote_war,
+                                                    progress_callback, speed_callback, (20, 80))
                 self.log("上传完成")
-                if progress_signal:
-                    progress_signal(85)
+                if progress_callback:
+                    progress_callback(85)
 
                 # 检查远程文件大小
                 local_size = os.path.getsize(local_war_path)
@@ -298,9 +304,9 @@ class LinuxService(Backend):
                 self._execute_command(ssh, f"mkdir -p {remote_kpos}")
                 self.log("解压新war包...")
                 out, err, exit_status = self._execute_command(ssh, f"unzip -o -DD -q {remote_war} -d {remote_kpos}")
-                if progress_signal:
-                    progress_signal(100)
-                time.sleep(5) # 等待解压完成
+                if progress_callback:
+                    progress_callback(100)
+                time.sleep(5)  # 等待解压完成
                 if exit_status == 0:
                     self.log("解压成功")
                 else:
@@ -314,10 +320,10 @@ class LinuxService(Backend):
     def scan_upgrade_packages(self, ssh: paramiko.SSHClient, remote_base_path: str) -> List[str]:
         """扫描远程目标路径下符合条件的升级包，并按文件夹修改时间倒序排序"""
         try:
-            self.log(f"正在扫描远程路径: {remote_base_path} ...")
+            self.log(f"正在扫描远程路径: {remote_base_path} ...", level="info")
             out, err, _ = self._execute_command(ssh, f"ls -d {remote_base_path}/1.8.0.30.* 2>/dev/null")
             if err:
-                self.log(f"扫描目录时出错: {err}")
+                self.log(f"扫描目录时出错: {err}", level="error")
                 return []
 
             valid_dirs = []
@@ -329,56 +335,56 @@ class LinuxService(Backend):
                     valid_dirs.append((d, mtime))
 
             if not valid_dirs:
-                self.log("未找到符合条件的升级包！")
+                self.log("未找到符合条件的升级包！", level="warning")
                 return []
 
             return [d for d, _ in sorted(valid_dirs, key=lambda x: x[1], reverse=True)]
         except Exception as e:
-            self.log(f"扫描远程路径时出错: {str(e)}")
+            self.log(f"扫描远程路径时出错: {str(e)}", level="error")
             return []
 
     def upload_and_execute_upgrade(self, ssh: paramiko.SSHClient, local_package_path: str,
-                                   remote_target_path: str, progress_signal: Optional[Callable] = None) -> None:
+                                   remote_target_path: str, progress_callback: Optional[Callable] = None) -> None:
         """上传升级包并执行 update.sh"""
         try:
-            if progress_signal:
-                progress_signal(10)
+            if progress_callback:
+                progress_callback(10)
 
             # 删除远程同名文件
             remote_package_path = posixpath.join(remote_target_path, os.path.basename(local_package_path))
-            self.log(f"删除远程同名文件: {remote_package_path}")
+            self.log(f"删除远程同名文件: {remote_package_path}", level="info")
             self._execute_command(ssh, f"sudo rm -f {remote_package_path}")
 
-            if progress_signal:
-                progress_signal(40)
+            if progress_callback:
+                progress_callback(40)
 
             # 上传升级包
-            self.log(f"上传升级包到 {remote_package_path} ...")
+            self.log(f"上传升级包到 {remote_package_path} ...", level="info")
             with ssh.open_sftp() as sftp:
                 sftp.put(local_package_path, remote_package_path)
-            self.log("上传完成")
+            self.log("上传完成", level="info")
 
-            if progress_signal:
-                progress_signal(70)
+            if progress_callback:
+                progress_callback(70)
 
             # 执行 update.sh
-            self.log("执行 update.sh ...")
+            self.log("执行 update.sh ...", level="info")
             update_script = posixpath.join(remote_target_path, "update.sh")
             out, err, _ = self._execute_command(ssh, f"cd {remote_target_path} && sudo bash {update_script}")
 
             if out:
-                self.log(out)
+                self.log(out, level="info")
             if err:
-                self.log(f"执行脚本时出错: {err}")
+                self.log(f"执行脚本时出错: {err}", level="error")
             else:
-                self.log("升级完成")
+                self.log("升级完成", level="info")
 
-            if progress_signal:
-                progress_signal(100)
+            if progress_callback:
+                progress_callback(100)
         except Exception as e:
-            self.log(f"升级过程中出错: {str(e)}")
-            if progress_signal:
-                progress_signal(0)
+            self.log(f"升级过程中出错: {str(e)}", level="error")
+            if progress_callback:
+                progress_callback(0)
             raise
 
     def get_file_md5(self, ssh: paramiko.SSHClient, remote_path: str) -> Optional[str]:
@@ -386,11 +392,11 @@ class LinuxService(Backend):
         try:
             out, err, _ = self._execute_command(ssh, f"md5sum {remote_path}")
             if err:
-                self.log(f"获取 MD5 值时出错: {err}")
+                self.log(f"获取 MD5 值时出错: {err}", level="error")
                 return None
             return out.split()[0]  # 返回 MD5 值
         except Exception as e:
-            self.log(f"获取 MD5 值过程中出错: {str(e)}")
+            self.log(f"获取 MD5 值过程中出错: {str(e)}", level="error")
             return None
 
     def scan_remote_logs(self, ssh: paramiko.SSHClient) -> List[str]:
@@ -410,51 +416,51 @@ class LinuxService(Backend):
         return local_file
 
     def upload_and_extract_package(self, host: str, username: str, password: str, local_file: str,
-                                   progress_signal: Optional[Callable] = None,
-                                   speed_signal: Optional[Callable] = None) -> None:
+                                   progress_callback: Optional[Callable] = None,
+                                   speed_callback: Optional[Callable] = None) -> None:
         """上传并解压升级包"""
         try:
-            if progress_signal:
-                progress_signal(10)
+            if progress_callback:
+                progress_callback(10)
 
             with self._connect_ssh(host, username, password) as ssh:
                 remote_file = posixpath.join(self.MENU_HOME, os.path.basename(local_file))
 
                 # 删除远程同名文件
-                self.log(f"删除远程文件: {remote_file}")
+                self.log(f"删除远程文件: {remote_file}", level="info")
                 self._execute_command(ssh, f"sudo rm -f {remote_file}")
-                if progress_signal:
-                    progress_signal(20)
+                if progress_callback:
+                    progress_callback(20)
 
                 # 上传文件
-                self.log(f"上传文件到 {remote_file} ...")
+                self.log(f"上传文件到 {remote_file} ...", level="info")
                 with ssh.open_sftp() as sftp:
-                    self._upload_file_with_progress(sftp, local_file, remote_file, progress_signal, speed_signal,
-                                                    (20, 80))
-                self.log("上传完成")
-                if progress_signal:
-                    progress_signal(85)
+                    self._upload_file_with_progress(sftp, local_file, remote_file,
+                                                    progress_callback, speed_callback, (20, 80))
+                self.log("上传完成", level="info")
+                if progress_callback:
+                    progress_callback(85)
 
                 # 解压文件
-                self.log("解压文件 ...")
+                self.log("解压文件 ...", level="info")
                 out, err, exit_status = self._execute_command(ssh,
                                                               f"sudo unzip -o {remote_file} -d {self.MENU_HOME} && sync")
                 if exit_status == 0:
-                    self.log("解压成功")
+                    self.log("解压成功", level="info")
                 else:
-                    self.log(f"解压失败: {err}")
-                if progress_signal:
-                    progress_signal(100)
+                    self.log(f"解压失败: {err}", level="error")
+                if progress_callback:
+                    progress_callback(100)
         except Exception as e:
-            self.log(f"操作失败: {str(e)}")
-            if progress_signal:
-                progress_signal(0)
+            self.log(f"操作失败: {str(e)}", level="error")
+            if progress_callback:
+                progress_callback(0)
             raise
 
     def restart_tomcat(self, host: str, username: str, password: str) -> None:
         """远程重启Tomcat服务"""
         try:
-            self.log("正在重启Tomcat服务...")
+            self.log("正在重启Tomcat服务...", level="info")
             with self._connect_ssh(host, username, password) as ssh:
                 cmd = "sudo systemctl stop tomcat.service && sudo systemctl start tomcat.service"
                 stdin, stdout, stderr = ssh.exec_command(cmd, get_pty=True)
@@ -463,11 +469,11 @@ class LinuxService(Backend):
 
                 err = stderr.read().decode()
                 if err:
-                    self.log(f"错误: {err.strip()}")
+                    self.log(f"错误: {err.strip()}", level="error")
 
-                self.log("Tomcat服务已重启完成。")
+                self.log("Tomcat服务已重启完成。", level="info")
         except Exception as e:
-            self.log(f"重启Tomcat服务时出错: {str(e)}")
+            self.log(f"重启Tomcat服务时出错: {str(e)}", level="error")
             raise
 
     def list_backup_items(self, host: str, username: str, password: str) -> List[str]:
@@ -484,11 +490,11 @@ class LinuxService(Backend):
                 ]
                 return items
         except Exception as e:
-            self.log(f"获取备份项失败: {str(e)}")
+            self.log(f"获取备份项失败: {str(e)}", level="error")
             return []
 
     def upgrade_with_package(self, host: str, username: str, password: str, local_package_path: str, env: str,
-                             progress_signal: Optional[Callable] = None):
+                             progress_callback: Optional[Callable] = None):
         """
         一键升级包升级主流程：上传升级包、解压、执行升级、进度分阶段递增
         """
@@ -500,14 +506,14 @@ class LinuxService(Backend):
             self.log(f"上传升级包到 {remote_zip}")
             with ssh.open_sftp() as sftp:
                 sftp.put(local_package_path, remote_zip)
-            if progress_signal:
-                progress_signal(20)
+            if progress_callback:
+                progress_callback(20)
             # 解压升级包
             self.log(f"解压升级包 {remote_zip}")
             unzip_cmd = f"unzip -o {remote_zip} -d {remote_dir}"
             self._execute_command(ssh, unzip_cmd)
-            if progress_signal:
-                progress_signal(40)
+            if progress_callback:
+                progress_callback(40)
             # 查找升级工具目录
             upgrade_dirs = self.scan_upgrade_packages(ssh, remote_dir)
             if not upgrade_dirs:
@@ -517,23 +523,15 @@ class LinuxService(Backend):
             self.log(f"执行升级工具: {selected_dir}")
             upgrade_cmd = f"cd {selected_dir} && sh upgrade.sh {env}"
             self._execute_command(ssh, upgrade_cmd)
-            if progress_signal:
-                progress_signal(60)
+            if progress_callback:
+                progress_callback(60)
         self.log("升级包升级流程完成")
 
-    def restore_data(self, host, username, password, item_name, is_zip, progress_callback=None, error_callback=None, log_callback=None):
+    def restore_data(self, host, username, password, item_name, is_zip, progress_callback=None, error_callback=None,
+                     log_callback=None):
         """
         通过SSH连接到服务器，解压（如需要）并执行数据恢复。
-        :param host: 服务器地址
-        :param username: 用户名
-        :param password: 密码
-        :param item_name: 恢复项名称
-        :param is_zip: 是否为zip文件
-        :param progress_callback: 进度回调函数
-        :param error_callback: 错误回调函数
-        :param log_callback: 日志回调函数
         """
-        import time
         try:
             if log_callback:
                 log_callback(f"开始数据恢复: {host}, 恢复项: {item_name}")
@@ -542,6 +540,7 @@ class LinuxService(Backend):
             progress = 5
             if progress_callback:
                 progress_callback(progress)
+
             # 解压zip
             if is_zip:
                 if log_callback:
@@ -567,9 +566,11 @@ class LinuxService(Backend):
                 progress = 30
                 if progress_callback:
                     progress_callback(progress)
+
             # 修正：文件夹恢复时自动加斜杠
             if not is_zip and not folder_name.endswith('/'):
                 folder_name = folder_name + '/'
+
             if log_callback:
                 log_callback(f"执行dbrestore: cd /opt/backup && dbrestore {folder_name}")
             restore_cmd = f"cd /opt/backup && dbrestore {folder_name}"
@@ -580,37 +581,35 @@ class LinuxService(Backend):
                 restore_progress = min(restore_progress + 5, 95)
                 if progress_callback:
                     progress_callback(restore_progress)
+
             for line in stdout:
                 if log_callback:
                     log_callback(line.strip())
+
             err = stderr.read().decode()
             if err:
                 if log_callback:
                     log_callback(f"恢复错误: {err}")
                 if error_callback:
                     error_callback(err)
+
             ssh.close()
             if log_callback:
                 log_callback("数据恢复完成")
             if progress_callback:
                 progress_callback(100)
+
         except Exception as e:
             if log_callback:
                 log_callback(f"数据恢复异常: {str(e)}")
             if error_callback:
                 error_callback(str(e))
+            raise
 
     def backup_data(self, host, username, password, progress_callback=None, error_callback=None, log_callback=None):
         """
         通过SSH连接到服务器，执行数据备份。
-        :param host: 服务器地址
-        :param username: 用户名
-        :param password: 密码
-        :param progress_callback: 进度回调函数
-        :param error_callback: 错误回调函数
-        :param log_callback: 日志回调函数
         """
-        import time
         try:
             if log_callback:
                 log_callback(f"开始数据备份: {host}")
@@ -622,48 +621,44 @@ class LinuxService(Backend):
             progress = 5
             if progress_callback:
                 progress_callback(progress)
+
             # 进度递增模拟
             while not stdout.channel.exit_status_ready():
                 time.sleep(0.5)
                 progress = min(progress + 3, 90)
                 if progress_callback:
                     progress_callback(progress)
+
             # 命令完成后处理输出
             for line in stdout:
                 if log_callback:
                     log_callback(line.strip())
+
             err = stderr.read().decode()
             if err:
                 if log_callback:
                     log_callback(f"备份脚本错误: {err}")
                 if error_callback:
                     error_callback(err)
+
             ssh.close()
             if log_callback:
                 log_callback("数据备份完成")
             if progress_callback:
                 progress_callback(100)
+
         except Exception as e:
             if log_callback:
                 log_callback(f"数据备份异常: {str(e)}")
             if error_callback:
                 error_callback(str(e))
+            raise
 
-    def pipeline_package_upgrade(self, host, username, password, selected_dir, war_file, env, progress_callback=None, speed_callback=None, log_callback=None, progress_text_callback=None):
+    def pipeline_package_upgrade(self, host, username, password, selected_dir, war_file, env, progress_callback=None,
+                                 speed_callback=None, log_callback=None, progress_text_callback=None):
         """
         一键升级包升级主流程：上传war包、执行升级脚本、修改配置、重启POS。
-        :param host: 服务器地址
-        :param username: 用户名
-        :param password: 密码
-        :param selected_dir: 远程升级目录
-        :param war_file: 本地war文件路径
-        :param env: 环境变量
-        :param progress_callback: 进度回调
-        :param speed_callback: 速率回调
-        :param log_callback: 日志回调
-        :param progress_text_callback: 进度文本回调
         """
-        import time
         try:
             def log_and_emit(msg):
                 if log_callback:
@@ -672,6 +667,7 @@ class LinuxService(Backend):
                     progress_text_callback(msg)
 
             log_and_emit("一键升级包升级开始")
+
             # 上传war包
             log_and_emit(f"正在上传kpos.war到{selected_dir} ...")
             with self._connect_ssh(host, username, password) as ssh:
@@ -695,29 +691,38 @@ class LinuxService(Backend):
                                 speed = (uploaded - last_uploaded) / elapsed / 1024 / 1024  # MB/s
                                 speed_callback(f"上传速率：{speed:.2f} MB/s")
                                 last_uploaded, start_time = uploaded, time.time()
+
                 if speed_callback:
                     speed_callback("")  # 清空速率显示
+
             if progress_callback:
                 progress_callback(40)
+
             # 执行升级脚本
             log_and_emit("正在执行升级脚本 ...")
             with self._connect_ssh(host, username, password) as ssh:
                 self._execute_command(ssh, f"cd {selected_dir} && sh update.sh")
+
             if progress_callback:
                 progress_callback(70)
+
             # 修改配置文件
             log_and_emit("正在修改配置文件 ...")
             self.modify_remote_files(host, username, password, env)
+
             if progress_callback:
                 progress_callback(85)
+
             # 重启POS
             log_and_emit("正在重启POS ...")
             self.restart_pos_linux(host, username, password)
+
             if progress_callback:
                 progress_callback(100)
+
             log_and_emit("一键升级包升级已完成！")
+
         except Exception as e:
             if log_callback:
                 log_callback(f"升级异常: {str(e)}")
             raise
-

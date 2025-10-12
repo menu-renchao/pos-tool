@@ -181,22 +181,15 @@ class GenerateImgTabWidget(BaseTabWidget):
         self.gen_btn.setDisabled(True)
 
         self.thread = GenerateImgThread(self.service, mode, width, height, mb, fmt)
-        self.thread.finished_signal.connect(self.on_generate_finished)
+        self.thread.finished.connect(self.on_generate_finished)
         self.thread.start()
 
-    def log_to_mainwindow(self, msg):
-        main_win = self.window()
-        if hasattr(main_win, 'append_log'):
-            main_win.append_log(msg)
-        else:
-            print(msg)
 
     def on_generate_finished(self, output_path):
         """生成完成回调"""
         self.gen_btn.setDisabled(False)
 
         if output_path:
-            msg = f"生成成功: {output_path}"
             self.status_label.setText("生成成功！")
             self.status_label.setStyleSheet("""
                 QLabel { 
@@ -209,7 +202,6 @@ class GenerateImgTabWidget(BaseTabWidget):
                 }
             """)
         else:
-            msg = "生成失败"
             self.status_label.setText("生成失败")
             self.status_label.setStyleSheet("""
                 QLabel { 
@@ -221,5 +213,3 @@ class GenerateImgTabWidget(BaseTabWidget):
                     font-size: 12px;
                 }
             """)
-
-        self.log_to_mainwindow(msg)

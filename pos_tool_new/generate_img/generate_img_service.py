@@ -14,13 +14,13 @@ class GenerateImgService(Backend):
         try:
             if mode == "dim":
                 if not width or not height:
-                    self.log("参数错误：未填写宽度和高度")
+                    self.log("参数错误：未填写宽度和高度", "error")
                     return None, "请填写宽度和高度"
                 width = int(width)
                 height = int(height)
             else:
                 if not mb:
-                    self.log("参数错误：未填写图片大小")
+                    self.log("参数错误：未填写图片大小", "error")
                     return None, "请填写图片大小"
                 mb = float(mb)
                 total_bytes = int(mb * 1024 * 1024)
@@ -44,10 +44,10 @@ class GenerateImgService(Backend):
             filename = f"{timestamp}_{width}x{height}.{fmt.lower()}"
             output_path = os.path.abspath(filename)
             img.save(output_path, fmt)
-            self.log(f"生成图片成功: {output_path} 尺寸: {width}x{height} 格式: {fmt}")
+            self.log(f"生成图片成功: {output_path} 尺寸: {width}x{height} 格式: {fmt}", "success")
             return output_path, None
         except Exception as e:
-            self.log(f"生成图片失败: {e}")
+            self.log(f"生成图片失败: {e}", "error")
             return None, str(e)
 
     def _sky_gradient(self, width, height):

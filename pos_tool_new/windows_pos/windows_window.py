@@ -17,7 +17,6 @@ class WindowsTabWidget(BaseTabWidget):
         super().__init__("Windows POS")
         self.parent_window = parent
         self.service = WindowsService()
-        self.service.log_signal.connect(self.parent_window.append_log)
         self.setup_ui()
 
     def setup_ui(self):
@@ -126,7 +125,7 @@ class WindowsTabWidget(BaseTabWidget):
             base_path,
             selected_version
         )
-        self.restart_thread.error_signal.connect(lambda msg: QMessageBox.warning(self, "错误", msg))
+        self.restart_thread.error_occurred.connect(lambda msg: QMessageBox.warning(self, "错误", msg))
         self.restart_thread.start()
 
     def on_replace_war_windows(self):
@@ -156,7 +155,7 @@ class WindowsTabWidget(BaseTabWidget):
             selected_version,
             war_path
         )
-        self.replace_thread.error_signal.connect(lambda msg: QMessageBox.warning(self, "错误", msg))
+        self.replace_thread.error_occurred.connect(lambda msg: QMessageBox.warning(self, "错误", msg))
         self.replace_thread.start()
 
     def select_version(self, versions: List[str]) -> Optional[str]:
@@ -181,7 +180,7 @@ class WindowsTabWidget(BaseTabWidget):
         if dialog.exec() and dialog.textValue().strip():
             url = dialog.textValue().strip()
             if self.parent_window and hasattr(self.parent_window, 'append_log'):
-                self.parent_window.append_log(f"开始从网络下载: {url}")
+                self.service.log(f"开始从网络下载: {url}")
             self._download_war_from_net(url)
 
     def _download_war_from_net(self, url):
@@ -197,13 +196,13 @@ class WindowsTabWidget(BaseTabWidget):
             self.parent_window.speed_label.setVisible(True)
             self.parent_window.speed_label.clear()
         if self.parent_window and hasattr(self.parent_window, 'append_log'):
-            self.parent_window.append_log("正在下载，请稍候...")
+            self.service.log("正在下载，请稍候...")
         temp_dir = tempfile.mkdtemp(prefix="war_download_")
         service = DownloadWarService()
         old_cwd = os.getcwd()
         os.chdir(temp_dir)
         self._download_worker = DownloadWarWorker(url, service, expected_size_mb=217)
-        self._download_worker.progress.connect(self._handle_download_progress)
+        self._download_worker.progress_updated.connect(self._handle_download_progress)
         self._download_worker.finished.connect(
             lambda success, result: self._handle_download_finished(success, result, temp_dir, old_cwd))
         self._download_worker.start()

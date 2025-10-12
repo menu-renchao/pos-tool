@@ -15,7 +15,7 @@ class CallerIdTabWidget(BaseTabWidget):
         super().__init__("Caller ID 模拟拨号", parent)
         self.parent_window = parent
         self.setup_ui()
-        self.backend = backend
+        self.service = CallerService()
 
     def setup_ui(self):
         # 设置全局字体
@@ -97,23 +97,6 @@ class CallerIdTabWidget(BaseTabWidget):
 
         # 拨号按钮
         self.dial_button = QPushButton("模拟拨号")
-        self.dial_button.setStyleSheet("""
-            QPushButton {
-                background-color: #4CAF50;
-                color: white;
-                border: none;
-                padding: 6px 12px;
-                font-weight: bold;
-                border-radius: 3px;
-                font-size: 10px;
-            }
-            QPushButton:hover {
-                background-color: #45a049;
-            }
-            QPushButton:pressed {
-                background-color: #3d8b40;
-            }
-        """)
         self.dial_button.setFixedHeight(32)  # 缩小高度
         self.dial_button.clicked.connect(self.on_dial)
 
@@ -162,7 +145,7 @@ class CallerIdTabWidget(BaseTabWidget):
             if random_phone:
                 self.phone_input.setText(CallerService.generate_random_phone_number())
 
-            self.backend.log(f"发送消息成功: {log_message}")
+            self.service.log(f"发送消息成功: {log_message}", "success")
 
         except Exception as e:
             QMessageBox.warning(self, "错误", f"主机 POS 没开或端口被占用: {str(e)}")

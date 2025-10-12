@@ -1,17 +1,20 @@
-import os
-import threading
 import time
 
-from PyQt6.QtCore import QThread, pyqtSignal, QObject
+from PyQt6.QtCore import QThread, pyqtSignal
 
 from pos_tool_new.backend import Backend
 from pos_tool_new.download_war.download_war_service import DownloadWarService
+from pos_tool_new.linux_pos.linux_service import LinuxService
 
 
 class BaseWorkerThread(QThread):
-    """基础工作线程类，提供通用的错误处理功能"""
-    error_signal = pyqtSignal(str)
-    finished = pyqtSignal()  # 添加finished信号
+    # 统一信号定义
+    progress_updated = pyqtSignal(int)  # 进度百分比
+    progress_text_updated = pyqtSignal(str)  # 进度文本
+    speed_updated = pyqtSignal(str)  # 速度信息
+    status_updated = pyqtSignal(str)  # 状态信息
+    error_occurred = pyqtSignal(str)  # 错误信息
+    finished = pyqtSignal(bool, str)  # 完成状态和消息
 
     def __init__(self):
         super().__init__()
@@ -20,10 +23,11 @@ class BaseWorkerThread(QThread):
     def run(self):
         try:
             self._run_impl()
+            self.finished.emit(True, "操作完成")
         except Exception as e:
-            self.error_signal.emit(f"线程执行失败: {str(e)}")
-        finally:
-            self.finished.emit()  # 确保总是发出finished信号
+            error_msg = f"线程执行失败: {str(e)}"
+            self.error_occurred.emit(error_msg)
+            self.finished.emit(False, error_msg)
 
     def _run_impl(self):
         """子类需要实现的具体运行逻辑"""
@@ -32,31 +36,31 @@ class BaseWorkerThread(QThread):
     def run_with_error_handling(self, func, *args, **kwargs):
         """执行函数并捕获异常"""
         try:
-            func(*args, **kwargs)
+            return func(*args, **kwargs)
         except Exception as e:
-            self.error_signal.emit(f"操作失败: {str(e)}")
+            error_msg = f"操作失败: {str(e)}"
+            self.error_occurred.emit(error_msg)
+            raise
 
 
 class RestartPosThreadLinux(BaseWorkerThread):
-    def __init__(self, backend: Backend, host: str, username: str, password: str):
+    def __init__(self, service: LinuxService, host: str, username: str, password: str):
         super().__init__()
-        self.backend = backend
+        self.service = service
         self.host = host
         self.username = username
         self.password = password
 
-    def run(self):
+    def _run_impl(self):
+        self.progress_text_updated.emit("正在重启Linux POS服务...")
         self.run_with_error_handling(
-            self.backend.restart_pos_linux,
+            self.service.restart_pos_linux,
             self.host, self.username, self.password
         )
-        self.finished.emit()
+        self.progress_text_updated.emit("Linux POS服务重启完成")
 
 
 class ReplaceWarThreadLinux(BaseWorkerThread):
-    progress_signal = pyqtSignal(int)
-    speed_signal = pyqtSignal(str)  # 修改为str类型
-
     def __init__(self, backend: Backend, host: str, username: str, password: str, war_path: str):
         super().__init__()
         self.backend = backend
@@ -65,12 +69,21 @@ class ReplaceWarThreadLinux(BaseWorkerThread):
         self.password = password
         self.war_path = war_path
 
-    def run(self):
+    def _run_impl(self):
+        self.progress_text_updated.emit("正在替换Linux WAR包...")
+        def progress_callback(percent):
+            try:
+                percent = int(percent)
+                self.progress_updated.emit(percent)
+            except Exception:
+                pass
+        def speed_callback(speed_text):
+            self.speed_updated.emit(speed_text)
         self.run_with_error_handling(
             self.backend.replace_war_linux,
-            self.host, self.username, self.password, self.war_path, self.progress_signal.emit, self.speed_signal.emit
+            self.host, self.username, self.password, self.war_path,
         )
-        self.finished.emit()
+        self.progress_text_updated.emit("Linux WAR包替换完成")
 
 
 class RestartPosThreadWindows(BaseWorkerThread):
@@ -80,11 +93,13 @@ class RestartPosThreadWindows(BaseWorkerThread):
         self.base_path = base_path
         self.selected_version = selected_version
 
-    def run(self):
+    def _run_impl(self):
+        self.progress_text_updated.emit("正在重启Windows POS服务...")
         self.run_with_error_handling(
             self.backend.restart_pos_windows,
             self.base_path, self.selected_version
         )
+        self.progress_text_updated.emit("Windows POS服务重启完成")
 
 
 class ReplaceWarThreadWindows(BaseWorkerThread):
@@ -95,16 +110,16 @@ class ReplaceWarThreadWindows(BaseWorkerThread):
         self.selected_version = selected_version
         self.local_war_path = local_war_path
 
-    def run(self):
+    def _run_impl(self):
+        self.progress_text_updated.emit("正在替换Windows WAR包...")
         self.run_with_error_handling(
             self.backend.replace_war_windows,
             self.base_path, self.selected_version, self.local_war_path
         )
+        self.progress_text_updated.emit("Windows WAR包替换完成")
 
 
 class UpgradeThread(BaseWorkerThread):
-    progress_signal = pyqtSignal(int)
-
     def __init__(self, backend: Backend, ssh, local_package_path: str, remote_target_path: str):
         super().__init__()
         self.backend = backend
@@ -112,23 +127,23 @@ class UpgradeThread(BaseWorkerThread):
         self.local_package_path = local_package_path
         self.remote_target_path = remote_target_path
 
-    def run(self):
-        try:
-            self.backend.upload_and_execute_upgrade(
-                self.ssh,
-                self.local_package_path,
-                self.remote_target_path,
-                self.progress_signal.emit
-            )
-        except Exception as e:
-            self.error_signal.emit(f"升级过程中出错: {str(e)}")
-        self.finished.emit()
+    def _run_impl(self):
+        self.progress_text_updated.emit("开始升级流程...")
+
+        def progress_callback(percent):
+            self.progress_updated.emit(percent)
+
+        self.run_with_error_handling(
+            self.backend.upload_and_execute_upgrade,
+            self.ssh,
+            self.local_package_path,
+            self.remote_target_path,
+            progress_callback
+        )
+        self.progress_text_updated.emit("升级流程完成")
 
 
 class UploadUpgradePackageThread(BaseWorkerThread):
-    progress_signal = pyqtSignal(int)
-    speed_signal = pyqtSignal(str)  # 修改为str类型
-
     def __init__(self, backend: Backend, host: str, username: str, password: str, local_file: str):
         super().__init__()
         self.backend = backend
@@ -137,12 +152,21 @@ class UploadUpgradePackageThread(BaseWorkerThread):
         self.password = password
         self.local_file = local_file
 
-    def run(self):
+    def _run_impl(self):
+        self.progress_text_updated.emit("开始上传升级包...")
+
+        def progress_callback(percent):
+            self.progress_updated.emit(percent)
+
+        def speed_callback(speed):
+            self.speed_updated.emit(speed)
+
         self.run_with_error_handling(
             self.backend.upload_and_extract_package,
-            self.host, self.username, self.password, self.local_file, self.progress_signal.emit, self.speed_signal.emit
+            self.host, self.username, self.password, self.local_file,
+            progress_callback, speed_callback
         )
-        self.finished.emit()
+        self.progress_text_updated.emit("升级包上传完成")
 
 
 class RestartTomcatThread(BaseWorkerThread):
@@ -153,18 +177,87 @@ class RestartTomcatThread(BaseWorkerThread):
         self.username = username
         self.password = password
 
-    def run(self):
+    def _run_impl(self):
+        self.progress_text_updated.emit("正在重启Tomcat服务...")
         self.run_with_error_handling(
             self.backend.restart_tomcat,
             self.host, self.username, self.password
         )
-        self.finished.emit()
+        self.progress_text_updated.emit("Tomcat服务重启完成")
 
 
 class BackupThread(BaseWorkerThread):
-    progress_signal = pyqtSignal(int)
-    error_signal = pyqtSignal(str)
-    finished_signal = pyqtSignal()  # 改名，避免与 DownloadWarWorker 冲突
+    def __init__(self, service, host, username, password):
+        super().__init__()
+        self.service = service
+        self.host = host
+        self.username = username
+        self.password = password
+
+    def _run_impl(self):
+        self.progress_text_updated.emit("开始数据备份...")
+
+        def progress_callback(progress):
+            self.progress_updated.emit(progress)
+
+        def error_callback(err):
+            self.error_occurred.emit(err)
+
+        def log_callback(msg):
+            self.status_updated.emit(msg)
+            self.service.log(msg, level="info")
+
+        self.run_with_error_handling(
+            self.service.backup_data,
+            self.host,
+            self.username,
+            self.password,
+            progress_callback=progress_callback,
+            error_callback=error_callback,
+            log_callback=log_callback
+        )
+        self.progress_text_updated.emit("数据备份完成")
+
+
+class RestoreThread(BaseWorkerThread):
+    def __init__(self, service, host, username, password, item_name, is_zip):
+        super().__init__()
+        self.service = service
+        self.host = host
+        self.username = username
+        self.password = password
+        self.item_name = item_name
+        self.is_zip = is_zip
+
+    def _run_impl(self):
+        self.progress_text_updated.emit("开始数据恢复...")
+
+        def progress_callback(progress):
+            self.progress_updated.emit(progress)
+
+        def error_callback(err):
+            self.error_occurred.emit(err)
+
+        def log_callback(msg):
+            self.status_updated.emit(msg)
+            self.service.log(msg, level="info")
+
+        self.run_with_error_handling(
+            self.service.restore_data,
+            self.host,
+            self.username,
+            self.password,
+            self.item_name,
+            self.is_zip,
+            progress_callback=progress_callback,
+            error_callback=error_callback,
+            log_callback=log_callback
+        )
+        self.progress_text_updated.emit("数据恢复完成")
+
+
+class SshTestThread(QThread):
+    finished = pyqtSignal(bool, str)  # 测试结果和消息
 
     def __init__(self, service, host, username, password):
         super().__init__()
@@ -175,90 +268,17 @@ class BackupThread(BaseWorkerThread):
 
     def run(self):
         try:
-            def progress_callback(progress):
-                self.progress_signal.emit(progress)
-            def error_callback(err):
-                self.error_signal.emit(err)
-            def log_callback(msg):
-                self.service.log(msg)
-            self.service.backup_data(
-                self.host,
-                self.username,
-                self.password,
-                progress_callback=progress_callback,
-                error_callback=error_callback,
-                log_callback=log_callback
-            )
-            self.finished_signal.emit()
+            result = self.service.test_ssh(self.host, self.username, self.password)
+            if result:
+                self.finished.emit(True, "SSH连接测试成功")
+            else:
+                self.finished.emit(False, "SSH连接测试失败")
         except Exception as e:
-            self.service.log(f"数据备份异常: {str(e)}")
-            self.error_signal.emit(str(e))
-            self.finished_signal.emit()
+            self.finished.emit(False, f"SSH连接测试异常: {str(e)}")
 
 
-class RestoreThread(BaseWorkerThread):
-    progress_signal = pyqtSignal(int)
-    error_signal = pyqtSignal(str)
-    finished_signal = pyqtSignal()
-
-    def __init__(self, service, host, username, password, item_name, is_zip):
-        super().__init__()
-        self.service = service
-        self.host = host
-        self.username = username
-        self.password = password
-        self.item_name = item_name
-        self.is_zip = is_zip
-
-    def run(self):
-        try:
-            def progress_callback(progress):
-                self.progress_signal.emit(progress)
-            def error_callback(err):
-                self.error_signal.emit(err)
-            def log_callback(msg):
-                self.service.log(msg)
-            self.service.restore_data(
-                self.host,
-                self.username,
-                self.password,
-                self.item_name,
-                self.is_zip,
-                progress_callback=progress_callback,
-                error_callback=error_callback,
-                log_callback=log_callback
-            )
-            self.finished_signal.emit()
-        except Exception as e:
-            self.service.log(f"数据恢复异常: {str(e)}")
-            self.error_signal.emit(str(e))
-            self.finished_signal.emit()
-
-
-class SshTestThread(QThread):
-    def __init__(self, service, host, username, password, callback):
-        super().__init__()
-        self.service = service
-        self.host = host
-        self.username = username
-        self.password = password
-        self.callback = callback
-
-    def run(self):
-        result = self.service.test_ssh(self.host, self.username, self.password)
-        if result:
-            self.callback(True, "连接成功")
-        else:
-            self.callback(False, "连接失败")
-
-
-class PipelineUpgradeThread(QThread):
-    finished = pyqtSignal(bool, str)
-    progress_signal = pyqtSignal(int)
-    speed_signal = pyqtSignal(str)
-    progress_text_signal = pyqtSignal(str)
-
-    def __init__(self, service, host, username, password, local_war_path, env, ui_ref):
+class PipelineUpgradeThread(BaseWorkerThread):
+    def __init__(self, service, host, username, password, local_war_path, env, ui_ref=None):
         super().__init__()
         self.service = service
         self.host = host
@@ -268,47 +288,46 @@ class PipelineUpgradeThread(QThread):
         self.env = env
         self.ui_ref = ui_ref
 
-    def run(self):
+    def _run_impl(self):
         try:
             self._upload_and_extract_war()
             self._modify_config_files()
             self._restart_pos()
-            self.finished.emit(True, "一键升级已完成！")
         except Exception as e:
             self._handle_exception(e)
 
     def _upload_and_extract_war(self):
-        self._log_progress("正在上传/解压war包 ...")
+        self.progress_text_updated.emit("正在上传/解压WAR包...")
+
+        def progress_callback(percent):
+            self.progress_updated.emit(percent)
+
+        def speed_callback(speed):
+            self.speed_updated.emit(speed)
+
         self.service.replace_war_linux(
             self.host, self.username, self.password, self.local_war_path,
-            self.progress_signal.emit, self.speed_signal.emit
+            progress_callback, speed_callback
         )
         time.sleep(2)
-        self.speed_signal.emit("")
+        self.speed_updated.emit("")
 
     def _modify_config_files(self):
-        self._log_progress("正在修改配置文件 ...")
+        self.progress_text_updated.emit("正在修改配置文件...")
         self.service.modify_remote_files(self.host, self.username, self.password, self.env)
 
     def _restart_pos(self):
-        self._log_progress("正在重启POS ...")
+        self.progress_text_updated.emit("正在重启POS服务...")
         self.service.restart_pos_linux(self.host, self.username, self.password)
 
-    def _log_progress(self, message):
-        self.progress_text_signal.emit(message)
-        self.ui_ref.set_progress_text(message)
-
     def _handle_exception(self, exception):
-        self.speed_signal.emit("")
-        self.finished.emit(False, f"一键升级过程中出错：{str(exception)}")
+        self.speed_updated.emit("")
+        error_msg = f"一键升级过程中出错：{str(exception)}"
+        self.error_occurred.emit(error_msg)
+        raise Exception(error_msg)
 
 
-class PipelinePackageUpgradeThread(QObject, threading.Thread):
-    finished = pyqtSignal(bool, str)  # (成功, 信息)
-    progress_signal = pyqtSignal(int)
-    speed_signal = pyqtSignal(str)  # 上传速率信号
-    progress_text_signal = pyqtSignal(str)  # 更新进度文本
-
+class PipelinePackageUpgradeThread(BaseWorkerThread):
     def __init__(self, service, host, username, password, selected_dir, war_file, env, ui_ref=None):
         super().__init__()
         self.service = service
@@ -320,57 +339,65 @@ class PipelinePackageUpgradeThread(QObject, threading.Thread):
         self.env = env
         self.ui_ref = ui_ref
 
-    def run(self):
-        try:
-            def progress_callback(percent):
-                self.progress_signal.emit(percent)
-            def speed_callback(speed):
-                self.speed_signal.emit(speed)
-            def log_callback(msg):
-                self.service.log(msg)
-            def progress_text_callback(msg):
-                if self.ui_ref:
-                    self.progress_text_signal.emit(msg)
-            self.service.pipeline_package_upgrade(
-                self.host,
-                self.username,
-                self.password,
-                self.selected_dir,
-                self.war_file,
-                self.env,
-                progress_callback=progress_callback,
-                speed_callback=speed_callback,
-                log_callback=log_callback,
-                progress_text_callback=progress_text_callback
-            )
-            self.finished.emit(True, "一键升级包升级已完成！")
-        except Exception as e:
-            self.service.log(f"升级异常: {str(e)}")
-            self.finished.emit(False, f"升级过程中出错：{str(e)}")
+    def _run_impl(self):
+        def progress_callback(percent):
+            self.progress_updated.emit(percent)
+
+        def speed_callback(speed):
+            self.speed_updated.emit(speed)
+
+        def log_callback(msg):
+            self.status_updated.emit(msg)
+            self.service.log(msg, level="info")
+
+        def progress_text_callback(msg):
+            self.progress_text_updated.emit(msg)
+            if self.ui_ref and hasattr(self.ui_ref, 'set_progress_text'):
+                self.ui_ref.set_progress_text(msg)
+
+        self.service.pipeline_package_upgrade(
+            self.host,
+            self.username,
+            self.password,
+            self.selected_dir,
+            self.war_file,
+            self.env,
+            progress_callback=progress_callback,
+            speed_callback=speed_callback,
+            log_callback=log_callback,
+            progress_text_callback=progress_text_callback
+        )
 
 
-class DownloadWarWorker(QThread):
-    progress = pyqtSignal(int, str, int, int)  # percent, speed, downloaded, total
-    finished = pyqtSignal(bool, str)
-
+class DownloadWarWorker(BaseWorkerThread):
     def __init__(self, url, service: DownloadWarService, expected_size_mb=None):
         super().__init__()
         self.url = url
         self.service = service
         self.expected_size_mb = expected_size_mb
 
-    def run(self):
-        def cb(percent, speed=None, downloaded=None, total=None):
-            self.progress.emit(percent, speed, downloaded, total)
+    def _run_impl(self):
+        self.progress_text_updated.emit("开始下载WAR包...")
 
-        success, result = self.service.download_war(self.url, progress_callback=cb,
-                                                    expected_size_mb=self.expected_size_mb)
-        self.finished.emit(success, result)
+        def progress_callback(percent, speed=None, downloaded=None, total=None):
+            self.progress_updated.emit(percent)
+            if speed:
+                self.speed_updated.emit(speed)
+            if downloaded is not None and total is not None:
+                self.status_updated.emit(f"下载进度: {downloaded}/{total} bytes")
 
-class GenerateImgThread(QThread):
-    progress_signal = pyqtSignal(int)
-    finished_signal = pyqtSignal(str)
+        success, result = self.service.download_war(
+            self.url,
+            progress_callback=progress_callback,
+            expected_size_mb=self.expected_size_mb
+        )
 
+        if not success:
+            self.service.log(f"WAR包下载失败: {result}", level="error")
+            raise Exception(f"WAR包下载失败: {result}")
+
+
+class GenerateImgThread(BaseWorkerThread):
     def __init__(self, service, mode, width, height, mb, fmt):
         super().__init__()
         self.service = service
@@ -380,11 +407,14 @@ class GenerateImgThread(QThread):
         self.mb = mb
         self.fmt = fmt
 
-    def run(self):
-        self.progress_signal.emit(10)
+    def _run_impl(self):
+        self.progress_updated.emit(10)
+        self.progress_text_updated.emit("开始生成图片...")
+
         output_path, err = self.service.generate_image(self.mode, self.width, self.height, self.mb, self.fmt)
-        self.progress_signal.emit(100)
+
+        self.progress_updated.emit(100)
         if err:
-            self.finished_signal.emit("")
+            raise Exception(f"图片生成失败: {err}")
         else:
-            self.finished_signal.emit(output_path)
+            self.status_updated.emit(f"图片生成成功: {output_path}")

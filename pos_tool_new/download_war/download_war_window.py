@@ -46,11 +46,11 @@ class DownloadWarTabWidget(BaseTabWidget):
             self.parent_window.speed_label.clear()
 
         self.download_btn.setEnabled(False)
-        self.append_log("开始下载任务...")
+        self.service.log("开始下载任务...")
 
         from pos_tool_new.work_threads import DownloadWarWorker
         self.worker = DownloadWarWorker(url, self.service, expected_size_mb=217)
-        self.worker.progress.connect(self.log_progress)
+        self.worker.progress_updated.connect(self.log_progress)
         self.worker.finished.connect(self.download_finished)
         self.worker.start()
 
@@ -72,14 +72,9 @@ class DownloadWarTabWidget(BaseTabWidget):
 
         if success:
             abs_path = os.path.abspath(message)
-            self.append_log(f"下载成功! 文件保存为: {abs_path}")
+            self.service.log(f"下载成功! 文件保存为: {abs_path}", "success")
             QMessageBox.information(self, '成功', f'文件已保存为: {abs_path}')
         else:
-            self.append_log(f"下载失败: {message}")
+            self.service.log(f"下载失败: {message}", "error")
             QMessageBox.critical(self, '失败', message)
 
-    def append_log(self, msg):
-        if self.parent_window and hasattr(self.parent_window, 'append_log'):
-            self.parent_window.append_log(msg)
-        else:
-            print(msg)

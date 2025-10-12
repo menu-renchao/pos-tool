@@ -52,7 +52,7 @@ class DownloadWarService(Backend):
                 transformed_url = self.transform_url(initial_url)
                 if transformed_url:
                     initial_url = transformed_url
-                    self.log(f"转换后的URL: {initial_url}")
+                    self.log(f"转换后的URL: {initial_url}", level="info")
             self.log("正在获取下载地址...")
             response = requests.get(initial_url, headers=headers, allow_redirects=False)
             if response.status_code != 302:
@@ -70,7 +70,7 @@ class DownloadWarService(Backend):
                 filename = unquote(filename_match.group(1)).strip(';')
             else:
                 filename = "artifacts.zip"
-            self.log(f"保存文件为: {filename}")
+            self.log(f"保存文件为: {filename}", level="info")
             total = int(file_response.headers.get('content-length', 0))
             if total == 0 and expected_size_mb:
                 total = int(expected_size_mb * 1024 * 1024)
@@ -107,15 +107,15 @@ class DownloadWarService(Backend):
                                 progress_callback(percent, speed_str, downloaded, total)
                             last_time = now
                             last_downloaded = downloaded
-            self.log("文件下载完成!")
+            self.log("文件下载完成!", level="success")
             return True, filename
         except requests.exceptions.RequestException as e:
-            self.log(f"网络请求错误: {e}")
+            self.log(f"网络请求错误: {e}", level="error")
             if progress_callback:
                 progress_callback(-1, None, None, None)
             return False, f"网络请求错误: {e}"
         except Exception as e:
-            self.log(f"发生未知错误: {e}")
+            self.log(f"发生未知错误: {e}", level="error")
             if progress_callback:
                 progress_callback(-1, None, None, None)
             return False, f"发生未知错误: {e}"

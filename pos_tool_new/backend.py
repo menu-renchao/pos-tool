@@ -1,7 +1,6 @@
 import re
-
 from PyQt6.QtCore import QObject, pyqtSignal
-
+from pos_tool_new.utils.log_manager import global_log_manager
 
 class Backend(QObject):
     log_signal = pyqtSignal(str)
@@ -9,11 +8,12 @@ class Backend(QObject):
     def __init__(self):
         super().__init__()
 
-    def log(self, msg):
-        """Log a message with timestamp."""
-        self.log_signal.emit(msg)
+    def log(self, msg, level="info"):
+        """Log a message with timestamp and level."""
+        global_log_manager.log(msg, level)
 
-    def get_env_type_value(self, env):
+    @staticmethod
+    def get_env_type_value(env):
         """Get the environment type value based on environment."""
         return {
             "QA": "integration",
@@ -30,7 +30,8 @@ class Backend(QObject):
             content
         )
 
-    def get_target_domain_suffix(self, env):
+    @staticmethod
+    def get_target_domain_suffix(env):
         """Get the target domain suffix based on environment."""
         return {
             "QA": "menusifucloudqa.com",

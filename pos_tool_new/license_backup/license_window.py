@@ -33,8 +33,7 @@ class LicenseToolTabWidget(BaseTabWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.license_service = LicenseService()
-        self.license_service.log_signal.connect(parent.append_log)
+        self.service = LicenseService()
         self.init_ui()
 
     def init_ui(self):
@@ -170,9 +169,9 @@ class LicenseToolTabWidget(BaseTabWidget):
         # 设置主布局
         self.layout.addLayout(main_layout)
 
-    def log_message(self, message: str):
+    def log_message(self, message: str,level: str = "info"):
         """使用后端方法记录日志"""
-        self.license_service.log(message)
+        self.service.log(message, level)
 
     def connect_database(self):
         """连接数据库"""
@@ -181,11 +180,11 @@ class LicenseToolTabWidget(BaseTabWidget):
             QMessageBox.warning(self, "警告", "请输入主机地址")
             return
 
-        self.log_message(f"正在连接数据库: {host}")
+        self.log_message(f"正在连接数据库: {host}", "info")
         self.connect_btn.setEnabled(False)
         self.connect_btn.setText("连接中...")
 
-        self.db_thread = DatabaseConnectThread(self.license_service, host)
+        self.db_thread = DatabaseConnectThread(self.service, host)
         self.db_thread.success_signal.connect(self.on_connect_success)
         self.db_thread.error_signal.connect(self.on_connect_error)
         self.db_thread.finished.connect(self.on_connect_finished)
@@ -197,15 +196,15 @@ class LicenseToolTabWidget(BaseTabWidget):
             self.status_label.setStyleSheet("color: green; font-weight: normal;")
             self.backup_btn.setEnabled(True)
             self.restore_btn.setEnabled(True)
-            self.log_message(message)
+            self.log_message(message, "success")
         else:
             self.status_label.setText("连接失败")
             self.status_label.setStyleSheet("color: red; font-weight: normal;")
-            self.log_message(f"连接失败: {message}")
+            self.log_message(f"连接失败: {message}", "error")
             QMessageBox.warning(self, "连接失败", message)
 
     def on_connect_error(self, error_message):
-        self.log_message(f"连接异常: {error_message}")
+        self.log_message(f"连接异常: {error_message}", "error")
         QMessageBox.critical(self, "错误", f"连接异常: {error_message}")
 
     def on_connect_finished(self):
@@ -221,25 +220,25 @@ class LicenseToolTabWidget(BaseTabWidget):
         if not save_path:
             return
 
-        self.license_service.strDBpath = os.path.join(save_path, "")
+        self.service.strDBpath = os.path.join(save_path, "")
         self.log_message(f"开始备份License到: {save_path}")
         self.backup_btn.setEnabled(False)
         self.backup_btn.setText("备份中...")
 
         try:
-            success, message = self.license_service.backup_license(
+            success, message = self.service.backup_license(
                 self.host_combo.currentText()
             )
 
             if success:
-                self.log_message("License备份成功")
+                self.log_message("License备份成功", "success")
                 QMessageBox.information(self, "成功", message)
             else:
                 self.log_message(f"备份失败: {message}")
                 QMessageBox.warning(self, "备份失败", message)
 
         except Exception as e:
-            self.log_message(f"备份异常: {str(e)}")
+            self.log_message(f"备份异常: {str(e)}", "error")
             QMessageBox.critical(self, "错误", f"备份异常: {str(e)}")
         finally:
             self.backup_btn.setEnabled(True)
@@ -263,25 +262,25 @@ class LicenseToolTabWidget(BaseTabWidget):
         if reply != QMessageBox.StandardButton.Yes:
             return
 
-        self.log_message(f"开始恢复License: {file_path}")
+        self.log_message(f"开始恢复License: {file_path}", "info")
         self.restore_btn.setEnabled(False)
         self.restore_btn.setText("恢复中...")
 
         try:
-            success, message = self.license_service.restore_license(
+            success, message = self.service.restore_license(
                 self.host_combo.currentText(),
                 file_path
             )
 
             if success:
-                self.log_message("License恢复成功")
+                self.log_message("License恢复成功", "success")
                 QMessageBox.information(self, "成功", message)
             else:
-                self.log_message(f"恢复失败: {message}")
+                self.log_message(f"恢复失败: {message}", "error")
                 QMessageBox.warning(self, "恢复失败", message)
 
         except Exception as e:
-            self.log_message(f"恢复异常: {str(e)}")
+            self.log_message(f"恢复异常: {str(e)}", "error")
             QMessageBox.critical(self, "错误", f"恢复异常: {str(e)}")
         finally:
             self.restore_btn.setEnabled(True)

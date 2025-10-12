@@ -134,7 +134,7 @@ class LinuxTabWidget(BaseTabWidget):
 
         except Exception as e:
             error_msg = f"{operation_name}过程中出错: {str(e)}"
-            self.service.log(error_msg)
+            self.service.log(error_msg, level="error")
             QMessageBox.critical(self, "错误", error_msg)
             import traceback
             traceback.print_exc()
@@ -357,13 +357,14 @@ class LinuxTabWidget(BaseTabWidget):
                 self.status_label.setStyleSheet("color: green;")
             else:
                 self.status_label.setStyleSheet("color: red;")
-            self.service.log(f"SSH连接测试结果 - 主机: {host}, 用户: {username}, 结果: {msg}")
+            self.service.log(f"SSH连接测试结果 - 主机: {host}, 用户: {username}, 结果: {msg}", level="info")
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(lambda: self._update_countdown(ssh_callback))
         self.timer.start(1000)
 
-        self.ssh_thread = SshTestThread(self.service, host, username, password, ssh_callback)
+        self.ssh_thread = SshTestThread(self.service, host, username, password)
+        self.ssh_thread.finished.connect(ssh_callback)
         self.ssh_thread.start()
 
     def _update_countdown(self, callback):
@@ -424,14 +425,14 @@ class LinuxTabWidget(BaseTabWidget):
 
             # 正确连接信号 - 使用 lambda 包装
             if self.parent_window:
-                self.replace_thread.progress_signal.connect(
+                self.replace_thread.progress_updated.connect(
                     lambda percent: self.parent_window.progress_bar.setValue(percent)
                 )
-                self.replace_thread.speed_signal.connect(
+                self.replace_thread.speed_updated.connect(
                     lambda speed: self.parent_window.show_upload_speed(speed)
                 )
 
-            self.replace_thread.error_signal.connect(lambda msg: QMessageBox.warning(self, "错误", msg))
+            self.replace_thread.error_occurred.connect(lambda msg: QMessageBox.warning(self, "错误", msg))
             self.replace_thread.finished.connect(self.on_replace_finished)
             self.replace_thread.start()
 
@@ -482,10 +483,10 @@ class LinuxTabWidget(BaseTabWidget):
 
             # 设置进度条更新
             if self.parent_window:
-                self.parent_window.setup_progress_animation(600)
+                self.parent_window.setup_progress_animation(60)
 
             # 在线程完成后更新状态
-            self.restart_thread.error_signal.connect(lambda msg: QMessageBox.warning(self, "错误", msg))
+            self.restart_thread.error_occurred.connect(lambda msg: QMessageBox.warning(self, "错误", msg))
             self.restart_thread.finished.connect(self.on_restart_finished)
             self.restart_thread.start()
 
@@ -525,7 +526,7 @@ class LinuxTabWidget(BaseTabWidget):
                 self.parent_window.setup_progress_animation(20)
 
             # 连接信号
-            self.restart_tomcat_thread.error_signal.connect(lambda msg: QMessageBox.warning(self, "错误", msg))
+            self.restart_tomcat_thread.error_occurred.connect(lambda msg: QMessageBox.warning(self, "错误", msg))
             self.restart_tomcat_thread.finished.connect(self.on_restart_tomcat_finished)
             self.restart_tomcat_thread.start()
 
@@ -602,8 +603,8 @@ class LinuxTabWidget(BaseTabWidget):
                 local_package_path,
                 remote_target_path
             )
-            self.upgrade_thread.progress_signal.connect(self.parent_window.progress_bar.setValue)
-            self.upgrade_thread.error_signal.connect(lambda msg: QMessageBox.warning(self, "错误", msg))
+            self.upgrade_thread.progress_updated.connect(self.parent_window.progress_bar.setValue)
+            self.upgrade_thread.error_occurred.connect(lambda msg: QMessageBox.warning(self, "错误", msg))
             self.upgrade_thread.finished.connect(self.on_upgrade_finished)
             self.upgrade_thread.start()
         except Exception as e:
@@ -628,10 +629,10 @@ class LinuxTabWidget(BaseTabWidget):
                 ssh = self.service._connect_ssh(host, username, password)
                 md5_value = self.service.get_file_md5(ssh, war_path)
                 if md5_value:
-                    self.service.log(f"{war_path} 的MD5值: {md5_value}")
+                    self.service.log(f"{war_path} 的MD5值: {md5_value}", level="info")
                 ssh.close()
             except Exception as e:
-                self.service.log(f"计算MD5过程中出错: {str(e)}")
+                self.service.log(f"计算MD5过程中出错: {str(e)}", level="error")
 
         self._execute_with_connection_validation("查询远程包MD5", check_remote_md5_callback)
 
@@ -654,7 +655,7 @@ class LinuxTabWidget(BaseTabWidget):
                 for chunk in iter(lambda: f.read(4096), b""):
                     md5_hash.update(chunk)
             md5_value = md5_hash.hexdigest()
-            self.service.log(f"{war_path} 的MD5值: {md5_value}")
+            self.service.log(f"{war_path} 的MD5值: {md5_value}", level="info")
         except Exception as e:
             QMessageBox.warning(self, "错误", f"计算MD5值时出错：{str(e)}")
 
@@ -682,8 +683,8 @@ class LinuxTabWidget(BaseTabWidget):
             self.upload_thread = UploadUpgradePackageThread(
                 self.service, host, username, password, file
             )
-            self.upload_thread.progress_signal.connect(self.parent_window.progress_bar.setValue)
-            self.upload_thread.error_signal.connect(lambda msg: QMessageBox.warning(self, "错误", msg))
+            self.upload_thread.progress_updated.connect(self.parent_window.progress_bar.setValue)
+            self.upload_thread.error_occurred.connect(lambda msg: QMessageBox.warning(self, "错误", msg))
             self.upload_thread.finished.connect(self.on_upload_finished)
             self.upload_thread.start()
 
@@ -728,7 +729,7 @@ class LinuxTabWidget(BaseTabWidget):
                 local_path = backend.download_remote_log(ssh, remote_file, local_dir)
                 ssh.close()
                 local_path = os.path.normpath(local_path)
-                self.service.log(f"日志文件已保存到：{local_path}")
+                self.service.log(f"日志文件已保存到：{local_path}", level="info")
                 QMessageBox.information(self, "下载完成", f"日志文件已保存到：\n{local_path}")
 
             except Exception as e:
@@ -751,9 +752,9 @@ class LinuxTabWidget(BaseTabWidget):
                 self.parent_window.progress_bar.setValue(0)
                 self.parent_window.progress_bar.setFormat("正在备份数据：%p%，请勿进行其他操作！")
 
-            self.backup_thread.progress_signal.connect(self.parent_window.progress_bar.setValue)
-            self.backup_thread.error_signal.connect(self.on_backup_error)
-            self.backup_thread.finished_signal.connect(self.on_backup_finished)  # 修正信号连接
+            self.backup_thread.progress_updated.connect(self.parent_window.progress_bar.setValue)
+            self.backup_thread.error_occurred.connect(self.on_backup_error)
+            self.backup_thread.finished.connect(self.on_backup_finished)  # 修正信号连接
             self.backup_thread.start()
 
         self._execute_with_connection_validation("数据备份", backup_callback)
@@ -804,9 +805,9 @@ class LinuxTabWidget(BaseTabWidget):
             self.restore_thread = RestoreThread(
                 self.service, host, username, password, selected, is_zip
             )
-            self.restore_thread.progress_signal.connect(self.parent_window.progress_bar.setValue)
-            self.restore_thread.error_signal.connect(lambda msg: QMessageBox.warning(self, "恢复失败", msg))
-            self.restore_thread.finished_signal.connect(self.on_restore_finished)
+            self.restore_thread.progress_updated.connect(self.parent_window.progress_bar.setValue)
+            self.restore_thread.error_occurred.connect(lambda msg: QMessageBox.warning(self, "恢复失败", msg))
+            self.restore_thread.finished.connect(self.on_restore_finished)
             self.restore_thread.start()
 
         self._execute_with_connection_validation("数据恢复", restore_callback)
@@ -852,9 +853,9 @@ class LinuxTabWidget(BaseTabWidget):
         self.parent_window.progress_bar.setValue(0)
         self.set_progress_text("正在上传/解压war包 ...")
         self.pipeline_thread = PipelineUpgradeThread(self.service, host, username, password, local_war_path, env, self)
-        self.pipeline_thread.progress_signal.connect(self.parent_window.progress_bar.setValue)
-        self.pipeline_thread.progress_text_signal.connect(self.set_progress_text)  # 线程安全地更新进度文本
-        self.pipeline_thread.speed_signal.connect(self.set_speed_text)  # 新增：连接上传速率信号
+        self.pipeline_thread.progress_updated.connect(self.parent_window.progress_bar.setValue)
+        self.pipeline_thread.progress_text_updated.connect(self.set_progress_text)  # 线程安全地更新进度文本
+        self.pipeline_thread.speed_updated.connect(self.set_speed_text)  # 新增：连接上传速率信号
         self.pipeline_thread.finished.connect(self.on_pipeline_upgrade_finished)
         self.pipeline_thread.start()
 
@@ -909,9 +910,9 @@ class LinuxTabWidget(BaseTabWidget):
             self.pipeline_package_thread = PipelinePackageUpgradeThread(
                 service, host, username, password, selected_dir, war_file, env, self
             )
-            self.pipeline_package_thread.progress_signal.connect(self.parent_window.progress_bar.setValue)
-            self.pipeline_package_thread.progress_text_signal.connect(self.set_progress_text)  # 线程安全地更新进度文本
-            self.pipeline_package_thread.speed_signal.connect(self.set_speed_text)  # 新增：连接上传速率信号
+            self.pipeline_package_thread.progress_updated.connect(self.parent_window.progress_bar.setValue)
+            self.pipeline_package_thread.progress_text_updated.connect(self.set_progress_text)  # 线程安全地更新进度文本
+            self.pipeline_package_thread.speed_updated.connect(self.set_speed_text)  # 新增：连接上传速率信号
             self.pipeline_package_thread.finished.connect(self.on_pipeline_package_upgrade_finished)
             self.pipeline_package_thread.start()
         except Exception as e:
@@ -965,12 +966,13 @@ class LinuxTabWidget(BaseTabWidget):
         os.chdir(temp_dir)
 
         self._download_worker = DownloadWarWorker(url, service, expected_size_mb=217)
-        self._download_worker.progress.connect(self._handle_download_progress)
+        self._download_worker.progress_updated.connect(self._handle_download_progress)
+        self._download_worker.speed_updated.connect(self._handle_download_progress)
         self._download_worker.finished.connect(
             lambda success, result: self._handle_download_finished(success, result, temp_dir, old_cwd))
         self._download_worker.start()
 
-    def _handle_download_progress(self, percent, speed=None, downloaded=None, total=None):
+    def _handle_download_progress(self, percent, speed=None):
         """处理下载进度更新"""
         # 更新主窗口进度条
         if hasattr(self, 'parent_window') and self.parent_window:
@@ -1015,11 +1017,12 @@ class LinuxTabWidget(BaseTabWidget):
             with zipfile.ZipFile(file_path, 'r') as zip_ref:
                 zip_ref.extractall(temp_dir)
 
-            # 查找war文件
+            # 查找war文件（兼容大小写）
             war_found = False
             for root, dirs, files in os.walk(temp_dir):
                 for f in files:
-                    if f.endswith('.war'):
+                    self.log(f"解压后发现文件: {f}")
+                    if f.lower().endswith('.war'):
                         war_full_path = os.path.join(root, f)
                         self.log(f"找到war文件: {war_full_path}")
                         if self.war_path:
