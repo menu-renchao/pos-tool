@@ -1,6 +1,9 @@
 import re
+
 from PyQt6.QtCore import QObject, pyqtSignal
+
 from pos_tool_new.utils.log_manager import global_log_manager
+
 
 class Backend(QObject):
     log_signal = pyqtSignal(str)

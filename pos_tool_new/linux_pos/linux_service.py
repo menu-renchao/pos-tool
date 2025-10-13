@@ -225,7 +225,7 @@ class LinuxService(Backend):
                 if err:
                     self.log(f"错误: {err}", level="error")
 
-            self.log("重启完成。", level="info")
+            self.log("重启完成。", level="success")
         except Exception as e:
             self.log(f"重启过程中出错: {str(e)}", level="error")
             raise
@@ -275,7 +275,7 @@ class LinuxService(Backend):
 
                 # 删除旧war包
                 self._execute_command(ssh, f"rm -f {remote_war}")
-                self.log("旧war包已删除")
+                self.log("旧war包已删除", "warning")
                 if progress_callback:
                     progress_callback(20)
 
@@ -284,7 +284,7 @@ class LinuxService(Backend):
                 with ssh.open_sftp() as sftp:
                     self._upload_file_with_progress(sftp, local_war_path, remote_war,
                                                     progress_callback, speed_callback, (20, 80))
-                self.log("上传完成")
+                self.log("上传完成", "success")
                 if progress_callback:
                     progress_callback(85)
 
@@ -293,7 +293,7 @@ class LinuxService(Backend):
                 for _ in range(15):
                     out, _, exit_status = self._execute_command(ssh, f"stat -c %s {remote_war}")
                     if exit_status == 0 and out.strip().isdigit() and int(out.strip()) == local_size:
-                        self.log(f"远程文件大小一致: {out.strip()} 字节")
+                        self.log(f"远程文件大小一致: {out.strip()} 字节", level="success")
                         break
                     time.sleep(1)
                 else:
@@ -308,11 +308,11 @@ class LinuxService(Backend):
                     progress_callback(100)
                 time.sleep(5)  # 等待解压完成
                 if exit_status == 0:
-                    self.log("解压成功")
+                    self.log("解压成功", level="success")
                 else:
                     real_errors = '\n'.join(
                         [line for line in err.splitlines() if not line.lower().startswith('warning:')])
-                    self.log(f"解压失败: {real_errors}" if real_errors else "解压过程中有警告，但无致命错误")
+                    self.log(f"解压失败: {real_errors}" if real_errors else "解压过程中有警告，但无致命错误", "error")
         except Exception as e:
             self.log(f"替换war包出错: {str(e)}")
             raise
@@ -362,7 +362,7 @@ class LinuxService(Backend):
             self.log(f"上传升级包到 {remote_package_path} ...", level="info")
             with ssh.open_sftp() as sftp:
                 sftp.put(local_package_path, remote_package_path)
-            self.log("上传完成", level="info")
+            self.log("上传完成", level="success")
 
             if progress_callback:
                 progress_callback(70)
@@ -427,7 +427,7 @@ class LinuxService(Backend):
                 remote_file = posixpath.join(self.MENU_HOME, os.path.basename(local_file))
 
                 # 删除远程同名文件
-                self.log(f"删除远程文件: {remote_file}", level="info")
+                self.log(f"删除远程文件: {remote_file}", level="warning")
                 self._execute_command(ssh, f"sudo rm -f {remote_file}")
                 if progress_callback:
                     progress_callback(20)
@@ -437,7 +437,7 @@ class LinuxService(Backend):
                 with ssh.open_sftp() as sftp:
                     self._upload_file_with_progress(sftp, local_file, remote_file,
                                                     progress_callback, speed_callback, (20, 80))
-                self.log("上传完成", level="info")
+                self.log("上传完成", level="success")
                 if progress_callback:
                     progress_callback(85)
 
@@ -446,7 +446,7 @@ class LinuxService(Backend):
                 out, err, exit_status = self._execute_command(ssh,
                                                               f"sudo unzip -o {remote_file} -d {self.MENU_HOME} && sync")
                 if exit_status == 0:
-                    self.log("解压成功", level="info")
+                    self.log("解压成功", level="success")
                 else:
                     self.log(f"解压失败: {err}", level="error")
                 if progress_callback:
@@ -471,7 +471,7 @@ class LinuxService(Backend):
                 if err:
                     self.log(f"错误: {err.strip()}", level="error")
 
-                self.log("Tomcat服务已重启完成。", level="info")
+                self.log("Tomcat服务已重启完成。", level="success")
         except Exception as e:
             self.log(f"重启Tomcat服务时出错: {str(e)}", level="error")
             raise
@@ -525,7 +525,7 @@ class LinuxService(Backend):
             self._execute_command(ssh, upgrade_cmd)
             if progress_callback:
                 progress_callback(60)
-        self.log("升级包升级流程完成")
+        self.log("升级包升级流程完成", level="success")
 
     def restore_data(self, host, username, password, item_name, is_zip, progress_callback=None, error_callback=None,
                      log_callback=None):

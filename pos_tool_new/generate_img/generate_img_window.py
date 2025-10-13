@@ -1,7 +1,8 @@
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (QLabel, QPushButton, QVBoxLayout, QHBoxLayout,
                              QLineEdit, QRadioButton, QButtonGroup, QComboBox,
-                             QWidget, QGridLayout, QGroupBox)
-from PyQt6.QtCore import Qt
+                             QWidget, QGroupBox)
+
 from pos_tool_new.main import BaseTabWidget
 from .generate_img_service import GenerateImgService
 from ..work_threads import GenerateImgThread
@@ -183,7 +184,6 @@ class GenerateImgTabWidget(BaseTabWidget):
         self.thread = GenerateImgThread(self.service, mode, width, height, mb, fmt)
         self.thread.finished.connect(self.on_generate_finished)
         self.thread.start()
-
 
     def on_generate_finished(self, output_path):
         """生成完成回调"""

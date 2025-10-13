@@ -169,7 +169,7 @@ class LicenseToolTabWidget(BaseTabWidget):
         # 设置主布局
         self.layout.addLayout(main_layout)
 
-    def log_message(self, message: str,level: str = "info"):
+    def log_message(self, message: str, level: str = "info"):
         """使用后端方法记录日志"""
         self.service.log(message, level)
 

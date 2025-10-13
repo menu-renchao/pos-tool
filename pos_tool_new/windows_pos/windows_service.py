@@ -172,7 +172,8 @@ class WindowsService(Backend):
             elif already_target_prop:
                 already_target_count += 1
 
-        self.log(f"本机pos已修改为{env}环境，已修改 {modified_count} 个文件，本来就是目标值 {already_target_count} 个。", level="info")
+        self.log(f"本机pos已修改为{env}环境，已修改 {modified_count} 个文件，本来就是目标值 {already_target_count} 个。",
+                 level="success")
 
     def replace_war_windows(self, base_path, selected_version, local_war_path):
         """替换 Windows 下的 kpos.war 包并解压"""
@@ -184,10 +185,10 @@ class WindowsService(Backend):
 
             # 删除旧文件
             if os.path.exists(war_path):
-                self.log("正在删除旧的 kpos.war ...", level="info")
+                self.log("正在删除旧的 kpos.war ...", level="warning")
                 os.remove(war_path)
             if os.path.exists(kpos_path):
-                self.log("正在删除旧的 kpos 目录 ...", level="info")
+                self.log("正在删除旧的 kpos 目录 ...", level="warning")
                 shutil.rmtree(kpos_path)
 
             # 复制新 WAR 包
@@ -198,9 +199,9 @@ class WindowsService(Backend):
             self.log("正在解压新的 kpos.war ...", level="info")
             with zipfile.ZipFile(war_path, 'r') as zip_ref:
                 zip_ref.extractall(kpos_path)
-            self.log("解压完成", level="info")
-            self.log("如需要修改环境，请使用修改功能，然后重启POS；如不需要修改环境，请直接重启POS。", level="info")
-            self.log(f"{selected_version} 替换 kpos.war 成功！", level="info")
+            self.log("解压完成", level="success")
+            self.log("如需要修改环境，请使用修改功能，然后重启POS；如不需要修改环境，请直接重启POS。", level="warning")
+            self.log(f"{selected_version} 替换 kpos.war 成功！", level="success")
         except Exception as e:
             self.log(f"替换 kpos.war 出错: {str(e)}", level="error")
 
@@ -215,6 +216,6 @@ class WindowsService(Backend):
 
             # 启动 POS
             os.startfile(pos_exe_path)
-            self.log(f"{selected_version} POS 重启成功！", level="info")
+            self.log(f"{selected_version} POS 重启成功！", level="success")
         except Exception as e:
-            self.log(f"重启 POS 出错: {str(e)}")
+            self.log(f"重启 POS 出错: {str(e)}", level="error")

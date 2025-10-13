@@ -1,7 +1,9 @@
 # log_manager.py
 import logging
 from datetime import datetime
+
 from PyQt6.QtCore import QObject, pyqtSignal
+
 
 class LogManager(QObject):
     """
@@ -51,6 +53,7 @@ class LogManager(QObject):
         else:
             log_level = getattr(logging, level.upper(), logging.INFO)
         self._logger.log(log_level, message)
+
 
 # 创建全局单例
 global_log_manager = LogManager()

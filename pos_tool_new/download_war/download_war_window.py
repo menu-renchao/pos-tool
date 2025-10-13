@@ -51,6 +51,7 @@ class DownloadWarTabWidget(BaseTabWidget):
         from pos_tool_new.work_threads import DownloadWarWorker
         self.worker = DownloadWarWorker(url, self.service, expected_size_mb=217)
         self.worker.progress_updated.connect(self.log_progress)
+        self.worker.speed_updated.connect(self.log_speed)  # 新增速率信号连接
         self.worker.finished.connect(self.download_finished)
         self.worker.start()
 
@@ -58,8 +59,15 @@ class DownloadWarTabWidget(BaseTabWidget):
         # 更新主窗口进度条
         if self.parent_window:
             self.parent_window.progress_bar.setValue(percent)
+            # 进度条文本可显示详细进度
+            if downloaded is not None and total is not None:
+                self.parent_window.progress_bar.setFormat(f"{downloaded}/{total} bytes")
             if speed:
                 self.parent_window.speed_label.setText(f"下载速率: {speed}")
+
+    def log_speed(self, speed):
+        if self.parent_window:
+            self.parent_window.speed_label.setText(f"下载速率: {speed}")
 
     def download_finished(self, success, message):
         # 重置UI状态
@@ -77,4 +85,3 @@ class DownloadWarTabWidget(BaseTabWidget):
         else:
             self.service.log(f"下载失败: {message}", "error")
             QMessageBox.critical(self, '失败', message)
-

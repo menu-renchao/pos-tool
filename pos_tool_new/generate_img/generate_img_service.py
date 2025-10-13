@@ -1,10 +1,12 @@
-from pos_tool_new.backend import Backend
-from PyQt6.QtCore import pyqtSignal
-from PIL import Image
-import os
-import numpy as np
 import math
+import os
 import time
+
+import numpy as np
+from PIL import Image
+
+from pos_tool_new.backend import Backend
+
 
 class GenerateImgService(Backend):
     def __init__(self):
@@ -54,7 +56,6 @@ class GenerateImgService(Backend):
         arr = np.zeros((height, width, 3), dtype=np.uint8)
         for y in range(height):
             for x in range(width):
-
                 vertical_ratio = y / height
 
                 r = int(200 + 55 * vertical_ratio)  # 200-255

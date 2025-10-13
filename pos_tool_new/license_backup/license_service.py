@@ -415,7 +415,7 @@ class LicenseService(Backend):
 
             # 所有语句执行成功，提交事务
             connection.commit()
-            self.log(f"成功执行所有 {executed_commands} 条SQL语句，事务已提交")
+            self.log(f"成功执行所有 {executed_commands} 条SQL语句，事务已提交", level="success")
             return True, f"License导入成功！共执行 {executed_commands} 条SQL语句"
 
         except Exception as e:

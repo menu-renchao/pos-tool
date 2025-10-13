@@ -478,12 +478,11 @@ class LinuxTabWidget(BaseTabWidget):
                 self.parent_window.progress_bar.setRange(0, 100)
                 self.parent_window.progress_bar.setValue(0)
                 self.parent_window.progress_bar.setFormat("POS重启中：%p%，请勿进行其他操作！")
-
             self.restart_thread = RestartPosThreadLinux(self.service, host, username, password)
 
-            # 设置进度条更新
+            # 设置进度条动画更新
             if self.parent_window:
-                self.parent_window.setup_progress_animation(60)
+                self.parent_window.setup_progress_animation(600)
 
             # 在线程完成后更新状态
             self.restart_thread.error_occurred.connect(lambda msg: QMessageBox.warning(self, "错误", msg))
@@ -729,7 +728,7 @@ class LinuxTabWidget(BaseTabWidget):
                 local_path = backend.download_remote_log(ssh, remote_file, local_dir)
                 ssh.close()
                 local_path = os.path.normpath(local_path)
-                self.service.log(f"日志文件已保存到：{local_path}", level="info")
+                self.service.log(f"日志文件已保存到：{local_path}", level="success")
                 QMessageBox.information(self, "下载完成", f"日志文件已保存到：\n{local_path}")
 
             except Exception as e:
@@ -819,8 +818,8 @@ class LinuxTabWidget(BaseTabWidget):
         self.restore_btn.setEnabled(True)
         QMessageBox.information(self, "恢复完成", "数据恢复已完成！")
 
-    def log(self, message: str):
-        self.parent_window.append_log(message)
+    def log(self, message: str, level: str = "info"):
+        self.parent_window.append_log(message, level)
 
     def set_progress_text(self, text):
         if self.parent_window:
@@ -966,8 +965,9 @@ class LinuxTabWidget(BaseTabWidget):
         os.chdir(temp_dir)
 
         self._download_worker = DownloadWarWorker(url, service, expected_size_mb=217)
-        self._download_worker.progress_updated.connect(self._handle_download_progress)
-        self._download_worker.speed_updated.connect(self._handle_download_progress)
+        self._download_worker.progress_updated.connect(lambda percent: self._handle_download_progress(percent=percent))
+        self._download_worker.speed_updated.connect(
+            lambda speed: self._handle_download_progress(percent=None, speed=speed))
         self._download_worker.finished.connect(
             lambda success, result: self._handle_download_finished(success, result, temp_dir, old_cwd))
         self._download_worker.start()
@@ -976,7 +976,8 @@ class LinuxTabWidget(BaseTabWidget):
         """处理下载进度更新"""
         # 更新主窗口进度条
         if hasattr(self, 'parent_window') and self.parent_window:
-            self.parent_window.progress_bar.setValue(percent)
+            if percent is not None:
+                self.parent_window.progress_bar.setValue(percent)
             if speed:
                 self.parent_window.speed_label.setText(f"下载速率: {speed}")
 
@@ -1004,7 +1005,7 @@ class LinuxTabWidget(BaseTabWidget):
             self.parent_window.progress_bar.setValue(100)
 
         if zipfile.is_zipfile(file_path):
-            self.log(f"下载完成！保存为: {file_path} (zip文件)")
+            self.log(f"下载完成！保存为: {file_path} (zip文件)", "success")
             self.log("正在解压文件...")
 
             # 更新进度显示为解压状态
@@ -1027,6 +1028,7 @@ class LinuxTabWidget(BaseTabWidget):
                         self.log(f"找到war文件: {war_full_path}")
                         if self.war_path:
                             self.war_path.setText(war_full_path)
+                            self.log("已更新war文件路径到输入框", "success")
                         war_found = True
                         break
                 if war_found:
@@ -1035,7 +1037,7 @@ class LinuxTabWidget(BaseTabWidget):
             if not war_found:
                 self.log("未在解压包中找到war文件")
         else:
-            self.log(f"下载完成！保存为: {file_path}")
+            self.log(f"下载完成！保存为: {file_path}", "success")
             if self.war_path and file_path.endswith('.war'):
                 self.war_path.setText(file_path)
 
