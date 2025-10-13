@@ -272,6 +272,9 @@ class LinuxService(Backend):
                 remote_dir = self.WEBAPPS_DIR
                 remote_war = f"{remote_dir}/kpos.war"
                 remote_kpos = f"{remote_dir}/kpos"
+                if not local_war_path or not os.path.isfile(local_war_path):
+                    self.log("本地war包路径无效", level="error")
+                    raise ValueError("本地war包路径无效")
 
                 # 删除旧war包
                 self._execute_command(ssh, f"rm -f {remote_war}")
@@ -314,7 +317,7 @@ class LinuxService(Backend):
                         [line for line in err.splitlines() if not line.lower().startswith('warning:')])
                     self.log(f"解压失败: {real_errors}" if real_errors else "解压过程中有警告，但无致命错误", "error")
         except Exception as e:
-            self.log(f"替换war包出错: {str(e)}")
+            self.log(f"替换war包出错: {str(e)}", level="error")
             raise
 
     def scan_upgrade_packages(self, ssh: paramiko.SSHClient, remote_base_path: str) -> List[str]:
@@ -474,7 +477,7 @@ class LinuxService(Backend):
                 self.log("Tomcat服务已重启完成。", level="success")
         except Exception as e:
             self.log(f"重启Tomcat服务时出错: {str(e)}", level="error")
-            raise
+
 
     def list_backup_items(self, host: str, username: str, password: str) -> List[str]:
         """列出/opt/backup下所有.zip和文件夹，按时间倒序"""
@@ -545,7 +548,7 @@ class LinuxService(Backend):
             if is_zip:
                 if log_callback:
                     log_callback(f"解压zip文件: /opt/backup/{item_name}")
-                unzip_cmd = f"unzip /opt/backup/{item_name} -d /opt/backup/"
+                unzip_cmd = f"sudo unzip /opt/backup/{item_name} -d /opt/backup/"
                 stdin, stdout, stderr = ssh.exec_command(unzip_cmd)
                 unzip_progress = progress
                 while not stdout.channel.exit_status_ready():
@@ -559,7 +562,7 @@ class LinuxService(Backend):
                 err = stderr.read().decode()
                 if err:
                     if log_callback:
-                        log_callback(f"解压错误: {err}")
+                        log_callback(f"解压错误: {err}","error")
                     if error_callback:
                         error_callback(err)
                 folder_name = item_name.replace('.zip', '')
@@ -589,19 +592,19 @@ class LinuxService(Backend):
             err = stderr.read().decode()
             if err:
                 if log_callback:
-                    log_callback(f"恢复错误: {err}")
+                    log_callback(f"恢复错误: {err}","error")
                 if error_callback:
                     error_callback(err)
 
             ssh.close()
             if log_callback:
-                log_callback("数据恢复完成")
+                log_callback("数据恢复完成", "success")
             if progress_callback:
                 progress_callback(100)
 
         except Exception as e:
             if log_callback:
-                log_callback(f"数据恢复异常: {str(e)}")
+                log_callback(f"数据恢复异常: {str(e)}","error")
             if error_callback:
                 error_callback(str(e))
             raise
@@ -637,7 +640,7 @@ class LinuxService(Backend):
             err = stderr.read().decode()
             if err:
                 if log_callback:
-                    log_callback(f"备份脚本错误: {err}")
+                    log_callback(f"备份脚本错误: {err}","error")
                 if error_callback:
                     error_callback(err)
 
@@ -649,10 +652,9 @@ class LinuxService(Backend):
 
         except Exception as e:
             if log_callback:
-                log_callback(f"数据备份异常: {str(e)}")
+                log_callback(f"数据备份异常: {str(e)}","error")
             if error_callback:
                 error_callback(str(e))
-            raise
 
     def pipeline_package_upgrade(self, host, username, password, selected_dir, war_file, env, progress_callback=None,
                                  speed_callback=None, log_callback=None, progress_text_callback=None):
@@ -724,5 +726,5 @@ class LinuxService(Backend):
 
         except Exception as e:
             if log_callback:
-                log_callback(f"升级异常: {str(e)}")
+                log_callback(f"升级异常: {str(e)}","error")
             raise

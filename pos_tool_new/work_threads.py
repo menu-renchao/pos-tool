@@ -25,7 +25,7 @@ class BaseWorkerThread(QThread):
             self._run_impl()
             self.finished.emit(True, "操作完成")
         except Exception as e:
-            error_msg = f"线程执行失败: {str(e)}"
+            error_msg = f"执行失败: {str(e)}"
             self.error_occurred.emit(error_msg)
             self.finished.emit(False, error_msg)
 
@@ -208,9 +208,9 @@ class BackupThread(BaseWorkerThread):
         def error_callback(err):
             self.error_occurred.emit(err)
 
-        def log_callback(msg):
+        def log_callback(msg, level="info"):
             self.status_updated.emit(msg)
-            self.service.log(msg, level="info")
+            self.service.log(msg, level=level)
 
         self.run_with_error_handling(
             self.service.backup_data,
@@ -243,9 +243,9 @@ class RestoreThread(BaseWorkerThread):
         def error_callback(err):
             self.error_occurred.emit(err)
 
-        def log_callback(msg):
+        def log_callback(msg,level="info"):
             self.status_updated.emit(msg)
-            self.service.log(msg, level="info")
+            self.service.log(msg, level=level)
 
         self.run_with_error_handling(
             self.service.restore_data,
@@ -351,9 +351,9 @@ class PipelinePackageUpgradeThread(BaseWorkerThread):
         def speed_callback(speed):
             self.speed_updated.emit(speed)
 
-        def log_callback(msg):
+        def log_callback(msg, level="info"):
             self.status_updated.emit(msg)
-            self.service.log(msg, level="info")
+            self.service.log(msg, level=level)
 
         def progress_text_callback(msg):
             self.progress_text_updated.emit(msg)

@@ -142,7 +142,7 @@ class MainWindow(QMainWindow):
     def setup_ui(self):
         """设置UI"""
         self.setWindowIcon(QIcon(resource_path('UI/app.ico')))
-        self.setWindowTitle("POS测试工具 v1.5.0.1 by Mansuper")
+        self.setWindowTitle("POS测试工具 v1.5.0.2 by Mansuper")
         self.resize(900, 580)
         # 设置样式
         self.setup_styles()
@@ -557,7 +557,7 @@ class ModernSplashScreen(QWidget):
         """)
         layout.addWidget(self.title_label)
 
-        self.version_label = QLabel("v1.5.0.1 - 正在加载...")
+        self.version_label = QLabel("v1.5.0.2 - 正在加载...")
         self.version_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.version_label.setStyleSheet("""
             QLabel {
