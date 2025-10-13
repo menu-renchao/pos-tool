@@ -22,6 +22,7 @@ class ScanPosTabWidget(BaseTabWidget):
         self.table.setHorizontalHeaderLabels(['IP', '商家ID', '名称', '版本', '操作'])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.table.setAlternatingRowColors(True)
+        self.table.setSortingEnabled(False)  # 保持禁用排序
 
         self.refresh_btn = QPushButton('扫描/刷新')
         self.refresh_btn.clicked.connect(self.start_scan)
@@ -36,19 +37,24 @@ class ScanPosTabWidget(BaseTabWidget):
         self.progress_label = QLabel('准备扫描...')
         self.progress_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.search_id_edit, self.search_name_edit = QLineEdit(), QLineEdit()
+        self.search_id_edit, self.search_name_edit, self.search_ip_edit = QLineEdit(), QLineEdit(), QLineEdit()
         self.search_id_edit.setPlaceholderText('输入商家ID')
         self.search_name_edit.setPlaceholderText('输入商家名称')
+        self.search_ip_edit.setPlaceholderText('输入IP')
         self.search_btn = QPushButton('搜索')
         self.search_btn.clicked.connect(self.on_search)
         self.clear_search_btn = QPushButton('清除')
         self.clear_search_btn.clicked.connect(self.clear_search)
+        # 支持回车触发搜索
+        self.search_id_edit.returnPressed.connect(self.on_search)
+        self.search_name_edit.returnPressed.connect(self.on_search)
+        self.search_ip_edit.returnPressed.connect(self.on_search)
 
         self._setup_layouts()
 
     def _setup_layouts(self):
         search_layout = QHBoxLayout()
-        for label, widget in [('商家ID:', self.search_id_edit), ('商家名称:', self.search_name_edit)]:
+        for label, widget in [('IP:', self.search_ip_edit), ('商家ID:', self.search_id_edit), ('商家名称:', self.search_name_edit)]:
             search_layout.addWidget(QLabel(label))
             search_layout.addWidget(widget)
         search_layout.addWidget(self.search_btn)
@@ -69,6 +75,7 @@ class ScanPosTabWidget(BaseTabWidget):
         self.layout.addLayout(main_layout)
 
     def start_scan(self):
+        self.refresh_btn.setEnabled(False)  # 禁用扫描按钮，防止重复点击
         self.table.setRowCount(0)
         self._results, self._displayed_results = [], []
         self._total_scan_count = self._scanned_count = self._loaded_count = 0
@@ -96,13 +103,12 @@ class ScanPosTabWidget(BaseTabWidget):
         self._results.append(result)
         self._scanned_count += 1
         self._loaded_count += 1
-        self._add_row_to_table(result, self._loaded_count - 1)
-
+        # 只插入新行，不全量刷新，避免丢失排序和字段
+        self._add_row_to_table(result, self.table.rowCount())
         # 计算加载进度
         if len(self._results) > 0:
             load_percent = min(100, int((self._loaded_count / len(self._results)) * 100))
             self.progress_bar.setValue(load_percent)
-
         self.progress_label.setText(f'正在加载第 {self._loaded_count} 条...')
 
     def on_scan_finished(self, results):
@@ -112,39 +118,154 @@ class ScanPosTabWidget(BaseTabWidget):
         self.progress_bar.setValue(100)
         self.progress_label.setText(f'加载完成，共 {len(self._results)} 台设备')
         QTimer.singleShot(2000, self.progress_bar.hide)
+        self.refresh_btn.setEnabled(True)  # 扫描结束后恢复按钮可用
 
     def _add_row_to_table(self, result, row_index):
         self.table.insertRow(self.table.rowCount())
         bg_color = self.row_colors[row_index % 2]
+        def get_value(key):
+            return result.get(key, '')
         for col, key in enumerate(['ip', 'merchantId', 'name', 'version']):
-            item = QTableWidgetItem(str(result.get(key, '')))
+            value = get_value(key)
+            # 商家ID特殊处理
+            if key == 'merchantId':
+                name_val = get_value('name')
+                version_val = get_value('version')
+                if not value and name_val and version_val:
+                    value = 'Free Trials'
+            # 其它字段为空填充为“——”
+            if not value:
+                value = '——'
+            item = QTableWidgetItem(str(value))
             item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
             item.setBackground(QBrush(bg_color))
             self.table.setItem(row_index, col, item)
-        btn = QPushButton('打开')
-        btn.setFixedWidth(48)
-        btn.setFixedHeight(22)
-        btn.setStyleSheet(
-            'QPushButton { background-color: #2196F3; color: white; border: none; border-radius: 3px; padding: 2px 8px; font-size: 11px; } '
-            'QPushButton:hover { background-color: #0b7dda; }'
-        )
-        btn.clicked.connect(lambda _, ip=result.get('ip', ''): QDesktopServices.openUrl(QUrl(f'http://{ip}:22080')))
-        # 居中显示按钮
-        btn_widget = QWidget()
-        btn_layout = QHBoxLayout(btn_widget)
-        btn_layout.addWidget(btn)
-        btn_layout.setContentsMargins(0, 0, 0, 0)
-        btn_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.table.setCellWidget(row_index, 4, btn_widget)
+        # 操作列按钮区
+        # 检查除ip外所有字段是否都为空（即都为“——”）
+        if all(self.table.item(row_index, i).text() == '——' for i in [1,2,3]):
+            unavailable_label = QLabel('POS已离线')
+            unavailable_label.setStyleSheet('color: red; font-weight: bold;')
+            unavailable_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.table.setCellWidget(row_index, 4, unavailable_label)
+        else:
+            btn_open = QPushButton('打开')
+            btn_open.setFixedWidth(48)
+            btn_open.setFixedHeight(22)
+            btn_open.setStyleSheet(
+                'QPushButton { background-color: #2196F3; color: white; border: none; border-radius: 3px; padding: 2px 8px; font-size: 11px; } '
+                'QPushButton:hover { background-color: #0b7dda; }'
+            )
+            btn_open.clicked.connect(lambda _, ip=get_value('ip'): QDesktopServices.openUrl(QUrl(f'http://{ip}:22080')))
+
+            btn_detail = QPushButton('详情')
+            btn_detail.setFixedWidth(48)
+            btn_detail.setFixedHeight(22)
+            btn_detail.setStyleSheet(
+                'QPushButton { background-color: #4CAF50; color: white; border: none; border-radius: 3px; padding: 2px 8px; font-size: 11px; } '
+                'QPushButton:hover { background-color: #357a38; }'
+            )
+            btn_detail.clicked.connect(lambda _, row=row_index: self.show_detail_dialog(row))
+
+            btn_widget = QWidget()
+            btn_layout = QHBoxLayout(btn_widget)
+            btn_layout.addWidget(btn_open)
+            btn_layout.addWidget(btn_detail)
+            btn_layout.setContentsMargins(0, 0, 0, 0)
+            btn_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.table.setCellWidget(row_index, 4, btn_widget)
         self.table.scrollToBottom()
 
+    def show_detail_dialog(self, row_index):
+        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QScrollArea, QWidget, QHBoxLayout
+        import requests, json
+        if row_index < 0 or row_index >= len(self._results):
+            return
+        result = self._results[row_index]
+        ip = result.get('ip', '')
+        full_data = self.service.fetch_company_profile(ip)
+        # 递归过滤所有 None
+        def filter_none_and_exclude(data):
+            exclude_keys = {"appInstance", "images", "result", "printLogo"}
+            if isinstance(data, dict):
+                return {k: filter_none_and_exclude(v) for k, v in data.items() if v is not None and k not in exclude_keys}
+            elif isinstance(data, list):
+                return [filter_none_and_exclude(item) for item in data if item is not None]
+            else:
+                return data
+        detail_data = filter_none_and_exclude(full_data)
+        dialog = QDialog(self)
+        dialog.setWindowTitle(f"详情 - {ip}")
+        # 设置和主窗体一样大
+        if self.parent() and hasattr(self.parent(), 'size'):
+            main_size = self.parent().size()
+            dialog.resize(main_size)
+        else:
+            dialog.resize(self.size())
+        layout = QVBoxLayout(dialog)
+        scroll = QScrollArea(dialog)
+        scroll.setWidgetResizable(True)
+        content = QWidget()
+        content_layout = QVBoxLayout(content)
+        def add_kv_widgets_to_layout(data, layout, indent=0):
+            indent_px = indent * 20
+            if isinstance(data, dict):
+                for k, v in data.items():
+                    key_label = QLabel(f"<b>{k}</b>")
+                    key_label.setStyleSheet(f"margin-left: {indent_px}px;")
+                    key_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+                    key_label.setMinimumWidth(180)
+                    key_label.setWordWrap(True)
+                    # 移除setFixedWidth，允许自适应
+                    if isinstance(v, (dict, list)):
+                        layout.addWidget(key_label)
+                        add_kv_widgets_to_layout(v, layout, indent + 1)
+                    else:
+                        row = QHBoxLayout()
+                        row.setContentsMargins(0, 0, 0, 0)
+                        row.setSpacing(8)
+                        value_label = QLabel(str(v))
+                        value_label.setWordWrap(True)
+                        value_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+                        row.addWidget(key_label)
+                        row.addWidget(value_label)
+                        row.addStretch()
+                        row_widget = QWidget()
+                        row_widget.setLayout(row)
+                        row_widget.setStyleSheet(f"margin-left: {indent_px}px;")
+                        layout.addWidget(row_widget)
+            elif isinstance(data, list):
+                for idx, item in enumerate(data):
+                    key_label = QLabel(f"[{idx}]")
+                    key_label.setStyleSheet(f"margin-left: {indent_px}px;color:#888;")
+                    key_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+                    layout.addWidget(key_label)
+                    add_kv_widgets_to_layout(item, layout, indent + 1)
+            else:
+                value_label = QLabel(str(data))
+                value_label.setStyleSheet(f"margin-left: {indent_px}px;")
+                value_label.setWordWrap(True)
+                value_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+                layout.addWidget(value_label)
+        if detail_data and (not isinstance(detail_data, dict) or detail_data):
+            add_kv_widgets_to_layout(detail_data, content_layout)
+        else:
+            content_layout.addWidget(QLabel("无数据"))
+        scroll.setWidget(content)
+        layout.addWidget(scroll)
+        dialog.setLayout(layout)
+        dialog.exec()
+
     def on_search(self):
-        id_text, name_text = self.search_id_edit.text().strip().lower(), self.search_name_edit.text().strip().lower()
-        self._refresh_table([r for r in self._results if
-                             id_text in str(r.get('merchantId', '')).lower() and name_text in str(
-                                 r.get('name', '')).lower()])
+        ip_text = self.search_ip_edit.text().strip().lower()
+        id_text = self.search_id_edit.text().strip().lower()
+        name_text = self.search_name_edit.text().strip().lower()
+        def get_field(r, key):
+            return str(r.get(key, '')).lower()
+        filtered = [r for r in self._results if ip_text in get_field(r, 'ip') and id_text in get_field(r, 'merchantId') and name_text in get_field(r, 'name')]
+        self._refresh_table(filtered)
 
     def clear_search(self):
+        self.search_ip_edit.clear()
         self.search_id_edit.clear()
         self.search_name_edit.clear()
         self._refresh_table(self._results)
@@ -153,6 +274,7 @@ class ScanPosTabWidget(BaseTabWidget):
         self.table.setRowCount(0)
         for i, result in enumerate(results):
             self._add_row_to_table(result, i)
+
 
     def showEvent(self, event):
         """显示事件处理"""

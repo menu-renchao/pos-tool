@@ -230,7 +230,6 @@ class LinuxTabWidget(BaseTabWidget):
         # 上传升级包按钮
         self.upload_btn = QPushButton("上传升级包")
         self.upload_btn.clicked.connect(self.on_upload_upgrade_package)
-        self.upload_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         file_btn_layout.addWidget(self.upload_btn)
 
         # 为上传按钮添加帮助按钮
@@ -239,7 +238,6 @@ class LinuxTabWidget(BaseTabWidget):
         # 使用升级包升级按钮
         self.upgrade_btn = QPushButton("使用升级包升级")
         self.upgrade_btn.clicked.connect(self.on_upgrade_with_package)
-        self.upgrade_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         file_btn_layout.addWidget(self.upgrade_btn)
 
         # 为升级按钮添加帮助按钮

@@ -1,95 +1,88 @@
-# 集成Backend，实现扫描逻辑
+from PyQt6.QtCore import QObject
 from pos_tool_new.backend import Backend
 from pos_tool_new.work_threads import ScanPosWorkerThread
-from PyQt6.QtCore import QObject
+import requests
+import json
+import socket
+import ipaddress
+import concurrent.futures
+
 
 class ScanPosService(Backend, QObject):
     def __init__(self):
-        Backend.__init__(self)
-        QObject.__init__(self)
+        super().__init__()
         self.worker = None
 
     def start_scan(self, port=22080):
-        if self.worker is not None and self.worker.isRunning():
-            return  # 已有扫描在进行
+        if self.worker and self.worker.isRunning():
+            return
         self.worker = ScanPosWorkerThread(self, port)
         return self.worker
 
-    def scan_network(self, worker, port=22080):
-        import socket, ipaddress, concurrent.futures, requests, json
-        def scan_port(ip, port, timeout=1):
-            try:
-                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                    s.settimeout(timeout)
-                    result = s.connect_ex((str(ip), port))
-                    if result == 0:
-                        return ip
-            except:
-                return None
-            return None
-        def get_local_network():
-            hostname = socket.gethostname()
-            local_ip = socket.gethostbyname(hostname)
-            return ipaddress.IPv4Network(f"{local_ip}/23", strict=False)
-        def fetch_company_profile(ip, port=22080, timeout=3):
-            url = f"http://{ip}:{port}/kpos/webapp/store/fetchCompanyProfile"
+    @staticmethod
+    def fetch_company_profile(ip, port=22080, timeout=5):
+        url = f"http://{ip}:{port}/kpos/webapp/store/fetchCompanyProfile"
+        for _ in range(2):
             try:
                 response = requests.get(url, timeout=timeout)
                 if response.status_code == 200:
                     return response.json()
-                else:
-                    return {"error": f"HTTP {response.status_code}"}
-            except requests.exceptions.RequestException as e:
+                return {"error": f"HTTP {response.status_code}"}
+            except (requests.exceptions.RequestException, json.JSONDecodeError) as e:
                 return {"error": str(e)}
-            except json.JSONDecodeError as e:
-                return {"error": f"JSON解析错误: {str(e)}"}
-        def extract_required_info(api_response):
-            if "error" in api_response:
-                return {"error": api_response["error"]}
+        return {"error": "Failed after retries"}
+
+    def scan_network(self, worker, port=22080):
+        def scan_port(ip, port, timeout=1):
             try:
+                with socket.create_connection((str(ip), port), timeout):
+                    return ip
+            except:
+                return None
+
+        def get_local_network():
+            local_ip = socket.gethostbyname(socket.gethostname())
+            return ipaddress.IPv4Network(f"{local_ip}/23", strict=False)
+
+        def extract_required_info(api_response):
+            try:
+                company = api_response.get("company", {})
                 result = {
-                    "merchantId": api_response.get("company", {}).get("merchantId"),
-                    "name": api_response.get("company", {}).get("name"),
-                    "version": api_response.get("company", {}).get("appInfo", {}).get("version")
+                    "merchantId": company.get("merchantId"),
+                    "name": company.get("name"),
+                    "version": company.get("appInfo", {}).get("version"),
                 }
-                if not any(result.values()):
-                    return {"error": "响应中未找到所需字段"}
-                return result
+                return {k: v for k, v in result.items() if v is not None} or {"error": "No required fields"}
             except Exception as e:
-                return {"error": f"数据提取错误: {str(e)}"}
+                return {"error": str(e)}
+
         network = get_local_network()
         hosts = list(network.hosts())
         open_ips = []
-        total = len(hosts)
-        # 扫描端口
+
         with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
             futures = {executor.submit(scan_port, ip, port): ip for ip in hosts}
             for idx, future in enumerate(concurrent.futures.as_completed(futures)):
-                ip = futures[future]
-                percent = int((idx + 1) / total * 100)
-                worker.scan_progress.emit(percent, str(ip))
+                worker.scan_progress.emit((idx + 1) * 100 // len(hosts), str(futures[future]))
                 if not worker._is_running:
                     return
-                try:
-                    result = future.result()
-                    if result:
-                        open_ips.append(str(result))
-                except Exception as e:
-                    pass
-        # 获取公司信息
+                if (result := future.result()):
+                    open_ips.append(str(result))
+
         worker._results = []
-        for idx, ip in enumerate(open_ips):
+        for ip in open_ips:
             if not worker._is_running:
                 return
-            api_response = fetch_company_profile(ip, port)
-            if "error" in api_response:
-                result = {"ip": ip, "status": "error", "error": api_response["error"]}
-            else:
-                extracted_info = extract_required_info(api_response)
-                if "error" in extracted_info:
-                    result = {"ip": ip, "status": "error", "error": extracted_info["error"]}
-                else:
-                    result = {"ip": ip, "status": "success", **extracted_info}
+            full_data = self.fetch_company_profile(ip, port)
+            simple_data = extract_required_info(full_data)
+            result = {
+                "ip": ip,
+                "merchantId": simple_data.get("merchantId", ""),
+                "name": simple_data.get("name", ""),
+                "version": simple_data.get("version", ""),
+                "status": "success" if "error" not in simple_data else "error",
+                "error": simple_data.get("error", ""),
+            }
             worker._results.append(result)
             worker.scan_result.emit(result)
         worker.scan_finished.emit(worker._results)

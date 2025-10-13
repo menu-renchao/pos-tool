@@ -77,11 +77,30 @@ class BaseTabWidget(QWidget):
     def add_help_button(self, parent_button: QPushButton, info: str):
         """为按钮添加帮助按钮"""
         help_btn = QToolButton()
-        help_btn.setIcon(QIcon(resource_path("UI/help.png")))
+        help_btn.setText("?")  # 使用文本"?"代替图片
         help_btn.setToolTip("点击查看使用说明")
         help_btn.clicked.connect(lambda: self.show_upgrade_help(info))
-        help_btn.setStyleSheet("QToolButton { background: transparent; border: none; }")
-        help_btn.setFixedSize(12, 12)  # 缩小按钮尺寸
+
+        # 优化样式 - 悬停时变为黄色背景
+        help_btn.setStyleSheet("""
+            QToolButton {
+                background: transparent;
+                border: 1px solid #999;
+                border-radius: 8px;
+                color: #555;
+                font-weight: bold;
+                font-size: 10px;
+                padding: 0px;
+            }
+            QToolButton:hover {
+                background: #ffeb3b;  /* 黄色背景 */
+                color: #333;
+                border: 1px solid #ffc107;  /* 更深的黄色边框 */
+            }
+        """)
+
+        help_btn.setFixedSize(20, 20)
+
         # 将帮助按钮添加到父按钮的布局中
         parent_button_layout = QHBoxLayout(parent_button)
         parent_button_layout.setContentsMargins(0, 0, 0, 0)
