@@ -458,7 +458,6 @@ class LinuxService(Backend):
             self.log(f"操作失败: {str(e)}", level="error")
             if progress_callback:
                 progress_callback(0)
-            raise
 
     def restart_tomcat(self, host: str, username: str, password: str) -> None:
         """远程重启Tomcat服务"""

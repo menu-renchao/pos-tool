@@ -442,7 +442,7 @@ class LinuxTabWidget(BaseTabWidget):
                 ssh = self.service._connect_ssh(host, username, password)
                 ssh.close()
             except Exception as e:
-                QMessageBox.critical(self, "连接失败", f"SSH连接失败，无法重启POS：\n{str(e)}")
+                self.log("SSH连接失败，无法重启POS", level="error")
                 return
 
             # 禁用重启按钮
@@ -583,6 +583,7 @@ class LinuxTabWidget(BaseTabWidget):
             self.upgrade_thread.finished.connect(self.on_upgrade_finished)
             self.upgrade_thread.start()
         except Exception as e:
+            self.log(f"使用升级包升级过程中出错: {str(e)}", level="error")
             QMessageBox.warning(self, "提示", f"升级过程中出错：{str(e)}")
             if self.upgrade_btn:
                 self.upgrade_btn.setEnabled(True)
@@ -708,6 +709,7 @@ class LinuxTabWidget(BaseTabWidget):
                 QMessageBox.information(self, "下载完成", f"日志文件已保存到：\n{local_path}")
 
             except Exception as e:
+                self.service.log(f"下载日志文件过程中出错: {str(e)}", level="error")
                 QMessageBox.critical(self, "下载失败", f"下载日志文件失败：{str(e)}")
 
         self._execute_with_connection_validation("日志下载", download_log_callback)
@@ -891,6 +893,7 @@ class LinuxTabWidget(BaseTabWidget):
             self.pipeline_package_thread.finished.connect(self.on_pipeline_package_upgrade_finished)
             self.pipeline_package_thread.start()
         except Exception as e:
+            self.log(f"一键升级包升级失败：{str(e)}", level="error")
             QMessageBox.critical(self, "错误", f"一键升级包升级失败：{str(e)}")
             self.upgrade_package_btn.setEnabled(True)
             self.parent_window.progress_bar.setVisible(False)
