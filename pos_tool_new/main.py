@@ -88,6 +88,38 @@ class BaseTabWidget(QWidget):
         parent_button_layout.addStretch()
         parent_button_layout.addWidget(help_btn)
 
+    def _find_mainwindow(self):
+        parent = self.parent()
+        from PyQt6.QtWidgets import QMainWindow
+        while parent is not None and not isinstance(parent, QMainWindow):
+            parent = parent.parent()
+        return parent
+
+    def hide_main_log_area(self):
+        """递归查找主窗口并隐藏日志区QGroupBox"""
+        mainwin = self._find_mainwindow()
+        if mainwin is not None:
+            # 查找QGroupBox("📝 操作日志")
+            from PyQt6.QtWidgets import QGroupBox
+            for gb in mainwin.findChildren(QGroupBox):
+                if gb.title().strip() == "📝 操作日志":
+                    gb.setVisible(False)
+            if hasattr(mainwin, 'layout') and callable(mainwin.layout):
+                mainwin.layout().activate()
+            mainwin.update()
+
+    def show_main_log_area(self):
+        """递归查找主窗口并恢复日志区QGroupBox"""
+        mainwin = self._find_mainwindow()
+        if mainwin is not None:
+            from PyQt6.QtWidgets import QGroupBox
+            for gb in mainwin.findChildren(QGroupBox):
+                if gb.title().strip() == "📝 操作日志":
+                    gb.setVisible(True)
+            if hasattr(mainwin, 'layout') and callable(mainwin.layout):
+                mainwin.layout().activate()
+            mainwin.update()
+
 
 class EnhancedTextEdit(QTextEdit):
     """增强的文本编辑框，支持彩色日志"""
@@ -133,6 +165,8 @@ class AnimatedProgressBar(QProgressBar):
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.log_layout = None
+        self.log_group = None
         self.fake_progress = 0
         self.progress_timer = QTimer(self)
         self.setup_backend()
@@ -188,6 +222,9 @@ class MainWindow(QMainWindow):
         from pos_tool_new.generate_img.generate_img_window import GenerateImgTabWidget
         self.generate_img_tab = GenerateImgTabWidget(self)
         self.tabs.addTab(self.generate_img_tab, "🖼️ 图片生成")
+        from pos_tool_new.scan_pos.scan_pos_window import ScanPosTabWidget
+        self.scan_pos_tab = ScanPosTabWidget(self.backend, self)
+        self.tabs.addTab(self.scan_pos_tab, "🔍 扫描POS")
         # 连接选项卡切换信号
         self.tabs.currentChanged.connect(self.on_tab_changed)
 
@@ -380,7 +417,9 @@ QPushButton:disabled {
     def create_log_area(self, layout: QVBoxLayout):
         """创建日志区域"""
         log_group = QGroupBox("📝 操作日志")
+        self.log_group = log_group  # 关键：赋值为MainWindow属性，便于Tab控制隐藏
         log_layout = QVBoxLayout(log_group)
+        self.log_layout = log_layout  # 可选：如需控制布局隐藏
         log_layout.setSpacing(4)
         log_layout.setContentsMargins(6, 6, 6, 6)
         # 日志工具栏

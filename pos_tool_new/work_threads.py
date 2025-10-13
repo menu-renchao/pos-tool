@@ -428,3 +428,19 @@ class GenerateImgThread(BaseWorkerThread):
             raise Exception(f"图片生成失败: {err}")
         else:
             self.status_updated.emit(f"图片生成成功: {output_path}")
+
+
+class ScanPosWorkerThread(BaseWorkerThread):
+    scan_progress = pyqtSignal(int, str)  # 进度百分比, 当前IP
+    scan_result = pyqtSignal(dict)        # 单个扫描结果
+    scan_finished = pyqtSignal(list)      # 全部扫描完成，返回结果列表
+
+    def __init__(self, service, port=22080, parent=None):
+        super().__init__()
+        self.service = service
+        self.port = port
+        self._results = []
+
+    def _run_impl(self):
+        # 只调用service的scan_network方法
+        self.service.scan_network(self, self.port)
