@@ -4,8 +4,7 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from pos_tool_new.utils.log_manager import global_log_manager
 from typing import Tuple
-from PyQt6.QtCore import QTimer, Qt, QSize, QPropertyAnimation, QEasingCurve
-from PyQt6.QtGui import QIcon, QFont, QPalette, QColor, QMovie, QTextCharFormat, QTextCursor
+from PyQt6.QtGui import QFont, QPalette, QTextCharFormat, QTextCursor
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QTabWidget, QTextEdit,
     QPushButton, QHBoxLayout, QLabel, QRadioButton,
@@ -349,6 +348,15 @@ QPushButton:disabled {
                 font-size: 10px;
                 font-weight: 500;
             }
+              QToolTip {
+        background-color: #ffffff;
+        color: #333333;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        padding: 6px 10px;
+        font-size: 12px;
+        opacity: 240;
+    }
             QProgressBar::chunk {
                 background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,
                     stop: 0 #00b09b, stop: 1 #96c93d);
@@ -501,6 +509,7 @@ from PyQt6.QtCore import QTimer, Qt, QSize, QPropertyAnimation, QEasingCurve
 from PyQt6.QtGui import QIcon, QColor, QMovie
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QProgressBar
 
+
 class ModernSplashScreen(QWidget):
     def __init__(self, gif_path, duration=1800, parent=None):
         super().__init__(parent)
@@ -576,7 +585,8 @@ class ModernSplashScreen(QWidget):
             self.animation_label.setMovie(self.movie)
         else:
             self.animation_label.setText("加载中...")
-            self.animation_label.setStyleSheet(f"color: {'white' if self._is_dark_mode else '#333333'}; font-size: 14px;")
+            self.animation_label.setStyleSheet(
+                f"color: {'white' if self._is_dark_mode else '#333333'}; font-size: 14px;")
 
     def _setup_progress_style(self):
         style = """
@@ -624,7 +634,6 @@ class ModernSplashScreen(QWidget):
         if self.main_window:
             self.main_window.show()
         event.accept()
-
 
 
 if __name__ == "__main__":
