@@ -2,7 +2,7 @@ from pos_tool_new.main import BaseTabWidget
 from .scan_pos_service import ScanPosService
 from PyQt6.QtWidgets import (QTableWidget, QTableWidgetItem, QPushButton, QVBoxLayout,
                              QLabel, QProgressBar, QLineEdit, QHBoxLayout,
-                             QHeaderView, QSizePolicy, QSpacerItem)
+                             QHeaderView, QSizePolicy, QSpacerItem, QWidget)
 from PyQt6.QtCore import Qt, QUrl
 from PyQt6.QtGui import QColor, QBrush, QDesktopServices
 
@@ -13,6 +13,11 @@ class ScanPosTabWidget(BaseTabWidget):
         self.backend = backend
         self.service = ScanPosService()
         self._results = []
+        self._total_scan_count = 0  # 总扫描IP数量
+        self._scanned_count = 0  # 已扫描IP数量
+        self._loaded_count = 0  # 已加载到表格的数量
+        self._scan_finished = False  # 扫描是否完成
+        self._displayed_results = []  # 当前显示的结果
 
         # 定义条纹颜色
         self.row_colors = [
@@ -68,7 +73,7 @@ class ScanPosTabWidget(BaseTabWidget):
 
         # 进度显示
         self.progress_bar = QProgressBar()
-        self.progress_bar.setTextVisible(False)
+        self.progress_bar.setTextVisible(True)
         self.progress_bar.setStyleSheet("""
             QProgressBar {
                 border: 1px solid #ccc;
@@ -80,6 +85,7 @@ class ScanPosTabWidget(BaseTabWidget):
                 width: 10px;
             }
         """)
+        self.progress_bar.hide()  # 初始隐藏进度条
 
         self.progress_label = QLabel('准备扫描...')
         self.progress_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -144,12 +150,12 @@ class ScanPosTabWidget(BaseTabWidget):
         search_layout.addWidget(self.clear_search_btn)
         search_layout.addStretch()
 
-        # 控制按钮布局
+        # 控制按钮和搜索在同一行
         control_layout = QHBoxLayout()
         control_layout.addWidget(self.refresh_btn)
-        control_layout.addStretch()
+        control_layout.addLayout(search_layout)
 
-        # 进度布局
+        # 进度布局单独一行
         progress_layout = QHBoxLayout()
         progress_layout.addWidget(self.progress_bar)
         progress_layout.addSpacing(10)
@@ -157,11 +163,9 @@ class ScanPosTabWidget(BaseTabWidget):
 
         # 主布局
         main_layout = QVBoxLayout()
-        main_layout.addLayout(search_layout)
-        main_layout.addSpacing(10)
-        main_layout.addLayout(control_layout)
+        main_layout.addLayout(control_layout)  # 按钮和搜索在同一行
         main_layout.addSpacing(5)
-        main_layout.addLayout(progress_layout)
+        main_layout.addLayout(progress_layout)  # 进度条单独一行
         main_layout.addSpacing(10)
         main_layout.addWidget(self.table)
 
@@ -175,6 +179,14 @@ class ScanPosTabWidget(BaseTabWidget):
         """开始扫描"""
         self.table.setRowCount(0)
         self._results = []
+        self._displayed_results = []
+        self._total_scan_count = 0
+        self._scanned_count = 0
+        self._loaded_count = 0
+        self._scan_finished = False
+
+        # 显示进度条
+        self.progress_bar.show()
         self.progress_bar.setValue(0)
         self.progress_label.setText('扫描初始化...')
 
@@ -186,23 +198,125 @@ class ScanPosTabWidget(BaseTabWidget):
         worker.scan_progress.connect(self.on_scan_progress)
         worker.scan_result.connect(self.on_scan_result)
         worker.scan_finished.connect(self.on_scan_finished)
+        worker.scan_total.connect(self.on_scan_total)
         worker.start()
+
+    def on_scan_total(self, total_count):
+        """处理总扫描数量"""
+        self._total_scan_count = total_count
+        self.progress_label.setText(f'开始扫描，共 {total_count} 个IP')
 
     def on_scan_progress(self, percent, ip):
         """处理扫描进度更新"""
-        self.progress_bar.setValue(percent)
-        self.progress_label.setText(f'正在扫描: {ip} ({percent}%)')
+        # 扫描阶段更新进度条
+        if not self._scan_finished:
+            self.progress_bar.setValue(percent)
+            self.progress_label.setText(f'正在扫描: {ip} ({percent}%)')
 
     def on_scan_result(self, result):
-        """处理单个扫描结果"""
+        """处理单个扫描结果 - 只收集数据，不实时添加到表格"""
         self._results.append(result)
-        self._refresh_table(self._results)
+        self._scanned_count += 1
+
+        # 扫描阶段：显示扫描进度
+        if not self._scan_finished and self._total_scan_count > 0:
+            scan_percent = int((self._scanned_count / self._total_scan_count) * 100)
+            self.progress_bar.setValue(scan_percent)
+            self.progress_label.setText(
+                f'扫描进度: {self._scanned_count}/{self._total_scan_count} ({scan_percent}%) - 发现设备: {len(self._results)}')
 
     def on_scan_finished(self, results):
         """处理扫描完成"""
-        self.progress_bar.setValue(100)
-        self.progress_label.setText(f'扫描完成，共发现 {len(results)} 台设备')
-        self._refresh_table(results)
+        self._scan_finished = True
+        self._results = results
+        self._loaded_count = 0  # 加载阶段从0开始
+        # 无条件进入加载阶段
+        self.progress_label.setText(f'扫描完成，开始加载数据到表格...')
+        self.progress_bar.setValue(0)  # 加载阶段进度条重置为0
+        self._start_loading_phase()
+
+    def _start_loading_phase(self):
+        """开始加载阶段"""
+        from PyQt6.QtCore import QTimer
+        self._load_timer = QTimer()
+        self._load_timer.timeout.connect(self._load_next_row)
+        self._load_timer.start(50)  # 每50毫秒加载一行
+
+    def _load_next_row(self):
+        """加载下一行数据"""
+        if self._loaded_count >= len(self._results):
+            # 加载完成
+            self._load_timer.stop()
+            self.progress_bar.setValue(100)
+            self.progress_label.setText(f'加载完成，共 {len(self._results)} 台设备')
+
+            # 延迟隐藏进度条
+            from PyQt6.QtCore import QTimer
+            QTimer.singleShot(2000, self.hide_progress_bar)
+            return
+
+        # 加载当前行
+        result = self._results[self._loaded_count]
+        self._add_row_to_table(result, self._loaded_count)
+        self._loaded_count += 1
+
+        # 更新加载进度
+        if len(self._results) > 0:
+            load_percent = int((self._loaded_count / len(self._results)) * 100)
+            self.progress_bar.setValue(load_percent)
+            self.progress_label.setText(f'加载进度: {self._loaded_count}/{len(self._results)} ({load_percent}%)')
+
+    def _add_row_to_table(self, result, row_index):
+        """向表格添加单行数据"""
+        row = self.table.rowCount()
+        self.table.insertRow(row)
+
+        # 设置交替行背景色
+        bg_color = self.row_colors[row_index % 2]
+
+        # IP地址
+        ip_item = QTableWidgetItem(result.get('ip', ''))
+        ip_item.setFlags(ip_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+        ip_item.setBackground(QBrush(bg_color))
+        self.table.setItem(row, 0, ip_item)
+
+        # 商家ID
+        merchant_item = QTableWidgetItem(str(result.get('merchantId', '')))
+        merchant_item.setFlags(merchant_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+        merchant_item.setBackground(QBrush(bg_color))
+        self.table.setItem(row, 1, merchant_item)
+
+        # 商家名称
+        name_item = QTableWidgetItem(str(result.get('name', '')))
+        name_item.setFlags(name_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+        name_item.setBackground(QBrush(bg_color))
+        self.table.setItem(row, 2, name_item)
+
+        # 版本或错误信息
+        if result.get('status') == 'success':
+            version_item = QTableWidgetItem(str(result.get('version', '')))
+        else:
+            version_item = QTableWidgetItem(str(result.get('error', '获取失败')))
+            version_item.setForeground(Qt.GlobalColor.red)
+
+        version_item.setFlags(version_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+        version_item.setBackground(QBrush(bg_color))
+        self.table.setItem(row, 3, version_item)
+
+        # 操作按钮
+        ip = result.get('ip', '')
+        btn = QPushButton('打开')
+        btn.setStyleSheet(
+            'QPushButton { background-color: #2196F3; color: white; border: none; border-radius: 4px; padding: 4px 8px; } QPushButton:hover { background-color: #0b7dda; }')
+        btn.clicked.connect(lambda _, ip=ip: QDesktopServices.openUrl(QUrl(f'http://{ip}:22080')))
+        self.table.setCellWidget(row, 4, btn)
+
+        # 自动滚动到最后一行
+        self.table.scrollToBottom()
+
+    def hide_progress_bar(self):
+        """隐藏进度条"""
+        self.progress_bar.hide()
 
     def on_search(self):
         """执行搜索"""
@@ -228,54 +342,12 @@ class ScanPosTabWidget(BaseTabWidget):
         self._refresh_table(self._results)
 
     def _refresh_table(self, results):
-        """刷新表格数据"""
+        """刷新表格数据（用于搜索）"""
         self.table.setRowCount(0)
+        self._displayed_results = results
 
         for i, result in enumerate(results):
-            row = self.table.rowCount()
-            self.table.insertRow(row)
-
-            # 设置交替行背景色
-            for col in range(self.table.columnCount()):
-                item = QTableWidgetItem()
-                item.setBackground(QBrush(self.row_colors[i % 2]))
-                self.table.setItem(row, col, item)
-
-            # IP地址
-            ip_item = QTableWidgetItem(result.get('ip', ''))
-            ip_item.setFlags(ip_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-            ip_item.setBackground(QBrush(self.row_colors[i % 2]))
-            self.table.setItem(row, 0, ip_item)
-
-            # 商家ID
-            merchant_item = QTableWidgetItem(str(result.get('merchantId', '')))
-            merchant_item.setFlags(merchant_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-            merchant_item.setBackground(QBrush(self.row_colors[i % 2]))
-            self.table.setItem(row, 1, merchant_item)
-
-            # 商家名称
-            name_item = QTableWidgetItem(str(result.get('name', '')))
-            name_item.setFlags(name_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-            name_item.setBackground(QBrush(self.row_colors[i % 2]))
-            self.table.setItem(row, 2, name_item)
-
-            # 版本或错误信息
-            if result.get('status') == 'success':
-                version_item = QTableWidgetItem(str(result.get('version', '')))
-            else:
-                version_item = QTableWidgetItem(str(result.get('error', '获取失败')))
-                version_item.setForeground(Qt.GlobalColor.red)
-
-            version_item.setFlags(version_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-            version_item.setBackground(QBrush(self.row_colors[i % 2]))
-            self.table.setItem(row, 3, version_item)
-
-            # 操作按钮
-            ip = result.get('ip', '')
-            btn = QPushButton('打开')
-            btn.setStyleSheet('QPushButton { background-color: #2196F3; color: white; border: none; border-radius: 4px; padding: 4px 8px; } QPushButton:hover { background-color: #0b7dda; }')
-            btn.clicked.connect(lambda _, ip=ip: QDesktopServices.openUrl(QUrl(f'http://{ip}:22080')))
-            self.table.setCellWidget(row, 4, btn)
+            self._add_row_to_table(result, i)
 
     def showEvent(self, event):
         """显示事件处理"""

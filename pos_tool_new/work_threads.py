@@ -434,6 +434,7 @@ class ScanPosWorkerThread(BaseWorkerThread):
     scan_progress = pyqtSignal(int, str)  # 进度百分比, 当前IP
     scan_result = pyqtSignal(dict)        # 单个扫描结果
     scan_finished = pyqtSignal(list)      # 全部扫描完成，返回结果列表
+    scan_total = pyqtSignal(int)          # 新增：总数信号
 
     def __init__(self, service, port=22080, parent=None):
         super().__init__()
