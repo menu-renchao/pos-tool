@@ -3,7 +3,7 @@
 
 a = Analysis(
     ['main.py'],
-    pathex=['D:\PycharmProjects\pos_tool_new'],
+    pathex=['D:\menusifu\PythonProject\rc\pos_tool_new'],
     binaries=[],
     datas=[('UI/help.png', 'UI'), ('UI/app.ico', 'UI'),('UI/loading.gif', 'UI'), ('version_info/version_info.html', 'version_info')],
     hiddenimports=[],

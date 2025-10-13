@@ -497,138 +497,134 @@ QPushButton:disabled {
         global_log_manager.log(msg, level)
 
 
-class ModernSplashScreen(QWidget):
-    """现代化的启动画面"""
+from PyQt6.QtCore import QTimer, Qt, QSize, QPropertyAnimation, QEasingCurve
+from PyQt6.QtGui import QIcon, QColor, QMovie
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QProgressBar
 
+class ModernSplashScreen(QWidget):
     def __init__(self, gif_path, duration=1800, parent=None):
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.SplashScreen)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setFixedSize(400, 300)
-        # 设置半透明背景
-        self.setStyleSheet("""
-            ModernSplashScreen {
-                background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                    stop: 0 #667eea, stop: 1 #764ba2);
-                border-radius: 15px;
-            }
-        """)
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(15)
-        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        # 应用图标
-        self.icon_label = QLabel()
-        self.icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        icon_pixmap = QIcon(resource_path('UI/app.ico')).pixmap(64, 64)
-        self.icon_label.setPixmap(icon_pixmap)
-        layout.addWidget(self.icon_label)
-        # 加载动画
-        self.animation_label = QLabel()
-        self.animation_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.movie = QMovie(gif_path)
-        if self.movie.isValid():
-            self.movie.setScaledSize(QSize(80, 80))
-            self.animation_label.setMovie(self.movie)
-        else:
-            # 如果GIF加载失败，显示静态文本
-            self.animation_label.setText("加载中...")
-            self.animation_label.setStyleSheet("color: white; font-size: 14px;")
-        layout.addWidget(self.animation_label)
-        # 应用标题
-        self.title_label = QLabel("POS测试工具")
-        self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.title_label.setStyleSheet("""
-            QLabel {
-                color: white;
-                font-size: 24px;
-                font-weight: bold;
-                background: transparent;
-            }
-        """)
-        layout.addWidget(self.title_label)
-        # 版本信息
-        self.version_label = QLabel("v1.5.0.1 - 正在加载...")
-        self.version_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.version_label.setStyleSheet("""
-            QLabel {
-                color: rgba(255, 255, 255, 0.8);
-                font-size: 12px;
-                background: transparent;
-            }
-        """)
-        layout.addWidget(self.version_label)
-        # 进度条
-        self.splash_progress = QProgressBar()
-        self.splash_progress.setMaximumWidth(300)
-        self.splash_progress.setTextVisible(False)
-        self.splash_progress.setStyleSheet("""
-            QProgressBar {
-                border: 1px solid rgba(255, 255, 255, 0.3);
-                border-radius: 4px;
-                background: rgba(255, 255, 255, 0.2);
-                height: 6px;
-            }
-            QProgressBar::chunk {
-                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,
-                    stop: 0 #ffecd2, stop: 1 #fcb69f);
-                border-radius: 3px;
-            }
-        """)
-        layout.addWidget(self.splash_progress)
+
+        self._is_dark_mode = self.palette().window().color().lightness() < 128
+        self._setup_ui(gif_path)
+
         self.duration = duration
         self.main_window = None
-        # 启动进度动画
         self.progress_animation = QPropertyAnimation(self.splash_progress, b"value")
         self.progress_animation.setDuration(duration)
         self.progress_animation.setStartValue(0)
         self.progress_animation.setEndValue(100)
         self.progress_animation.setEasingCurve(QEasingCurve.Type.OutCubic)
 
+    def _setup_ui(self, gif_path):
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.icon_label = QLabel()
+        self.icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.icon_label.setPixmap(self._get_icon())
+        layout.addWidget(self.icon_label)
+
+        self.animation_label = QLabel()
+        self.animation_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._setup_animation(gif_path)
+        layout.addWidget(self.animation_label)
+
+        # 应用标题
+        self.title_label = QLabel("POS测试工具")
+        self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.title_label.setStyleSheet("""
+            QLabel {
+                color: #cccccc;
+                font-size: 24px;
+                font-weight: bold;
+                background: transparent;
+            }
+        """)
+        layout.addWidget(self.title_label)
+
+        self.version_label = QLabel("v1.5.0.1 - 正在加载...")
+        self.version_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.version_label.setStyleSheet("""
+            QLabel {
+                color: #aaaaaa;
+                font-size: 12px;
+                background: transparent;
+            }
+        """)
+        layout.addWidget(self.version_label)
+
+        self.splash_progress = QProgressBar()
+        self.splash_progress.setMaximumWidth(300)
+        self.splash_progress.setTextVisible(False)
+        self._setup_progress_style()
+        layout.addWidget(self.splash_progress)
+
+    def _get_icon(self):
+        icon = QIcon('UI/app.ico')
+        return icon.pixmap(64, 64, QIcon.Mode.Normal if self._is_dark_mode else QIcon.Mode.Active)
+
+    def _setup_animation(self, gif_path):
+        self.movie = QMovie(gif_path)
+        if self.movie.isValid():
+            self.movie.setScaledSize(QSize(80, 80))
+            self.animation_label.setMovie(self.movie)
+        else:
+            self.animation_label.setText("加载中...")
+            self.animation_label.setStyleSheet(f"color: {'white' if self._is_dark_mode else '#333333'}; font-size: 14px;")
+
+    def _setup_progress_style(self):
+        style = """
+            QProgressBar {{
+                border: 1px solid rgba({border_color});
+                border-radius: 4px;
+                background: rgba({bg_color});
+                height: 6px;
+            }}
+            QProgressBar::chunk {{
+                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 {start_color}, stop: 1 {end_color});
+                border-radius: 3px;
+            }}
+        """
+        if self._is_dark_mode:
+            self.splash_progress.setStyleSheet(style.format(
+                border_color="255, 255, 255, 0.3", bg_color="255, 255, 255, 0.2",
+                start_color="#ffecd2", end_color="#fcb69f"))
+        else:
+            self.splash_progress.setStyleSheet(style.format(
+                border_color="0, 0, 0, 0.2", bg_color="0, 0, 0, 0.1",
+                start_color="#4a6cf7", end_color="#2541b2"))
+
     def start(self, main_window_creator):
-        """启动动画并创建主窗口"""
         if self.movie.isValid():
             self.movie.start()
         self.progress_animation.start()
         self.show()
-        # 创建主窗口（在后台）
         self.main_window = main_window_creator()
-        # 定时关闭启动画面
         QTimer.singleShot(self.duration, self.finish_loading)
 
     def finish_loading(self):
-        """完成加载"""
         self.progress_animation.stop()
         self.splash_progress.setValue(100)
-        # 确保主窗口存在且正确显示
         if self.main_window:
-            # 先确保窗口属性正确设置
             self.main_window.setWindowFlags(Qt.WindowType.Window)
-            self.main_window.showNormal()  # 确保正常显示模式
+            self.main_window.showNormal()
             self.main_window.raise_()
             self.main_window.activateWindow()
-            # 添加延迟确保窗口完全显示
-            QTimer.singleShot(100, lambda: self.main_window.setWindowOpacity(1))
         self.close()
-        app.processEvents()  # 处理剩余事件
 
     def closeEvent(self, event):
-        """关闭时显示主窗口"""
         if self.movie.isValid():
             self.movie.stop()
         if self.main_window:
-            # 添加淡入效果
-            self.main_window.setWindowOpacity(0)
             self.main_window.show()
-            # 创建淡入动画
-            fade_animation = QPropertyAnimation(self.main_window, b"windowOpacity")
-            fade_animation.setDuration(500)
-            fade_animation.setStartValue(0)
-            fade_animation.setEndValue(1)
-            fade_animation.start()
-            self.main_window.raise_()
-            self.main_window.activateWindow()
         event.accept()
+
 
 
 if __name__ == "__main__":
