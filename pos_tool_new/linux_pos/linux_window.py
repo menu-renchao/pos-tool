@@ -140,33 +140,12 @@ class LinuxTabWidget(BaseTabWidget):
             traceback.print_exc()
 
     def setup_ui(self):
-        # 环境选择组
-        env_group = QGroupBox("配置文件环境选择")
-        env_layout = QVBoxLayout(env_group)
-
-        # 环境选择按钮
-        env_btn_layout = QHBoxLayout()
-        env_frame, self.env_group = self.create_env_selector("QA")
-        env_btn_layout.addWidget(env_frame)
-        env_btn_layout.addStretch()
-
-        # 修改文件按钮
-        self.modify_btn = QPushButton("修改文件")
-        self.modify_btn.clicked.connect(self.on_modify_remote)
-        self.modify_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-        env_btn_layout.addWidget(self.modify_btn)
-
-        env_layout.addLayout(env_btn_layout)
-        self.layout.addWidget(env_group)
-
+        # 新建一行布局，包含环境选择和换包升级服务
+        top_row_layout = QHBoxLayout()
         # SSH连接设置组
         self.ssh_group = QGroupBox("SSH连接设置")
         ssh_main_layout = QVBoxLayout(self.ssh_group)
-
-        # SSH输入区域
         ssh_input_layout = QHBoxLayout()
-
-        # 主机IP
         host_label = QLabel("主机IP:")
         self.host_ip = QComboBox()
         self.host_ip.addItems([
@@ -175,55 +154,57 @@ class LinuxTabWidget(BaseTabWidget):
         ])
         self.host_ip.setEditable(True)
         self.host_ip.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-
-        # 用户名
         username_label = QLabel("用户名:")
         self.username = QLineEdit("menu")
-
-        # 密码
         password_label = QLabel("密码:")
         self.password = QLineEdit("M2ei#a$19!")
         self.password.setEchoMode(QLineEdit.EchoMode.Password)
-
-        # 添加到水平布局
         ssh_input_layout.addWidget(host_label)
         ssh_input_layout.addWidget(self.host_ip)
         ssh_input_layout.addWidget(username_label)
         ssh_input_layout.addWidget(self.username)
         ssh_input_layout.addWidget(password_label)
         ssh_input_layout.addWidget(self.password)
-
         # 测试连接按钮
         self.test_btn = QPushButton("测试连接")
         self.test_btn.clicked.connect(self.on_test_ssh)
         self.test_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         ssh_input_layout.addWidget(self.test_btn)
-
         self.status_label = QLabel("连接状态未检测")
         self.status_label.setStyleSheet("color: red;")
         self.status_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         ssh_input_layout.addWidget(self.status_label)
-
         # 查询远程包MD5按钮
         self.remote_md5_btn = QPushButton("查询远程包MD5")
         self.remote_md5_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         self.remote_md5_btn.clicked.connect(self.on_check_remote_md5)
         ssh_input_layout.addWidget(self.remote_md5_btn)
-
         # 日志下载按钮
         self.download_log_btn = QPushButton("日志下载")
         self.download_log_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         self.download_log_btn.clicked.connect(self.on_download_log)
         ssh_input_layout.addWidget(self.download_log_btn)
-
         ssh_main_layout.addLayout(ssh_input_layout)
         self.layout.addWidget(self.ssh_group)
 
-        # WAR文件选择组
+        # 环境选择组（1/3）
+        env_group = QGroupBox("配置文件环境选择")
+        env_layout = QVBoxLayout(env_group)
+        env_btn_layout = QHBoxLayout()
+        env_frame, self.env_group = self.create_env_selector("QA")
+        env_btn_layout.addWidget(env_frame)
+        env_btn_layout.addStretch()
+        # 修改文件按钮
+        self.modify_btn = QPushButton("修改文件")
+        self.modify_btn.clicked.connect(self.on_modify_remote)
+        self.modify_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        env_btn_layout.addWidget(self.modify_btn)
+        env_layout.addLayout(env_btn_layout)
+        top_row_layout.addWidget(env_group, 1)
+
+        # 换包/升级服务组（2/3）
         file_group = QGroupBox("换包/升级服务")
         file_main_layout = QVBoxLayout(file_group)
-
-        # 文件选择区域
         file_select_layout = QHBoxLayout()
         self.war_path = QLineEdit()
         self.war_path.setPlaceholderText("请选择war文件路径...")
@@ -234,24 +215,18 @@ class LinuxTabWidget(BaseTabWidget):
         file_select_layout.addWidget(self.war_path)
         file_select_layout.addWidget(btn_browse)
         file_select_layout.addWidget(btn_download_net)
-
         file_main_layout.addLayout(file_select_layout)
-
-        # WAR文件操作按钮
         file_btn_layout = QHBoxLayout()
         file_btn_layout.addStretch()
-
         # 查询本地包MD5按钮
         self.local_md5_btn = QPushButton("查询本地包MD5")
         self.local_md5_btn.clicked.connect(self.on_check_local_md5)
         file_btn_layout.addWidget(self.local_md5_btn)
-
         # 替换远程war包按钮
         self.replace_btn = QPushButton("替换远程war包")
         self.replace_btn.clicked.connect(self.on_replace_war_linux)
         self.replace_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         file_btn_layout.addWidget(self.replace_btn)
-
         # 上传升级包按钮
         self.upload_btn = QPushButton("上传升级包")
         self.upload_btn.clicked.connect(self.on_upload_upgrade_package)
@@ -273,9 +248,10 @@ class LinuxTabWidget(BaseTabWidget):
             "此功能会扫描「/home/menu」下的所有升级工具。\n"
             "如果未发现您需要的升级工具，请使用【上传升级包】功能。"
         )
-
+        top_row_layout.addWidget(file_group, 2)
         file_main_layout.addLayout(file_btn_layout)
-        self.layout.addWidget(file_group)
+        self.layout.addLayout(top_row_layout)
+
 
         # 操作按钮组
         action_group = QGroupBox("重启/数据服务")

@@ -352,7 +352,7 @@ class LinuxService(Backend):
 
             # 删除远程同名文件
             remote_package_path = posixpath.join(remote_target_path, os.path.basename(local_package_path))
-            self.log(f"删除远程同名文件: {remote_package_path}", level="info")
+            self.log(f"删除远程同名文件: {remote_package_path}", level="warning")
             self._execute_command(ssh, f"sudo rm -f {remote_package_path}")
 
             if progress_callback:
@@ -377,7 +377,7 @@ class LinuxService(Backend):
             if err:
                 self.log(f"执行脚本时出错: {err}", level="error")
             else:
-                self.log("升级完成", level="info")
+                self.log("升级完成", level="success")
 
             if progress_callback:
                 progress_callback(100)
