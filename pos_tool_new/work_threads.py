@@ -431,17 +431,15 @@ class GenerateImgThread(BaseWorkerThread):
 
 
 class ScanPosWorkerThread(BaseWorkerThread):
-    scan_progress = pyqtSignal(int, str)  # 进度百分比, 当前IP
+    scan_progress = pyqtSignal(int, str)  # 扫描进度百分比和当前IP
     scan_result = pyqtSignal(dict)        # 单个扫描结果
-    scan_finished = pyqtSignal(list)      # 全部扫描完成，返回结果列表
-    scan_total = pyqtSignal(int)          # 新增：总数信号
+    scan_finished = pyqtSignal(list)      # 扫描完成后的结果列表
 
-    def __init__(self, service, port=22080, parent=None):
+    def __init__(self, service, port=22080):
         super().__init__()
         self.service = service
         self.port = port
         self._results = []
 
     def _run_impl(self):
-        # 只调用service的scan_network方法
         self.service.scan_network(self, self.port)
