@@ -18,8 +18,8 @@ class ScanPosTabWidget(BaseTabWidget):
         self._init_ui()
 
     def _init_ui(self):
-        self.table = QTableWidget(0, 5)
-        self.table.setHorizontalHeaderLabels(['IP', '商家ID', '名称', '版本', '操作'])
+        self.table = QTableWidget(0, 6)
+        self.table.setHorizontalHeaderLabels(['IP', '设备类型', '商家ID', '名称', '版本', '操作'])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.table.setAlternatingRowColors(True)
         self.table.setSortingEnabled(False)  # 保持禁用排序
@@ -125,7 +125,8 @@ class ScanPosTabWidget(BaseTabWidget):
         bg_color = self.row_colors[row_index % 2]
         def get_value(key):
             return result.get(key, '')
-        for col, key in enumerate(['ip', 'merchantId', 'name', 'version']):
+        # 新顺序：['ip', 'type', 'merchantId', 'name', 'version']
+        for col, key in enumerate(['ip', 'type', 'merchantId', 'name', 'version']):
             value = get_value(key)
             # 商家ID特殊处理
             if key == 'merchantId':
@@ -142,11 +143,12 @@ class ScanPosTabWidget(BaseTabWidget):
             self.table.setItem(row_index, col, item)
         # 操作列按钮区
         # 检查除ip外所有字段是否都为空（即都为“——”）
-        if all(self.table.item(row_index, i).text() == '——' for i in [1,2,3]):
+        # 新顺序下，type=1, merchantId=2, name=3, version=4
+        if all(self.table.item(row_index, i).text() == '——' for i in [2,3,4]):
             unavailable_label = QLabel('POS已离线')
             unavailable_label.setStyleSheet('color: red; font-weight: bold;')
             unavailable_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.table.setCellWidget(row_index, 4, unavailable_label)
+            self.table.setCellWidget(row_index, 5, unavailable_label)
         else:
             btn_open = QPushButton('打开')
             btn_open.setFixedWidth(48)
@@ -172,7 +174,7 @@ class ScanPosTabWidget(BaseTabWidget):
             btn_layout.addWidget(btn_detail)
             btn_layout.setContentsMargins(0, 0, 0, 0)
             btn_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.table.setCellWidget(row_index, 4, btn_widget)
+            self.table.setCellWidget(row_index, 5, btn_widget)
         self.table.scrollToBottom()
 
     def show_detail_dialog(self, row_index):
