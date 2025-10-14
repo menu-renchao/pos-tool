@@ -22,7 +22,8 @@ class LogManager(QObject):
             level=logging.INFO,
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
             filename='app.log',
-            filemode='a'
+            filemode='a',
+            encoding='utf-8'
         )
         self._logger = logging.getLogger(__name__)
 
