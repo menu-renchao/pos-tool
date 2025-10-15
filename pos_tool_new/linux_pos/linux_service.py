@@ -195,20 +195,18 @@ class LinuxService(Backend):
             self.log(f"远程修改出错: {str(e)}", level="error")
             raise
 
-    def restart_pos_linux(self, host: str, username: str, password: str) -> None:
-        """远程一键重启 MenuSifu POS 应用"""
+    def stop_pos_linux(self, host: str, username: str, password: str) -> None:
+        """远程停止 MenuSifu POS 应用相关进程"""
         try:
-            self.log("正在重启远程POS服务...", level="info")
-            commands = [
-                ('[INFO] Killing menusifu_pos_extention', "/opt/menusifu/menusifu_pos_extention"),
-                ('[INFO] Killing do_pos_start', "/opt/POS/do_pos_start"),
-                ('[INFO] Killing show_pos_icon', "/opt/POS/show_pos_icon"),
-                ('[INFO] Killing tomcat7', "tomcat7"),
-                ('[INFO] 启动POS服务', "DISPLAY=:0 /usr/local/bin/pos_start")
+            self.log("正在停止远程POS服务...", level="info")
+            processes = [
+                ("[INFO] Killing menusifu_pos_extention", "/opt/menusifu/menusifu_pos_extention"),
+                ("[INFO] Killing do_pos_start", "/opt/POS/do_pos_start"),
+                ("[INFO] Killing show_pos_icon", "/opt/POS/show_pos_icon"),
+                ("[INFO] Killing tomcat7", "tomcat7"),
             ]
-
             with self._connect_ssh(host, username, password) as ssh:
-                for info, process in commands[:-1]:
+                for info, process in processes:
                     self.log(info, level="info")
                     cmd = f"echo '{password}' | sudo -S pkill -9 -f '{process}'"
                     out, err, _ = self._execute_command(ssh, cmd, timeout=240)
@@ -216,16 +214,40 @@ class LinuxService(Backend):
                         self.log(out, level="info")
                     if err:
                         self.log(f"错误: {err}", level="error")
-
-                # 启动POS服务
-                self.log(commands[-1][0], level="info")
-                out, err, _ = self._execute_command(ssh, commands[-1][1], timeout=240)
+                # 新增停止 tomcat.service 的逻辑
+                self.log("[INFO] Stopping tomcat.service via systemctl", level="info")
+                cmd = f"echo '{password}' | sudo -S systemctl stop tomcat.service"
+                out, err, _ = self._execute_command(ssh, cmd, timeout=240)
                 if out:
                     self.log(out, level="info")
                 if err:
                     self.log(f"错误: {err}", level="error")
+            self.log("停止完成。", level="success")
+        except Exception as e:
+            self.log(f"停止过程中出错: {str(e)}", level="error")
+            raise
 
-            self.log("重启完成。", level="success")
+    def start_pos_linux(self, host: str, username: str, password: str) -> None:
+        """远程启动 MenuSifu POS 应用"""
+        try:
+            self.log("正在启动远程POS服务...", level="info")
+            with self._connect_ssh(host, username, password) as ssh:
+                cmd = "DISPLAY=:0 /usr/local/bin/pos_start"
+                out, err, _ = self._execute_command(ssh, cmd, timeout=240)
+                if out:
+                    self.log(out, level="info")
+                if err:
+                    self.log(f"错误: {err}", level="error")
+            self.log("启动完成。", level="success")
+        except Exception as e:
+            self.log(f"启动过程中出错: {str(e)}", level="error")
+            raise
+
+    def restart_pos_linux(self, host: str, username: str, password: str) -> None:
+        """远程一键重启 MenuSifu POS 应用"""
+        try:
+            self.stop_pos_linux(host, username, password)
+            self.start_pos_linux(host, username, password)
         except Exception as e:
             self.log(f"重启过程中出错: {str(e)}", level="error")
             raise

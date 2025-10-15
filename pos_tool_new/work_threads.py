@@ -295,9 +295,10 @@ class PipelineUpgradeThread(BaseWorkerThread):
 
     def _run_impl(self):
         try:
+            self._stop_pos()
             self._upload_and_extract_war()
             self._modify_config_files()
-            self._restart_pos()
+            self._start_pos()
         except Exception as e:
             self._handle_exception(e)
 
@@ -321,9 +322,13 @@ class PipelineUpgradeThread(BaseWorkerThread):
         self.progress_text_updated.emit("正在修改配置文件...")
         self.service.modify_remote_files(self.host, self.username, self.password, self.env)
 
-    def _restart_pos(self):
-        self.progress_text_updated.emit("正在重启POS服务...")
-        self.service.restart_pos_linux(self.host, self.username, self.password)
+    def _start_pos(self):
+        self.progress_text_updated.emit("正在启动POS服务...")
+        self.service.start_pos_linux(self.host, self.username, self.password)
+
+    def _stop_pos(self):
+        self.progress_text_updated.emit("正在停止POS服务...")
+        self.service.stop_pos_linux(self.host, self.username, self.password)
 
     def _handle_exception(self, exception):
         self.speed_updated.emit("")
