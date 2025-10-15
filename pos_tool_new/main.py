@@ -4,15 +4,16 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from pos_tool_new.utils.log_manager import global_log_manager
 from typing import Tuple
-from PyQt6.QtGui import QFont, QPalette, QTextCharFormat, QTextCursor
+from PyQt6.QtGui import QFont, QPalette, QTextCharFormat, QTextCursor, QIcon, QAction
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QTabWidget, QTextEdit,
     QPushButton, QHBoxLayout, QLabel, QRadioButton,
     QButtonGroup, QGroupBox, QProgressBar,
-    QMainWindow, QToolBar, QToolButton
+    QMainWindow, QToolBar, QToolButton, QMenuBar, QMenu, QWidgetAction
 )
 from pos_tool_new.backend import Backend
 from pos_tool_new.version_info.version_info import VersionInfoDialog
+from PyQt6.QtWidgets import QSizePolicy
 
 
 def resource_path(relative_path: str) -> str:
@@ -199,14 +200,14 @@ class MainWindow(QMainWindow):
         self.resize(900, 580)
         # 设置样式
         self.setup_styles()
+        # 创建菜单栏
+        self.create_menubar()
         # 创建中央部件和主布局
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         main_layout = QVBoxLayout(central_widget)
-        main_layout.setContentsMargins(3, 3, 3, 3)
-        main_layout.setSpacing(2)
-        # 创建顶部工具栏
-        self.create_toolbar(main_layout)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
         # 创建选项卡
         self.tabs = QTabWidget()
         self.tabs.setDocumentMode(True)
@@ -221,6 +222,15 @@ class MainWindow(QMainWindow):
         # 初始化进度条
         self.fake_progress = 0
         self.progress_timer.timeout.connect(self.update_fake_progress)
+
+    def create_menubar(self):
+        """创建菜单栏并添加版本信息菜单项"""
+        menubar = self.menuBar() if self.menuBar() else QMenuBar(self)
+        help_menu = menubar.addMenu("帮助(&H)")
+        version_action = QAction("版本信息", self)
+        version_action.triggered.connect(self.show_version_info)
+        help_menu.addAction(version_action)
+        self.setMenuBar(menubar)
 
     def create_tab_contents(self):
         from pos_tool_new.linux_pos.linux_window import LinuxTabWidget
@@ -252,35 +262,6 @@ class MainWindow(QMainWindow):
         tab_names = ["Linux POS", "Windows POS", "Caller ID", "License Backup", "Download War", "图片生成"]
         if 0 <= index < len(tab_names):
             self.append_log(f"📁 切换到选项卡: {tab_names[index]}", "info")
-
-    def create_toolbar(self, layout: QVBoxLayout):
-        """创建顶部工具栏 - 修复布局问题"""
-        # 直接创建工具栏，不通过布局嵌套
-        toolbar = QToolBar("主工具栏")
-        toolbar.setIconSize(QSize(16, 16))
-        toolbar.setMovable(False)
-        # 版本信息按钮
-        self.version_btn = QPushButton("📋 版本信息")
-        self.version_btn.clicked.connect(self.show_version_info)
-        self.version_btn.setMaximumWidth(100)
-        self.version_btn.setStyleSheet("""
-            QPushButton { 
-                font-size: 11px; 
-                padding: 6px 10px;
-                background: #6c757d;
-                color: white;
-                border: none;
-                border-radius: 4px;
-            }
-            QPushButton:hover {
-                background: #5a6268;
-            }
-        """)
-        # 添加按钮到工具栏
-        toolbar.addWidget(self.version_btn)
-        toolbar.addSeparator()
-        # 添加工具栏到主窗口
-        self.addToolBar(Qt.ToolBarArea.TopToolBarArea, toolbar)
 
     def show_version_info(self):
         """显示版本信息对话框"""
