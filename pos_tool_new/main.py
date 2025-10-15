@@ -214,22 +214,31 @@ class MainWindow(QMainWindow):
         self.tabs.setTabPosition(QTabWidget.TabPosition.North)
         self.tabs.setMovable(True)
         self.tabs.setTabsClosable(False)
-        main_layout.addWidget(self.tabs)
+        # 创建日志区域（先不添加到布局）
+        self.log_group = None
         # 创建选项卡内容
         self.create_tab_contents()
-        # 创建日志区域
-        self.create_log_area(main_layout)
+        # 创建日志区域（不再传 main_layout）
+        self.create_log_area()
+        # 用 QSplitter 垂直分割主内容和日志区
+        from PyQt6.QtWidgets import QSplitter
+        splitter = QSplitter(Qt.Orientation.Vertical)
+        splitter.addWidget(self.tabs)
+        splitter.addWidget(self.log_group)
+        self.log_group.setMinimumHeight(270)
+        splitter.setSizes([600, 180])  # 初始比例，可根据实际调整
+        main_layout.addWidget(splitter)
         # 初始化进度条
         self.fake_progress = 0
         self.progress_timer.timeout.connect(self.update_fake_progress)
 
     def create_menubar(self):
-        """创建菜单栏并添加版本信息菜单项"""
+        """创建菜单栏并添加关于菜单项"""
         menubar = self.menuBar() if self.menuBar() else QMenuBar(self)
-        help_menu = menubar.addMenu("帮助(&H)")
+        about_menu = menubar.addMenu("关于(&A)")
         version_action = QAction("版本信息", self)
         version_action.triggered.connect(self.show_version_info)
-        help_menu.addAction(version_action)
+        about_menu.addAction(version_action)
         self.setMenuBar(menubar)
 
     def create_tab_contents(self):
@@ -254,6 +263,9 @@ class MainWindow(QMainWindow):
         from pos_tool_new.scan_pos.scan_pos_window import ScanPosTabWidget
         self.scan_pos_tab = ScanPosTabWidget(self.backend, self)
         self.tabs.addTab(self.scan_pos_tab, "🔍 扫描POS")
+        from pos_tool_new.random_mail.random_mail_window import RandomMailTabWidget
+        self.random_mail_tab = RandomMailTabWidget(self)
+        self.tabs.addTab(self.random_mail_tab, "📧 随机邮箱")
         # 连接选项卡切换信号
         self.tabs.currentChanged.connect(self.on_tab_changed)
 
@@ -336,10 +348,12 @@ QPushButton:disabled {
     color: #d0d0d0;
 }
             QTabWidget::pane {
-                border: 1px solid #dee2e6;
-                border-radius: 6px;
-                background: white;
-                margin-top: -1px;
+                 border: 1px solid #dee2e6;
+    border-radius: 6px;
+    background: white;
+    margin-top: -1px;
+    padding: 4px; 
+    min-width: 0px;
             }
             QTabBar::tab {
                 background: #f8f9fa;
@@ -347,7 +361,7 @@ QPushButton:disabled {
                 border-bottom: none;
                 border-top-left-radius: 6px;
                 border-top-right-radius: 6px;
-                padding: 8px 16px;
+                 padding: 4px 8px;
                 margin-right: 2px;
                 font-size: 11px;
                 color: #495057;
@@ -414,7 +428,7 @@ QPushButton:disabled {
             }
         """)
 
-    def create_log_area(self, layout: QVBoxLayout):
+    def create_log_area(self):
         """创建日志区域"""
         log_group = QGroupBox("📝 操作日志")
         self.log_group = log_group  # 关键：赋值为MainWindow属性，便于Tab控制隐藏
@@ -475,7 +489,6 @@ QPushButton:disabled {
         status_layout.addWidget(self.speed_label)
         status_layout.addStretch()
         log_layout.addLayout(status_layout)
-        layout.addWidget(log_group)
 
     def filter_logs(self, button):
         """过滤日志显示"""

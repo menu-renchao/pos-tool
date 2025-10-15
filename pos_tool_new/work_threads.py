@@ -457,3 +457,61 @@ class ScanPosWorkerThread(BaseWorkerThread):
 
     def _run_impl(self):
         self.service.scan_network(self, self.port)
+
+
+class RandomMailLoadThread(BaseWorkerThread):
+    mails_loaded = pyqtSignal(list)
+
+    def __init__(self, service, parent=None):
+        super().__init__()
+        self.service = service
+        self.parent = parent
+
+    def _run_impl(self):
+        # 调用邮件服务获取邮件列表
+        emails = self.service.get_emails()
+        self.mails_loaded.emit(emails)
+
+
+class RandomMailContentThread(BaseWorkerThread):
+    mail_content_loaded = pyqtSignal(str)
+
+    def __init__(self, service, mail_id, parent=None):
+        super().__init__()
+        self.service = service
+        self.mail_id = mail_id
+        self.parent = parent
+
+    def _run_impl(self):
+        content = self.service.get_email_content(self.mail_id)
+        self.mail_content_loaded.emit(content)
+
+class ReusableMailContentThread(BaseWorkerThread):
+    mail_content_loaded = pyqtSignal(str, str)  # html, mail_id
+
+    def __init__(self, service):
+        super().__init__()
+        self.service = service
+        self._mail_id = None
+        self._pending = False
+        self._is_running = True
+
+    def load_mail(self, mail_id):
+        self._mail_id = mail_id
+        self._pending = True
+        if not self.isRunning():
+            self.start()
+
+    def _run_impl(self):
+        while self._pending and self._is_running:
+            self._pending = False
+            mail_id = self._mail_id
+            try:
+                html = self.service.get_email_content(mail_id)
+                self.mail_content_loaded.emit(html, mail_id)
+            except Exception as e:
+                self.error_occurred.emit(str(e))
+
+    def stop(self):
+        self._is_running = False
+
