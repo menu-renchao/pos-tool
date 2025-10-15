@@ -12,30 +12,21 @@ import concurrent.futures
 
 
 class ScanPosService(Backend, QObject):
-    @staticmethod
-    def get_ttl(ip):
-        try:
-            output = subprocess.check_output(f'ping -n 1 {ip}', shell=True, encoding='gbk')
-            match = re.search(r'TTL=(\d+)', output, re.IGNORECASE)
-            if match:
-                return int(match.group(1))
-        except:
-            return None
-
-    @staticmethod
-    def guess_os_by_ttl(ttl):
-        if ttl == 128:
-            return "Windows"
-        elif ttl == 64:
-            return "Ubuntu"
-        elif ttl == 255:
-            return "Router/Cisco Device"
-        else:
-            return "Unknown OS"
-
     def __init__(self):
         super().__init__()
         self.worker = None
+
+    @staticmethod
+    def guess_os_by_ip(ip, port=22080, timeout=3):
+        url = f"http://{ip}:{port}/kpos/webapp/os/getOSType"
+        try:
+            response = requests.get(url, timeout=timeout)
+            if response.status_code == 200:
+                data = response.json()
+                return data.get("os", "Unknown")
+            return "Unknown"
+        except Exception:
+            return "Unknown"
 
     def start_scan(self, port=22080):
         if self.worker and self.worker.isRunning():
@@ -101,8 +92,7 @@ class ScanPosService(Backend, QObject):
                 return None
             full_data = self.fetch_company_profile(ip, port)
             simple_data = extract_required_info(full_data)
-            ttl = self.get_ttl(ip)
-            device_type = self.guess_os_by_ttl(ttl)
+            device_type = self.guess_os_by_ip(ip, port)
             result = {
                 "ip": ip,
                 "merchantId": simple_data.get("merchantId", ""),
