@@ -82,6 +82,15 @@ class ReplaceWarThreadLinux(BaseWorkerThread):
         def speed_callback(speed_text):
             self.speed_updated.emit(speed_text)
 
+        # 停止POS服务前先输出警告日志
+        self.service.log("换包需停止pos服务,请在结束后自行重启", level="warning")
+        # 先停止POS服务
+        self.run_with_error_handling(
+            self.service.stop_pos_linux,
+            self.host, self.username, self.password
+        )
+
+        # 再替换WAR包
         self.run_with_error_handling(
             self.service.replace_war_linux,
             self.host, self.username, self.password, self.war_path,

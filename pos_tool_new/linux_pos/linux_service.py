@@ -334,10 +334,11 @@ class LinuxService(Backend):
                 time.sleep(5)  # 等待解压完成
                 if exit_status == 0:
                     self.log("解压成功", level="success")
+                    self.log("如果需要修改配置文件，可在此时操作，再重启POS。如不需要，则可以直接重启", level="warning")
                 else:
                     real_errors = '\n'.join(
                         [line for line in err.splitlines() if not line.lower().startswith('warning:')])
-                    self.log(f"解压失败: {real_errors}" if real_errors else "解压过程中有警告，但无致命错误", "error")
+                    self.log(f"解压失败: {real_errors}" if real_errors else "解压过程中有警告，但无致命错误", "warning")
         except Exception as e:
             self.log(f"替换war包出错: {str(e)}", level="error")
             raise
