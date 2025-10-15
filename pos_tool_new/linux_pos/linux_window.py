@@ -934,8 +934,6 @@ class LinuxTabWidget(BaseTabWidget):
             self.parent_window.progress_bar.setFormat("正在下载war...")
             self.parent_window.speed_label.setVisible(True)
             self.parent_window.speed_label.clear()
-
-        self.log("正在下载，请稍候...")
         temp_dir = tempfile.mkdtemp(prefix="war_download_")
         service = DownloadWarService()
         old_cwd = os.getcwd()
