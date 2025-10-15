@@ -12,18 +12,17 @@ import concurrent.futures
 
 
 class ScanPosService(Backend, QObject):
+    @staticmethod
     def get_ttl(ip):
         try:
             output = subprocess.check_output(f'ping -n 1 {ip}', shell=True, encoding='gbk')
             match = re.search(r'TTL=(\d+)', output, re.IGNORECASE)
-            if not match:
-                match = re.search(r'TTL=(\d+)', output, re.IGNORECASE)
             if match:
                 return int(match.group(1))
-        except Exception as e:
-            print(f'Error: {e}')
-        return None
+        except:
+            return None
 
+    @staticmethod
     def guess_os_by_ttl(ttl):
         if ttl == 128:
             return "Windows"
@@ -53,8 +52,10 @@ class ScanPosService(Backend, QObject):
                 if response.status_code == 200:
                     return response.json()
                 return {"error": f"HTTP {response.status_code}"}
-            except (requests.exceptions.RequestException, json.JSONDecodeError) as e:
-                return {"error": str(e)}
+            except requests.exceptions.RequestException as e:
+                return {"error": f"Request error: {str(e)}"}
+            except json.JSONDecodeError as e:
+                return {"error": f"JSON decode error: {str(e)}"}
         return {"error": "Failed after retries"}
 
     def scan_network(self, worker, port=22080):
@@ -100,8 +101,8 @@ class ScanPosService(Backend, QObject):
                 return None
             full_data = self.fetch_company_profile(ip, port)
             simple_data = extract_required_info(full_data)
-            ttl = ScanPosService.get_ttl(ip)
-            device_type = ScanPosService.guess_os_by_ttl(ttl) if ttl else "——"
+            ttl = self.get_ttl(ip)
+            device_type = self.guess_os_by_ttl(ttl)
             result = {
                 "ip": ip,
                 "merchantId": simple_data.get("merchantId", ""),

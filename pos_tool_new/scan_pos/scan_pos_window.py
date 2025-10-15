@@ -38,9 +38,11 @@ class ScanPosTabWidget(BaseTabWidget):
         self.progress_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.search_id_edit, self.search_name_edit, self.search_ip_edit = QLineEdit(), QLineEdit(), QLineEdit()
+        self.search_version_edit = QLineEdit()  # 新增版本筛选输入框
         self.search_id_edit.setPlaceholderText('输入商家ID')
         self.search_name_edit.setPlaceholderText('输入商家名称')
         self.search_ip_edit.setPlaceholderText('输入IP')
+        self.search_version_edit.setPlaceholderText('输入版本')  # 新增
         self.search_btn = QPushButton('搜索')
         self.search_btn.clicked.connect(self.on_search)
         self.clear_search_btn = QPushButton('清除')
@@ -49,12 +51,13 @@ class ScanPosTabWidget(BaseTabWidget):
         self.search_id_edit.returnPressed.connect(self.on_search)
         self.search_name_edit.returnPressed.connect(self.on_search)
         self.search_ip_edit.returnPressed.connect(self.on_search)
+        self.search_version_edit.returnPressed.connect(self.on_search)  # 新增
 
         self._setup_layouts()
 
     def _setup_layouts(self):
         search_layout = QHBoxLayout()
-        for label, widget in [('IP:', self.search_ip_edit), ('商家ID:', self.search_id_edit), ('商家名称:', self.search_name_edit)]:
+        for label, widget in [('IP:', self.search_ip_edit), ('商家ID:', self.search_id_edit), ('商家名称:', self.search_name_edit), ('版本:', self.search_version_edit)]:
             search_layout.addWidget(QLabel(label))
             search_layout.addWidget(widget)
         search_layout.addWidget(self.search_btn)
@@ -261,15 +264,17 @@ class ScanPosTabWidget(BaseTabWidget):
         ip_text = self.search_ip_edit.text().strip().lower()
         id_text = self.search_id_edit.text().strip().lower()
         name_text = self.search_name_edit.text().strip().lower()
+        version_text = self.search_version_edit.text().strip().lower()  # 新增
         def get_field(r, key):
             return str(r.get(key, '')).lower()
-        filtered = [r for r in self._results if ip_text in get_field(r, 'ip') and id_text in get_field(r, 'merchantId') and name_text in get_field(r, 'name')]
+        filtered = [r for r in self._results if ip_text in get_field(r, 'ip') and id_text in get_field(r, 'merchantId') and name_text in get_field(r, 'name') and version_text in get_field(r, 'version')]
         self._refresh_table(filtered)
 
     def clear_search(self):
         self.search_ip_edit.clear()
         self.search_id_edit.clear()
         self.search_name_edit.clear()
+        self.search_version_edit.clear()  # 新增
         self._refresh_table(self._results)
 
     def _refresh_table(self, results):
