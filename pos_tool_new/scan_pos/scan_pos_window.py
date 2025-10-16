@@ -1,9 +1,10 @@
-from pos_tool_new.main import BaseTabWidget
-from .scan_pos_service import ScanPosService
-from PyQt6.QtWidgets import (QTableWidget, QTableWidgetItem, QPushButton, QVBoxLayout,
-                             QLabel, QProgressBar, QLineEdit, QHBoxLayout, QHeaderView, QWidget)
 from PyQt6.QtCore import Qt, QUrl, QTimer
 from PyQt6.QtGui import QColor, QBrush, QDesktopServices
+from PyQt6.QtWidgets import (QTableWidget, QTableWidgetItem, QPushButton, QVBoxLayout,
+                             QLabel, QProgressBar, QLineEdit, QHBoxLayout, QHeaderView, QWidget)
+
+from pos_tool_new.main import BaseTabWidget
+from .scan_pos_service import ScanPosService
 
 
 class ScanPosTabWidget(BaseTabWidget):
@@ -56,7 +57,8 @@ class ScanPosTabWidget(BaseTabWidget):
 
     def _setup_layouts(self):
         search_layout = QHBoxLayout()
-        for label, widget in [('IP:', self.search_ip_edit), ('商家ID:', self.search_id_edit), ('商家名称:', self.search_name_edit), ('版本:', self.search_version_edit)]:
+        for label, widget in [('IP:', self.search_ip_edit), ('商家ID:', self.search_id_edit),
+                              ('商家名称:', self.search_name_edit), ('版本:', self.search_version_edit)]:
             search_layout.addWidget(QLabel(label))
             search_layout.addWidget(widget)
         search_layout.addWidget(self.search_btn)
@@ -128,8 +130,10 @@ class ScanPosTabWidget(BaseTabWidget):
         self.table.insertRow(self.table.rowCount())
         row = self.table.rowCount() - 1
         bg_color = self.row_colors[row % 2]
+
         def get_value(key):
             return result.get(key, '')
+
         for col, key in enumerate(['ip', 'type', 'merchantId', 'name', 'version']):
             value = get_value(key)
             if key == 'merchantId':
@@ -143,7 +147,7 @@ class ScanPosTabWidget(BaseTabWidget):
             item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
             item.setBackground(QBrush(bg_color))
             self.table.setItem(row, col, item)
-        if all(self.table.item(row, i).text() == '——' for i in [2,3,4]):
+        if all(self.table.item(row, i).text() == '——' for i in [2, 3, 4]):
             unavailable_label = QLabel('POS已离线')
             unavailable_label.setStyleSheet('color: red; font-weight: bold;')
             unavailable_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -191,18 +195,20 @@ class ScanPosTabWidget(BaseTabWidget):
 
     def show_detail_dialog_by_result(self, result):
         from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QScrollArea, QWidget, QHBoxLayout
-        import requests, json
         ip = result.get('ip', '')
         full_data = self.service.fetch_company_profile(ip)
+
         # 递归过滤所有 None
         def filter_none_and_exclude(data):
             exclude_keys = {"appInstance", "images", "result", "printLogo"}
             if isinstance(data, dict):
-                return {k: filter_none_and_exclude(v) for k, v in data.items() if v is not None and k not in exclude_keys}
+                return {k: filter_none_and_exclude(v) for k, v in data.items() if
+                        v is not None and k not in exclude_keys}
             elif isinstance(data, list):
                 return [filter_none_and_exclude(item) for item in data if item is not None]
             else:
                 return data
+
         detail_data = filter_none_and_exclude(full_data)
         dialog = QDialog(self)
         dialog.setWindowTitle(f"详情 - {ip}")
@@ -217,6 +223,7 @@ class ScanPosTabWidget(BaseTabWidget):
         scroll.setWidgetResizable(True)
         content = QWidget()
         content_layout = QVBoxLayout(content)
+
         def add_kv_widgets_to_layout(data, layout, indent=0):
             indent_px = indent * 20
             if isinstance(data, dict):
@@ -257,6 +264,7 @@ class ScanPosTabWidget(BaseTabWidget):
                 value_label.setWordWrap(True)
                 value_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
                 layout.addWidget(value_label)
+
         if detail_data and (not isinstance(detail_data, dict) or detail_data):
             add_kv_widgets_to_layout(detail_data, content_layout)
         else:
@@ -271,9 +279,13 @@ class ScanPosTabWidget(BaseTabWidget):
         id_text = self.search_id_edit.text().strip().lower()
         name_text = self.search_name_edit.text().strip().lower()
         version_text = self.search_version_edit.text().strip().lower()  # 新增
+
         def get_field(r, key):
             return str(r.get(key, '')).lower()
-        filtered = [r for r in self._results if ip_text in get_field(r, 'ip') and id_text in get_field(r, 'merchantId') and name_text in get_field(r, 'name') and version_text in get_field(r, 'version')]
+
+        filtered = [r for r in self._results if
+                    ip_text in get_field(r, 'ip') and id_text in get_field(r, 'merchantId') and name_text in get_field(
+                        r, 'name') and version_text in get_field(r, 'version')]
         self._refresh_table(filtered)
 
     def clear_search(self):
@@ -289,7 +301,6 @@ class ScanPosTabWidget(BaseTabWidget):
         for result in results:
             self._add_row_to_table(result)
         self.table.setSortingEnabled(True)
-
 
     def showEvent(self, event):
         """显示事件处理"""
