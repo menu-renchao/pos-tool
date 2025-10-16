@@ -1012,7 +1012,7 @@ class LinuxTabWidget(BaseTabWidget):
             if not war_found:
                 self.log("未在解压包中找到war文件")
         else:
-            self.log(f"下载完成！保存为: {file_path}", "success")
+            self.log(f"解压完成！保存为: {file_path}", "success")
             if self.war_path and file_path.endswith('.war'):
                 self.war_path.setText(file_path)
 
