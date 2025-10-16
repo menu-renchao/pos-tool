@@ -220,7 +220,3 @@ class WindowsTabWidget(BaseTabWidget):
             self.parent_window.progress_bar.setVisible(False)
         if self.parent_window and hasattr(self.parent_window, 'speed_label'):
             self.parent_window.speed_label.setVisible(False)
-        if success:
-            QMessageBox.information(self, "下载成功", result)
-        else:
-            QMessageBox.critical(self, "下载失败", result)
