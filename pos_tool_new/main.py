@@ -674,7 +674,6 @@ class ModernSplashScreen(QWidget):
             self.main_window.show()
         event.accept()
 
-
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     # 创建现代化启动画面
