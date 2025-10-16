@@ -15,6 +15,7 @@ class WindowsTabWidget(BaseTabWidget):
         self.parent_window = parent
         self.service = WindowsService()
         self._download_handled = False
+        self._current_thread = None  # 用于管理后台线程
         self.setup_ui()
 
     def setup_ui(self):
@@ -57,7 +58,8 @@ class WindowsTabWidget(BaseTabWidget):
         self.layout.addWidget(upload_group)
 
     def _setup_buttons(self):
-        btn_layout = QHBoxLayout()
+        btn_group = QGroupBox()
+        btn_layout = QHBoxLayout(btn_group)
         buttons = [
             ("扫描目录", self.on_scan_local),
             ("修改文件", self.on_modify_local),
@@ -70,7 +72,7 @@ class WindowsTabWidget(BaseTabWidget):
             btn.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
             btn_layout.addWidget(btn)
         btn_layout.addStretch()
-        self.layout.addLayout(btn_layout)
+        self.layout.addWidget(btn_group)
 
     def browse_directory(self):
         dir_path = QFileDialog.getExistingDirectory(self, "选择基础目录", self.base_path.text())
@@ -97,15 +99,27 @@ class WindowsTabWidget(BaseTabWidget):
             self._start_thread(RestartPosThreadWindows, selected_version)
 
     def on_replace_war_windows(self):
-        if not self.war_path.text():
-            QMessageBox.warning(self, "提示", "请先选择本地 kpos.war 包文件！")
-            return
-        versions = self._get_versions()
-        if not versions:
-            return
-        selected_version = self.select_version(versions)
-        if selected_version:
-            self._start_thread(ReplaceWarThreadWindows, selected_version, self.war_path.text())
+        try:
+            war_path = self.war_path.text()
+            if not war_path or not os.path.isfile(war_path):
+                QMessageBox.warning(self, "提示", "请先选择本地 kpos.war 包文件！")
+                return
+            base_dir = self.base_path.text()
+            if not base_dir or not os.path.isdir(base_dir):
+                QMessageBox.warning(self, "提示", "基础目录无效或不存在！")
+                return
+            versions = self._get_versions()
+            if not versions:
+                QMessageBox.warning(self, "提示", "未找到任何版本目录！")
+                return
+            selected_version = self.select_version(versions)
+            if selected_version:
+                try:
+                    self._start_thread(ReplaceWarThreadWindows, selected_version, war_path)
+                except Exception as e:
+                    QMessageBox.critical(self, "线程启动失败", f"启动替换线程失败：{str(e)}")
+        except Exception as e:
+            QMessageBox.critical(self, "操作异常", f"换包操作异常：{str(e)}")
 
     def _get_versions(self):
         try:
@@ -115,9 +129,23 @@ class WindowsTabWidget(BaseTabWidget):
             return []
 
     def _start_thread(self, thread_class, *args):
+        if self._current_thread is not None and self._current_thread.isRunning():
+            QMessageBox.warning(self, "警告", "有线程正在运行，请等待其结束。")
+            return
         thread = thread_class(self.service, self.base_path.text(), *args)
         thread.error_occurred.connect(lambda msg: QMessageBox.warning(self, "错误", msg))
+        thread.finished.connect(self._clear_current_thread)
+        self._current_thread = thread
         thread.start()
+
+    def _clear_current_thread(self):
+        self._current_thread = None
+
+    def closeEvent(self, event):
+        if self._current_thread is not None and self._current_thread.isRunning():
+            self._current_thread.quit()
+            self._current_thread.wait()
+        event.accept()
 
     def select_version(self, versions):
         if len(versions) == 1:
