@@ -122,6 +122,7 @@ class ScanPosTabWidget(BaseTabWidget):
         self.progress_label.setText(f'加载完成，共 {len(self._results)} 台设备')
         QTimer.singleShot(2000, self.progress_bar.hide)
         self.refresh_btn.setEnabled(True)  # 扫描结束后恢复按钮可用
+        self.table.setSortingEnabled(True)
 
     def _add_row_to_table(self, result, row_index):
         self.table.insertRow(self.table.rowCount())
