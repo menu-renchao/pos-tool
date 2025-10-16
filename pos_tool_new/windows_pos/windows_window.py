@@ -137,6 +137,10 @@ class WindowsTabWidget(BaseTabWidget):
         dialog.setLabelText("请输入下载URL：")
         dialog.setTextValue("")
         dialog.setMinimumWidth(700)
+        # 获取输入框并设置宽度
+        line_edit = dialog.findChild(QLineEdit)
+        if line_edit:
+            line_edit.setMinimumWidth(650)
         if dialog.exec() and dialog.textValue().strip():
             return dialog.textValue().strip()
         return None
