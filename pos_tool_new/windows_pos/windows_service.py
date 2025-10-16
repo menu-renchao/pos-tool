@@ -174,6 +174,8 @@ class WindowsService(Backend):
 
         self.log(f"本机pos已修改为{env}环境，已修改 {modified_count} 个文件，本来就是目标值 {already_target_count} 个。",
                  level="success")
+        # 固定修正 expiration-management url，传递env
+        self.fix_expiration_management_url(base_path, env)
 
     def replace_war_windows(self, base_path, selected_version, local_war_path):
         """替换 Windows 下的 kpos.war 包并解压"""
@@ -219,3 +221,48 @@ class WindowsService(Backend):
             self.log(f"{selected_version} POS 重启成功！", level="success")
         except Exception as e:
             self.log(f"重启 POS 出错: {str(e)}", level="error")
+
+    # 效期管理
+    def fix_expiration_management_url(self, base_path, env):
+        """
+        根据env修正 front2\json\cloudUrlConfig.json 里的 expiration-management 地址：
+        QA/DEV -> https://wms.balamxqa.com/expiration-management
+        PROD   -> https://wms.balamx.com/expiration-management
+        """
+        if not os.path.isdir(base_path):
+            self.log("基础目录不存在", level="error")
+            return
+        if str(env).upper() in ("QA", "DEV"):
+            target_url = "https://wms.balamxqa.com/expiration-management"
+        else:
+            target_url = "https://wms.balamx.com/expiration-management"
+        changed = 0
+        for version_dir in os.listdir(base_path):
+            version_path = os.path.join(base_path, version_dir)
+            if not os.path.isdir(version_path):
+                continue
+            json_path = os.path.join(version_path, r"tomcat\webapps\kpos\front2\json\cloudUrlConfig.json")
+            if not os.path.isfile(json_path):
+                continue
+            try:
+                with open(json_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                # 无论原来是什么都替换为目标URL
+                new_content = content.replace(
+                    "https://wms.balamx.com/expiration-management", target_url
+                ).replace(
+                    "https://wms.balamxqa.com/expiration-management", target_url
+                )
+                if new_content != content:
+                    with open(json_path, 'w', encoding='utf-8') as f:
+                        f.write(new_content)
+                    self.log(f"已修正: {json_path} -> {target_url}", level="success")
+                    changed += 1
+                else:
+                    self.log(f"无需修改: {json_path}", level="info")
+            except Exception as e:
+                self.log(f"修正 {json_path} 失败: {str(e)}", level="error")
+        if changed == 0:
+            self.log("未发现需要修正的cloudUrlConfig.json", level="warning")
+        else:
+            self.log(f"共修正 {changed} 个cloudUrlConfig.json", level="success")

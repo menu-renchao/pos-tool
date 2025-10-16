@@ -115,6 +115,20 @@ class LinuxService(Backend):
                 # 清理临时文件
                 os.unlink(temp_path)
 
+    def fix_expiration_management_url(self, content: str, env: str) -> str:
+        """
+        根据env将 expiration-management 的域名替换为 QA/DEV 或 PROD 地址
+        """
+        env_upper = env.strip().upper()
+        if env_upper in ("QA", "DEV"):
+            target_url = "https://wms.balamxqa.com/expiration-management"
+        else:  # 默认为PROD
+            target_url = "https://wms.balamx.com/expiration-management"
+        # 无论原来是什么，统一替换为目标
+        content = content.replace("https://wms.balamx.com/expiration-management", target_url)
+        content = content.replace("https://wms.balamxqa.com/expiration-management", target_url)
+        return content
+
     def _modify_remote_file(self, ssh: paramiko.SSHClient, remote_path: str, env: str) -> Tuple[bool, bool]:
         """修改单个远程文件"""
         if not self._check_file_exists(ssh, remote_path):
@@ -122,7 +136,10 @@ class LinuxService(Backend):
             return False, False
 
         content = self._read_remote_file(ssh, remote_path)
+        # 先做通用替换，再做 expiration-management 专属替换
         new_content = self.replace_domain(content, env)
+        if "cloudUrlConfig.json" in remote_path:
+            new_content = self.fix_expiration_management_url(new_content, env)
 
         if new_content == content:
             self.log("文件已是目标值，无需修改", level="info")
