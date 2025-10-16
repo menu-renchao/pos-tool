@@ -22,7 +22,6 @@ class ScanPosTabWidget(BaseTabWidget):
         self.table.setHorizontalHeaderLabels(['IP', '设备类型', '商家ID', '名称', '版本', '操作'])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.table.setAlternatingRowColors(True)
-        self.table.setSortingEnabled(False)  # 保持禁用排序
 
         self.refresh_btn = QPushButton('扫描/刷新')
         self.refresh_btn.clicked.connect(self.start_scan)
@@ -78,7 +77,8 @@ class ScanPosTabWidget(BaseTabWidget):
         self.layout.addLayout(main_layout)
 
     def start_scan(self):
-        self.refresh_btn.setEnabled(False)  # 禁用扫描按钮，防止重复点击
+        self.refresh_btn.setEnabled(False)
+        self.table.setSortingEnabled(False)
         self.table.setRowCount(0)
         self._results, self._displayed_results = [], []
         self._total_scan_count = self._scanned_count = self._loaded_count = 0
@@ -107,7 +107,7 @@ class ScanPosTabWidget(BaseTabWidget):
         self._scanned_count += 1
         self._loaded_count += 1
         # 只插入新行，不全量刷新，避免丢失排序和字段
-        self._add_row_to_table(result, self.table.rowCount())
+        self._add_row_to_table(result)
         # 计算加载进度
         if len(self._results) > 0:
             load_percent = min(100, int((self._loaded_count / len(self._results)) * 100))
@@ -124,35 +124,30 @@ class ScanPosTabWidget(BaseTabWidget):
         self.refresh_btn.setEnabled(True)  # 扫描结束后恢复按钮可用
         self.table.setSortingEnabled(True)
 
-    def _add_row_to_table(self, result, row_index):
+    def _add_row_to_table(self, result):
         self.table.insertRow(self.table.rowCount())
-        bg_color = self.row_colors[row_index % 2]
+        row = self.table.rowCount() - 1
+        bg_color = self.row_colors[row % 2]
         def get_value(key):
             return result.get(key, '')
-        # 新顺序：['ip', 'type', 'merchantId', 'name', 'version']
         for col, key in enumerate(['ip', 'type', 'merchantId', 'name', 'version']):
             value = get_value(key)
-            # 商家ID特殊处理
             if key == 'merchantId':
                 name_val = get_value('name')
                 version_val = get_value('version')
                 if not value and name_val and version_val:
                     value = 'Free Trials'
-            # 其它字段为空填充为“——”
             if not value:
                 value = '——'
             item = QTableWidgetItem(str(value))
             item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
             item.setBackground(QBrush(bg_color))
-            self.table.setItem(row_index, col, item)
-        # 操作列按钮区
-        # 检查除ip外所有字段是否都为空（即都为“——”）
-        # 新顺序下，type=1, merchantId=2, name=3, version=4
-        if all(self.table.item(row_index, i).text() == '——' for i in [2,3,4]):
+            self.table.setItem(row, col, item)
+        if all(self.table.item(row, i).text() == '——' for i in [2,3,4]):
             unavailable_label = QLabel('POS已离线')
             unavailable_label.setStyleSheet('color: red; font-weight: bold;')
             unavailable_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.table.setCellWidget(row_index, 5, unavailable_label)
+            self.table.setCellWidget(row, 5, unavailable_label)
         else:
             btn_open = QPushButton('打开')
             btn_open.setFixedWidth(48)
@@ -170,7 +165,7 @@ class ScanPosTabWidget(BaseTabWidget):
                 'QPushButton { background-color: #4CAF50; color: white; border: none; border-radius: 3px; padding: 2px 8px; font-size: 11px; } '
                 'QPushButton:hover { background-color: #357a38; }'
             )
-            btn_detail.clicked.connect(lambda _, row=row_index: self.show_detail_dialog(row))
+            btn_detail.clicked.connect(lambda _, btn=btn_detail: self.show_detail_dialog_by_widget(btn))
 
             btn_widget = QWidget()
             btn_layout = QHBoxLayout(btn_widget)
@@ -178,15 +173,25 @@ class ScanPosTabWidget(BaseTabWidget):
             btn_layout.addWidget(btn_detail)
             btn_layout.setContentsMargins(0, 0, 0, 0)
             btn_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.table.setCellWidget(row_index, 5, btn_widget)
+            self.table.setCellWidget(row, 5, btn_widget)
         self.table.scrollToBottom()
 
-    def show_detail_dialog(self, row_index):
+    def show_detail_dialog_by_widget(self, widget):
+        # 获取按钮所在的行号
+        index = self.table.indexAt(widget.parent().pos())
+        row = index.row()
+        if row < 0:
+            return
+        ip = self.table.item(row, 0).text()
+        # 在self._results中查找对应ip的数据
+        for result in self._results:
+            if str(result.get('ip', '')) == ip:
+                self.show_detail_dialog_by_result(result)
+                return
+
+    def show_detail_dialog_by_result(self, result):
         from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QScrollArea, QWidget, QHBoxLayout
         import requests, json
-        if row_index < 0 or row_index >= len(self._results):
-            return
-        result = self._results[row_index]
         ip = result.get('ip', '')
         full_data = self.service.fetch_company_profile(ip)
         # 递归过滤所有 None
@@ -279,9 +284,11 @@ class ScanPosTabWidget(BaseTabWidget):
         self._refresh_table(self._results)
 
     def _refresh_table(self, results):
+        self.table.setSortingEnabled(False)
         self.table.setRowCount(0)
-        for i, result in enumerate(results):
-            self._add_row_to_table(result, i)
+        for result in results:
+            self._add_row_to_table(result)
+        self.table.setSortingEnabled(True)
 
 
     def showEvent(self, event):
