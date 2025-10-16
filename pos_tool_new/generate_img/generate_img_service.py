@@ -53,19 +53,15 @@ class GenerateImgService(Backend):
             return None, str(e)
 
     def _sky_gradient(self, width, height):
-        arr = np.zeros((height, width, 3), dtype=np.uint8)
-        for y in range(height):
-            for x in range(width):
-                vertical_ratio = y / height
-
-                r = int(200 + 55 * vertical_ratio)  # 200-255
-                g = int(220 + 35 * vertical_ratio)  # 220-255
-                b = int(255 - 35 * vertical_ratio)  # 255-220
-
-                horizontal_variation = 0.98 + 0.04 * np.sin(x / width * 4 * np.pi)
-
-                arr[y, x, 0] = min(255, int(r * horizontal_variation))
-                arr[y, x, 1] = min(255, int(g * horizontal_variation))
-                arr[y, x, 2] = min(255, int(b * horizontal_variation))
-
+        # 向量化实现，极大提升大图生成速度
+        y = np.linspace(0, 1, height)[:, None]
+        x = np.linspace(0, 1, width)[None, :]
+        r = 200 + 55 * y
+        g = 220 + 35 * y
+        b = 255 - 35 * y
+        horizontal_variation = 0.98 + 0.04 * np.sin(x * 4 * np.pi)
+        r = np.clip(r * horizontal_variation, 0, 255)
+        g = np.clip(g * horizontal_variation, 0, 255)
+        b = np.clip(b * horizontal_variation, 0, 255)
+        arr = np.stack([r, g, b], axis=-1).astype(np.uint8)
         return arr
