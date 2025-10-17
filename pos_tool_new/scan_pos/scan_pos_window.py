@@ -22,7 +22,7 @@ class ScanPosTabWidget(BaseTabWidget):
         self.table = QTableWidget(0, 6)
         self.table.setHorizontalHeaderLabels(['IP', '设备类型', '商家ID', '名称', '版本', '操作'])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        self.table.setAlternatingRowColors(True)
+        self.table.setAlternatingRowColors(False)  # 关闭自动隔行色
 
         self.refresh_btn = QPushButton('扫描/刷新')
         self.refresh_btn.clicked.connect(self.start_scan)
@@ -52,6 +52,8 @@ class ScanPosTabWidget(BaseTabWidget):
         self.search_name_edit.returnPressed.connect(self.on_search)
         self.search_ip_edit.returnPressed.connect(self.on_search)
         self.search_version_edit.returnPressed.connect(self.on_search)  # 新增
+
+        self.table.horizontalHeader().sectionClicked.connect(self.on_section_clicked)
 
         self._setup_layouts()
 
@@ -97,6 +99,7 @@ class ScanPosTabWidget(BaseTabWidget):
             worker.scan_result.connect(self.on_scan_result)
             worker.scan_finished.connect(self.on_scan_finished)
             worker.start()
+        self.update_row_colors()
 
     def on_scan_progress(self, percent, ip):
         if not self._scan_finished:
@@ -108,13 +111,12 @@ class ScanPosTabWidget(BaseTabWidget):
         self._results.append(result)
         self._scanned_count += 1
         self._loaded_count += 1
-        # 只插入新行，不全量刷新，避免丢失排序和字段
         self._add_row_to_table(result)
-        # 计算加载进度
         if len(self._results) > 0:
             load_percent = min(100, int((self._loaded_count / len(self._results)) * 100))
             self.progress_bar.setValue(load_percent)
         self.progress_label.setText(f'正在加载第 {self._loaded_count} 条...')
+        self.update_row_colors()
 
     def on_scan_finished(self, results):
         self._scan_finished = True
@@ -179,6 +181,7 @@ class ScanPosTabWidget(BaseTabWidget):
             btn_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
             self.table.setCellWidget(row, 5, btn_widget)
         self.table.scrollToBottom()
+        self.update_row_colors()
 
     def show_detail_dialog_by_widget(self, widget):
         # 获取按钮所在的行号
@@ -301,6 +304,20 @@ class ScanPosTabWidget(BaseTabWidget):
         for result in results:
             self._add_row_to_table(result)
         self.table.setSortingEnabled(True)
+        self.update_row_colors()
+
+    def update_row_colors(self):
+        # 按当前显示顺序重新分配隔行色
+        for row in range(self.table.rowCount()):
+            bg_color = self.row_colors[row % 2]
+            for col in range(self.table.columnCount()):
+                item = self.table.item(row, col)
+                if item:
+                    item.setBackground(QBrush(bg_color))
+
+    def on_section_clicked(self, _):
+        # 排序后刷新隔行色
+        QTimer.singleShot(0, self.update_row_colors)
 
     def showEvent(self, event):
         """显示事件处理"""
