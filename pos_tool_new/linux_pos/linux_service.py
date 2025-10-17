@@ -517,7 +517,6 @@ class LinuxService(Backend):
         except Exception as e:
             self.log(f"重启Tomcat服务时出错: {str(e)}", level="error")
 
-
     def list_backup_items(self, host: str, username: str, password: str) -> List[str]:
         """列出/opt/backup下所有.zip和文件夹，按时间倒序"""
         try:
@@ -601,7 +600,7 @@ class LinuxService(Backend):
                 err = stderr.read().decode()
                 if err:
                     if log_callback:
-                        log_callback(f"解压错误: {err}","error")
+                        log_callback(f"解压错误: {err}", "error")
                     if error_callback:
                         error_callback(err)
                 folder_name = item_name.replace('.zip', '')
@@ -631,7 +630,7 @@ class LinuxService(Backend):
             err = stderr.read().decode()
             if err:
                 if log_callback:
-                    log_callback(f"恢复错误: {err}","error")
+                    log_callback(f"恢复错误: {err}", "error")
                 if error_callback:
                     error_callback(err)
 
@@ -643,7 +642,7 @@ class LinuxService(Backend):
 
         except Exception as e:
             if log_callback:
-                log_callback(f"数据恢复异常: {str(e)}","error")
+                log_callback(f"数据恢复异常: {str(e)}", "error")
             if error_callback:
                 error_callback(str(e))
             raise
@@ -679,19 +678,19 @@ class LinuxService(Backend):
             err = stderr.read().decode()
             if err:
                 if log_callback:
-                    log_callback(f"备份脚本错误: {err}","error")
+                    log_callback(f"备份脚本错误: {err}", "error")
                 if error_callback:
                     error_callback(err)
 
             ssh.close()
             if log_callback:
-                log_callback("数据备份完成")
+                log_callback("数据备份完成", "success")
             if progress_callback:
                 progress_callback(100)
 
         except Exception as e:
             if log_callback:
-                log_callback(f"数据备份异常: {str(e)}","error")
+                log_callback(f"数据备份异常: {str(e)}", "error")
             if error_callback:
                 error_callback(str(e))
 
@@ -769,5 +768,5 @@ class LinuxService(Backend):
 
         except Exception as e:
             if log_callback:
-                log_callback(f"升级异常: {str(e)}","error")
+                log_callback(f"升级异常: {str(e)}", "error")
             raise
