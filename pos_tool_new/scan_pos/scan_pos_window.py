@@ -19,14 +19,17 @@ class ScanPosTabWidget(BaseTabWidget):
         self._init_ui()
 
     def _init_ui(self):
+        self._create_ui()
+        self._bind_signals()
+        self._setup_layouts()
+
+    def _create_ui(self):
         self.table = QTableWidget(0, 6)
         self.table.setHorizontalHeaderLabels(['IP', '设备类型', '商家ID', '名称', '版本', '操作'])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.table.setAlternatingRowColors(False)  # 关闭自动隔行色
 
         self.refresh_btn = QPushButton('扫描/刷新')
-        self.refresh_btn.clicked.connect(self.start_scan)
-
         self.progress_bar = QProgressBar()
         self.progress_bar.setMinimum(0)
         self.progress_bar.setMaximum(100)
@@ -44,8 +47,11 @@ class ScanPosTabWidget(BaseTabWidget):
         self.search_ip_edit.setPlaceholderText('输入IP')
         self.search_version_edit.setPlaceholderText('输入版本')  # 新增
         self.search_btn = QPushButton('搜索')
-        self.search_btn.clicked.connect(self.on_search)
         self.clear_search_btn = QPushButton('清除')
+
+    def _bind_signals(self):
+        self.refresh_btn.clicked.connect(self.start_scan)
+        self.search_btn.clicked.connect(self.on_search)
         self.clear_search_btn.clicked.connect(self.clear_search)
         # 支持回车触发搜索
         self.search_id_edit.returnPressed.connect(self.on_search)
@@ -54,8 +60,6 @@ class ScanPosTabWidget(BaseTabWidget):
         self.search_version_edit.returnPressed.connect(self.on_search)  # 新增
 
         self.table.horizontalHeader().sectionClicked.connect(self.on_section_clicked)
-
-        self._setup_layouts()
 
     def _setup_layouts(self):
         search_layout = QHBoxLayout()
@@ -132,10 +136,20 @@ class ScanPosTabWidget(BaseTabWidget):
         self.table.insertRow(self.table.rowCount())
         row = self.table.rowCount() - 1
         bg_color = self.row_colors[row % 2]
+        self._set_table_row_items(row, result, bg_color)
+        if all(self.table.item(row, i).text() == '——' for i in [2, 3, 4]):
+            unavailable_label = QLabel('POS已离线')
+            unavailable_label.setStyleSheet('color: red; font-weight: bold;')
+            unavailable_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.table.setCellWidget(row, 5, unavailable_label)
+        else:
+            self._create_row_buttons(row, result)
+        self.table.scrollToBottom()
+        self.update_row_colors()
 
+    def _set_table_row_items(self, row, result, bg_color):
         def get_value(key):
             return result.get(key, '')
-
         for col, key in enumerate(['ip', 'type', 'merchantId', 'name', 'version']):
             value = get_value(key)
             if key == 'merchantId':
@@ -149,39 +163,35 @@ class ScanPosTabWidget(BaseTabWidget):
             item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
             item.setBackground(QBrush(bg_color))
             self.table.setItem(row, col, item)
-        if all(self.table.item(row, i).text() == '——' for i in [2, 3, 4]):
-            unavailable_label = QLabel('POS已离线')
-            unavailable_label.setStyleSheet('color: red; font-weight: bold;')
-            unavailable_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.table.setCellWidget(row, 5, unavailable_label)
-        else:
-            btn_open = QPushButton('打开')
-            btn_open.setFixedWidth(48)
-            btn_open.setFixedHeight(22)
-            btn_open.setStyleSheet(
-                'QPushButton { background-color: #2196F3; color: white; border: none; border-radius: 3px; padding: 2px 8px; font-size: 11px; } '
-                'QPushButton:hover { background-color: #0b7dda; }'
-            )
-            btn_open.clicked.connect(lambda _, ip=get_value('ip'): QDesktopServices.openUrl(QUrl(f'http://{ip}:22080')))
 
-            btn_detail = QPushButton('详情')
-            btn_detail.setFixedWidth(48)
-            btn_detail.setFixedHeight(22)
-            btn_detail.setStyleSheet(
-                'QPushButton { background-color: #4CAF50; color: white; border: none; border-radius: 3px; padding: 2px 8px; font-size: 11px; } '
-                'QPushButton:hover { background-color: #357a38; }'
-            )
-            btn_detail.clicked.connect(lambda _, btn=btn_detail: self.show_detail_dialog_by_widget(btn))
+    def _create_row_buttons(self, row, result):
+        def get_value(key):
+            return result.get(key, '')
+        btn_open = QPushButton('打开')
+        btn_open.setFixedWidth(48)
+        btn_open.setFixedHeight(22)
+        btn_open.setStyleSheet(
+            'QPushButton { background-color: #2196F3; color: white; border: none; border-radius: 3px; padding: 2px 8px; font-size: 11px; } '
+            'QPushButton:hover { background-color: #0b7dda; }'
+        )
+        btn_open.clicked.connect(lambda _, ip=get_value('ip'): QDesktopServices.openUrl(QUrl(f'http://{ip}:22080')))
 
-            btn_widget = QWidget()
-            btn_layout = QHBoxLayout(btn_widget)
-            btn_layout.addWidget(btn_open)
-            btn_layout.addWidget(btn_detail)
-            btn_layout.setContentsMargins(0, 0, 0, 0)
-            btn_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.table.setCellWidget(row, 5, btn_widget)
-        self.table.scrollToBottom()
-        self.update_row_colors()
+        btn_detail = QPushButton('详情')
+        btn_detail.setFixedWidth(48)
+        btn_detail.setFixedHeight(22)
+        btn_detail.setStyleSheet(
+            'QPushButton { background-color: #4CAF50; color: white; border: none; border-radius: 3px; padding: 2px 8px; font-size: 11px; } '
+            'QPushButton:hover { background-color: #357a38; }'
+        )
+        btn_detail.clicked.connect(lambda _, btn=btn_detail: self.show_detail_dialog_by_widget(btn))
+
+        btn_widget = QWidget()
+        btn_layout = QHBoxLayout(btn_widget)
+        btn_layout.addWidget(btn_open)
+        btn_layout.addWidget(btn_detail)
+        btn_layout.setContentsMargins(0, 0, 0, 0)
+        btn_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.table.setCellWidget(row, 5, btn_widget)
 
     def show_detail_dialog_by_widget(self, widget):
         # 获取按钮所在的行号
@@ -200,22 +210,9 @@ class ScanPosTabWidget(BaseTabWidget):
         from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QScrollArea, QWidget, QHBoxLayout
         ip = result.get('ip', '')
         full_data = self.service.fetch_company_profile(ip)
-
-        # 递归过滤所有 None
-        def filter_none_and_exclude(data):
-            exclude_keys = {"appInstance", "images", "result", "printLogo"}
-            if isinstance(data, dict):
-                return {k: filter_none_and_exclude(v) for k, v in data.items() if
-                        v is not None and k not in exclude_keys}
-            elif isinstance(data, list):
-                return [filter_none_and_exclude(item) for item in data if item is not None]
-            else:
-                return data
-
-        detail_data = filter_none_and_exclude(full_data)
+        detail_data = self._filter_none_and_exclude(full_data)
         dialog = QDialog(self)
         dialog.setWindowTitle(f"详情 - {ip}")
-        # 设置和主窗体一样大
         if self.parent() and hasattr(self.parent(), 'size'):
             main_size = self.parent().size()
             dialog.resize(main_size)
@@ -226,56 +223,64 @@ class ScanPosTabWidget(BaseTabWidget):
         scroll.setWidgetResizable(True)
         content = QWidget()
         content_layout = QVBoxLayout(content)
-
-        def add_kv_widgets_to_layout(data, layout, indent=0):
-            indent_px = indent * 20
-            if isinstance(data, dict):
-                for k, v in data.items():
-                    key_label = QLabel(f"<b>{k}</b>")
-                    key_label.setStyleSheet(f"margin-left: {indent_px}px;")
-                    key_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
-                    key_label.setMinimumWidth(180)
-                    key_label.setWordWrap(True)
-                    # 移除setFixedWidth，允许自适应
-                    if isinstance(v, (dict, list)):
-                        layout.addWidget(key_label)
-                        add_kv_widgets_to_layout(v, layout, indent + 1)
-                    else:
-                        row = QHBoxLayout()
-                        row.setContentsMargins(0, 0, 0, 0)
-                        row.setSpacing(8)
-                        value_label = QLabel(str(v))
-                        value_label.setWordWrap(True)
-                        value_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
-                        row.addWidget(key_label)
-                        row.addWidget(value_label)
-                        row.addStretch()
-                        row_widget = QWidget()
-                        row_widget.setLayout(row)
-                        row_widget.setStyleSheet(f"margin-left: {indent_px}px;")
-                        layout.addWidget(row_widget)
-            elif isinstance(data, list):
-                for idx, item in enumerate(data):
-                    key_label = QLabel(f"[{idx}]")
-                    key_label.setStyleSheet(f"margin-left: {indent_px}px;color:#888;")
-                    key_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
-                    layout.addWidget(key_label)
-                    add_kv_widgets_to_layout(item, layout, indent + 1)
-            else:
-                value_label = QLabel(str(data))
-                value_label.setStyleSheet(f"margin-left: {indent_px}px;")
-                value_label.setWordWrap(True)
-                value_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
-                layout.addWidget(value_label)
-
         if detail_data and (not isinstance(detail_data, dict) or detail_data):
-            add_kv_widgets_to_layout(detail_data, content_layout)
+            self._add_kv_widgets_to_layout(detail_data, content_layout)
         else:
             content_layout.addWidget(QLabel("无数据"))
         scroll.setWidget(content)
         layout.addWidget(scroll)
         dialog.setLayout(layout)
         dialog.exec()
+
+    def _filter_none_and_exclude(self, data):
+        exclude_keys = {"appInstance", "images", "result", "printLogo"}
+        if isinstance(data, dict):
+            return {k: self._filter_none_and_exclude(v) for k, v in data.items() if v is not None and k not in exclude_keys}
+        elif isinstance(data, list):
+            return [self._filter_none_and_exclude(item) for item in data if item is not None]
+        else:
+            return data
+
+    def _add_kv_widgets_to_layout(self, data, layout, indent=0):
+        indent_px = indent * 20
+        from PyQt6.QtWidgets import QLabel, QHBoxLayout, QWidget
+        if isinstance(data, dict):
+            for k, v in data.items():
+                key_label = QLabel(f"<b>{k}</b>")
+                key_label.setStyleSheet(f"margin-left: {indent_px}px;")
+                key_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+                key_label.setMinimumWidth(180)
+                key_label.setWordWrap(True)
+                if isinstance(v, (dict, list)):
+                    layout.addWidget(key_label)
+                    self._add_kv_widgets_to_layout(v, layout, indent + 1)
+                else:
+                    row = QHBoxLayout()
+                    row.setContentsMargins(0, 0, 0, 0)
+                    row.setSpacing(8)
+                    value_label = QLabel(str(v))
+                    value_label.setWordWrap(True)
+                    value_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+                    row.addWidget(key_label)
+                    row.addWidget(value_label)
+                    row.addStretch()
+                    row_widget = QWidget()
+                    row_widget.setLayout(row)
+                    row_widget.setStyleSheet(f"margin-left: {indent_px}px;")
+                    layout.addWidget(row_widget)
+        elif isinstance(data, list):
+            for idx, item in enumerate(data):
+                key_label = QLabel(f"[{idx}]")
+                key_label.setStyleSheet(f"margin-left: {indent_px}px;color:#888;")
+                key_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+                layout.addWidget(key_label)
+                self._add_kv_widgets_to_layout(item, layout, indent + 1)
+        else:
+            value_label = QLabel(str(data))
+            value_label.setStyleSheet(f"margin-left: {indent_px}px;")
+            value_label.setWordWrap(True)
+            value_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+            layout.addWidget(value_label)
 
     def on_search(self):
         ip_text = self.search_ip_edit.text().strip().lower()
