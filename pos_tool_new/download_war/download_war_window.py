@@ -2,14 +2,16 @@ import os
 
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox
 
-from pos_tool_new.main import BaseTabWidget
+from pos_tool_new.main import BaseTabWidget, MainWindow
 from .download_war_service import DownloadWarService
 
 
 class DownloadWarTabWidget(BaseTabWidget):
     def __init__(self, parent=None):
         super().__init__("Download War", parent)
-        self.parent_window = parent
+        self.download_btn = None
+        self.url_input = None
+        self.parent_window: MainWindow = parent
         self.service = DownloadWarService()
         self.worker = None
         self.init_ui()
@@ -43,7 +45,7 @@ class DownloadWarTabWidget(BaseTabWidget):
             self.parent_window.progress_bar.setValue(0)
             self.parent_window.progress_bar.setFormat("正在下载war...")
             self.parent_window.speed_label.setVisible(True)
-            self.parent_window.speed_label.clear()
+            self.parent_window.speed_label.setText("下载速率:计算中...")
 
         self.download_btn.setEnabled(False)
         self.service.log("开始下载任务...")
