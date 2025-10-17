@@ -207,7 +207,7 @@ class ScanPosTabWidget(BaseTabWidget):
                 return
 
     def show_detail_dialog_by_result(self, result):
-        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QScrollArea, QWidget, QHBoxLayout
+        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QScrollArea, QWidget
         ip = result.get('ip', '')
         full_data = self.service.fetch_company_profile(ip)
         detail_data = self._filter_none_and_exclude(full_data)
