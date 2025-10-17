@@ -131,6 +131,7 @@ class ScanPosTabWidget(BaseTabWidget):
         QTimer.singleShot(2000, self.progress_bar.hide)
         self.refresh_btn.setEnabled(True)  # 扫描结束后恢复按钮可用
         self.table.setSortingEnabled(True)
+        self.update_row_colors()
 
     def _add_row_to_table(self, result):
         self.table.insertRow(self.table.rowCount())
