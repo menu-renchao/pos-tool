@@ -745,6 +745,10 @@ class LinuxService(Backend):
                 self._execute_command(ssh, f"cd {selected_dir} && sh update.sh")
 
             if progress_callback:
+                progress_callback(60)
+            self.log("等待远程解压完成(5s) ...")
+            time.sleep(5)  # 等待5秒
+            if progress_callback:
                 progress_callback(70)
 
             # 修改配置文件
