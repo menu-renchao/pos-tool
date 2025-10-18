@@ -1,6 +1,3 @@
-import re
-import subprocess
-
 from PyQt6.QtCore import QObject
 from pos_tool_new.backend import Backend
 from pos_tool_new.work_threads import ScanPosWorkerThread
