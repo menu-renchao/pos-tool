@@ -56,7 +56,7 @@ class LicenseToolTabWidget(BaseTabWidget):
         db_layout = QFormLayout()
         db_layout.setContentsMargins(8, 12, 8, 12)
         db_layout.setSpacing(8)
-        db_layout.setLabelAlignment(Qt.AlignmentFlag.AlignRight)  # 修正这里
+        db_layout.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
 
         self.host_combo = QComboBox()
         self.host_combo.addItems([
@@ -93,15 +93,23 @@ class LicenseToolTabWidget(BaseTabWidget):
         """)
         self.connect_btn.clicked.connect(self.connect_database)
 
-        db_layout.addRow("主机地址:", self.host_combo)
-        db_layout.addRow("状态:", self.status_label)
-        db_layout.addRow("", self.connect_btn)
+        # 水平布局一行显示主机地址、状态、连接按钮
+        db_row_layout = QHBoxLayout()
+        db_row_layout.setContentsMargins(0, 0, 0, 0)
+        db_row_layout.setSpacing(12)
+        db_row_layout.addWidget(QLabel("主机地址:"))
+        db_row_layout.addWidget(self.host_combo)
+        db_row_layout.addWidget(QLabel("状态:"))
+        db_row_layout.addWidget(self.status_label)
+        db_row_layout.addWidget(self.connect_btn)
+        db_row_layout.addStretch()
+        db_layout.addRow(db_row_layout)
 
         db_group.setLayout(db_layout)
         main_layout.addWidget(db_group)
 
-        # 操作按钮组
-        btn_group = QGroupBox("操作")
+        # 店铺license相关操作按钮组
+        btn_group = QGroupBox("店铺license")
         btn_group.setStyleSheet("QGroupBox { font-weight: bold; font-size: 10px; }")
         btn_layout = QHBoxLayout()
         btn_layout.setContentsMargins(8, 12, 8, 12)
@@ -161,9 +169,33 @@ class LicenseToolTabWidget(BaseTabWidget):
         btn_layout.addWidget(self.backup_btn)
         btn_layout.addWidget(self.restore_btn)
         btn_layout.addStretch()
-
         btn_group.setLayout(btn_layout)
-        main_layout.addWidget(btn_group)
+
+        # app license相关操作按钮组
+        app_license_group = QGroupBox("app license")
+        app_license_group.setStyleSheet("QGroupBox { font-weight: bold; font-size: 10px; }")
+        app_license_layout = QHBoxLayout()
+        app_license_layout.setContentsMargins(8, 12, 8, 12)
+        app_license_layout.setSpacing(8)
+
+        self.expand_btn = QPushButton("扩充app license")
+        self.expand_btn.setFixedWidth(120)
+        self.expand_btn.clicked.connect(self.expand_app_license)
+        self.add_help_button(self.expand_btn,
+                             " 用于扩充app license的数量：E-Menu License : 50, Tablet POS License : 50, Phone POS License : 20, Max number of kitchen display instance allowed : 50, POS iOS License : 50, POS Android License : 50, Kiosk License : 50, POS License : 50")
+        self.expand_btn.setEnabled(False)
+        app_license_layout.addStretch()
+        app_license_layout.addWidget(self.expand_btn)
+        app_license_layout.addStretch()
+        app_license_group.setLayout(app_license_layout)
+
+        # 两个分组并排放在一行
+        group_h_layout = QHBoxLayout()
+        group_h_layout.setContentsMargins(0, 0, 0, 0)
+        group_h_layout.setSpacing(16)
+        group_h_layout.addWidget(btn_group)
+        group_h_layout.addWidget(app_license_group)
+        main_layout.addLayout(group_h_layout)
         main_layout.addStretch(1)
 
         # 设置主布局
@@ -196,6 +228,7 @@ class LicenseToolTabWidget(BaseTabWidget):
             self.status_label.setStyleSheet("color: green; font-weight: normal;")
             self.backup_btn.setEnabled(True)
             self.restore_btn.setEnabled(True)
+            self.expand_btn.setEnabled(True)
             self.log_message(message, "success")
         else:
             self.status_label.setText("连接失败")
@@ -285,3 +318,28 @@ class LicenseToolTabWidget(BaseTabWidget):
         finally:
             self.restore_btn.setEnabled(True)
             self.restore_btn.setText("恢复")
+
+    def expand_app_license(self):
+        """扩充app license"""
+        host = self.host_combo.currentText().strip()
+        if not host:
+            QMessageBox.warning(self, "警告", "请输入主机地址")
+            return
+        self.expand_btn.setEnabled(False)
+        self.expand_btn.setText("处理中...")
+        self.log_message(f"扩充app license: {host}", "info")
+        try:
+            success, message = self.service.expand_app_license(host)
+            if success:
+                self.log_message("扩充app license成功", "success")
+                self.log_message("需要重启后生效", "warning")
+                QMessageBox.information(self, "成功", message)
+            else:
+                self.log_message(f"扩充失败: {message}", "error")
+                QMessageBox.warning(self, "扩充失败", message)
+        except Exception as e:
+            self.log_message(f"扩充异常: {str(e)}", "error")
+            QMessageBox.critical(self, "错误", f"扩充异常: {str(e)}")
+        finally:
+            self.expand_btn.setEnabled(True)
+            self.expand_btn.setText("扩充app license")

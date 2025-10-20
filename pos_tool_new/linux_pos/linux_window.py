@@ -301,13 +301,7 @@ class LinuxTabWidget(BaseTabWidget):
         if file:
             self.war_path.setText(file)
 
-    def show_upgrade_help(self, info: str):
-        """显示升级帮助"""
-        QMessageBox.information(
-            self,
-            "使用说明",
-            info
-        )
+
 
     def on_test_ssh(self):
         is_valid, error_msg, host, username, password = self._validate_connection_params()

@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Tuple
 
 import pymysql  # 将 mysql.connector 替换为 pymysql
+from pos_tool_new.utils.db_utils import get_mysql_connection  # 新增导入
 
 from pos_tool_new.backend import Backend
 
@@ -33,12 +34,12 @@ class LicenseService(Backend):
             (成功标志, 消息)
         """
         try:
-            connection = pymysql.connect(  # 修改为 pymysql.connect
+            connection = get_mysql_connection(
                 host=host,
                 database=self.dbname,
                 user=self.uname,
                 password=self.upass,
-                port=int(self.uport),  # pymysql 的 port 需要是 int 类型
+                port=int(self.uport),
                 charset='utf8'
             )
 
@@ -59,21 +60,21 @@ class LicenseService(Backend):
             return False, "未找到商户信息"
 
         except Exception as e:
-            return False, f"M BOX 不在线，或输入IP地址有误！错误: {str(e)}"
+            return False, f"POS 不在线，或输入IP地址有误！错误: {str(e)}"
 
-    def get_connection(self, host: str) -> pymysql.connections.Connection:  # 修改返回类型注释
+    def get_connection(self, host: str):  # 返回类型注释可省略
         """获取数据库连接"""
         try:
-            connection = pymysql.connect(  # 修改为 pymysql.connect
+            connection = get_mysql_connection(
                 host=host,
                 database=self.dbname,
                 user=self.uname,
                 password=self.upass,
-                port=int(self.uport),  # pymysql 的 port 需要是 int 类型
+                port=int(self.uport),
                 charset='utf8'
             )
             return connection
-        except pymysql.Error as e:  # 修改异常捕获为 pymysql.Error
+        except Exception as e:
             raise Exception(f"数据库连接失败: {str(e)}")
 
     def backup_company_profile(self, host: str) -> str:
@@ -429,3 +430,37 @@ class LicenseService(Backend):
             # 确保连接关闭
             if connection and connection.open:  # 修改为 connection.open 检查连接状态
                 connection.close()
+
+    def expand_app_license(self, host: str) -> tuple:
+        """
+        扩充app license，批量更新 system_configuration 表相关字段。
+        """
+        sqls = [
+            "UPDATE `kpos`.`system_configuration` SET `val` = 'p7U2ZUeN6xKXDXk566n7o5LW7xgU9mJKokLkPSRLY/b+keGOkn5QWBX0OOBHRG94' WHERE `name` = 'MAX_ANDROID_PHONE_ALLOWED';",
+            "UPDATE `kpos`.`system_configuration` SET `val` = 'GDy3abGKC4D/9TtUYsKppq4LnHyrTAD2thP2rFyVX8sjsyFCvwBg4a8tAJ0EwjJw' WHERE `name` = 'MAX_ANDROID_TABLET_ALLOWED';",
+            "UPDATE `kpos`.`system_configuration` SET `val` = 'GDy3abGKC4D/9TtUYsKpprmrw8UMha3smpFl0c/TKVJtJyQuFyd0d299P6d/3PL7' WHERE `name` = 'MAX_ANDROID_TABLET_PRO_ALLOWED';",
+            "UPDATE `kpos`.`system_configuration` SET `val` = 'L/fHcKKq77rxJ2C/yIxNF6Rq1eEi9BVcw/9JNfpsvLY=' WHERE `name` = 'MAX_EMENU_ALLOWED';",
+            "UPDATE `kpos`.`system_configuration` SET `val` = 'BxsBtccMz9jC27L/0WCXs+Hz2ApjctPWcB+iwlKfnHY=' WHERE `name` = 'MAX_IPAD_POS_ALLOWED';",
+            "UPDATE `kpos`.`system_configuration` SET `val` = 'dYxAvEQSLsApncLAG4skKz799PHP0Ke0yRZShaIp0Pw=' WHERE `name` = 'MAX_IPHONE_POS_ALLOWED';",
+            "UPDATE `kpos`.`system_configuration` SET `val` = 'W+Gws/SSiIGtRMrKuBMbm6Rq1eEi9BVcw/9JNfpsvLY=' WHERE `name` = 'MAX_KIOSK_ALLOWED';",
+            "UPDATE `kpos`.`system_configuration` SET `val` = 'rseq0eV7k0GutUWOzFKrP8z2Dztwmr4JRJN1eNIj5LusIFWxrvj71FV9EY6cScoi' WHERE `name` = 'MAX_KITCHEN_DISPLAY_ALLOWED';",
+            "UPDATE `kpos`.`system_configuration` SET `val` = 'YJRca2DvpxbfcVNq1PeP3ox+W+rVUx3zDuUIhsQS4VY=' WHERE `name` = 'MAX_ONLINE_ORDER_ALLOWED';",
+            "UPDATE `kpos`.`system_configuration` SET `val` = '83T2AYYSwUe0gBUpqAd1eQJE02cm8P9hpLyPXvLtZQM=' WHERE `name` = 'MAX_POS_ALLOWED';",
+            "UPDATE `kpos`.`system_configuration` SET `val` = 'RhFZNwyT22bG+BLC3A1dRJTXS5M4qr3sqnR9tSVcrU8=' WHERE `name` = 'MAX_POS_ANDROID_ALLOWED';",
+            "UPDATE `kpos`.`system_configuration` SET `val` = 's7TKvzzWJijMhGkB9b89jxl4taQd3iQAB8+l3eTyV8A=' WHERE `name` = 'MAX_POS_IOS_ALLOWED';",
+            "UPDATE `kpos`.`system_configuration` SET `val` = 'uw9Be0esfL0frC/3KNWfpH/2h56xdqeoEAWizV/GBlHVEgu7U9gPH8EgK2D9bUpQ' WHERE `name` = 'MAX_REGISTER_DISPLAY_ALLOWED';",
+            "UPDATE `kpos`.`system_configuration` SET `val` = 'nSVjOTz42iTBvTh++X/YzV/W/4Fm8X/yrERJp0OXjoHX40ZEbvK55e5wJGj6g4vv' WHERE `name` = 'MAX_SELF_SERVICE_TERMINAL_ALLOWED';",
+            "UPDATE `kpos`.`system_configuration` SET `val` = 'zFhFfSQP0Rb2iwcHJrcQ8B3g71MXl34TP04JN+HULceWRSS2gxione+EOdHavZDZ' WHERE `name` = 'MAX_WEARABLE_DEVICE_ALLOWED';"
+        ]
+        try:
+            conn = self.get_connection(host)
+            cursor = conn.cursor()
+            for sql in sqls:
+                cursor.execute(sql)
+            conn.commit()
+            cursor.close()
+            conn.close()
+            return True, "扩充app license成功！"
+        except Exception as e:
+            return False, f"扩充app license失败: {str(e)}"
+
