@@ -15,6 +15,7 @@ class RandomMailService(Backend):
         self.current_account = None
         self.accounts = []
         self.data_file = "email_accounts.json"
+        self.counter_file = "email_counter.count"  # 使用更专业的后缀
         self._load_accounts()
         self.counter = 0
         self._init_counter()
@@ -34,15 +35,24 @@ class RandomMailService(Backend):
             json.dump(self.accounts, f, ensure_ascii=False, indent=2)
 
     def _init_counter(self):
-        # 计数器用于生成唯一用户名
-        if self.accounts:
-            self.counter = len(self.accounts)
+        # 持久化计数器，保证自增
+        if os.path.exists(self.counter_file):
+            try:
+                with open(self.counter_file, 'r', encoding='utf-8') as f:
+                    self.counter = int(f.read().strip() or '0')
+            except Exception:
+                self.counter = 0
         else:
             self.counter = 0
 
     def _generate_username(self):
-        # 生成唯一用户名
+        # 生成唯一用户名，持久化自增
         self.counter += 1
+        try:
+            with open(self.counter_file, 'w', encoding='utf-8') as f:
+                f.write(str(self.counter))
+        except Exception:
+            pass
         rand_str = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
         return f"user{self.counter}_{rand_str}"
 

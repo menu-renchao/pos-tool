@@ -307,7 +307,8 @@ class RandomMailTabWidget(BaseTabWidget):
             self.btn_delete.setEnabled(True)
 
     def generate_email(self):
-        """生成新邮箱"""
+        """生成新邮箱（防止频繁点击）"""
+        self.btn_generate.setEnabled(False)  # 禁用按钮，防止重复点击
         try:
             self.show_loading_overlay("正在生成邮箱...")
             email = self.service.create_account()
@@ -323,8 +324,16 @@ class RandomMailTabWidget(BaseTabWidget):
             self.update_delete_button_state()
         except Exception as e:
             self.hide_loading_overlay()
-            self.service.log(f"生成邮箱失败: {str(e)}", "error")
-            self.show_error_message("生成邮箱失败", str(e))
+            # 针对 token 相关错误友好提示
+            err_msg = str(e)
+            if 'token' in err_msg.lower():
+                self.show_error_message("操作过于频繁或授权失效", "请稍后再试，或重新登录。")
+            else:
+                self.service.log(f"生成邮箱失败: {err_msg}", "error")
+                self.show_error_message("生成邮箱失败", err_msg)
+        finally:
+            # 1秒后恢复按钮可点击
+            QTimer.singleShot(5000, lambda: self.btn_generate.setEnabled(True))
 
     def switch_account(self, email):
         """切换邮箱账户"""
