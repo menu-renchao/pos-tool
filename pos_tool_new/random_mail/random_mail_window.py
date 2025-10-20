@@ -19,6 +19,8 @@ except ImportError:
     RandomMailLoadThread = object
     ReusableMailContentThread = object
 
+NO_EMAIL_PLACEHOLDER = "暂无可用邮箱"
+
 
 class RandomMailTabWidget(BaseTabWidget):
     def __init__(self, parent=None):
@@ -71,7 +73,7 @@ class RandomMailTabWidget(BaseTabWidget):
                 self.refresh_mails()
         else:
             self.combo_emails.clear()
-            self.combo_emails.addItem("暂无可用邮箱")
+            self.combo_emails.addItem(NO_EMAIL_PLACEHOLDER)
             self.list_mails.clear()
             tip_item = QListWidgetItem("暂无邮件")
             tip_item.setFlags(Qt.ItemFlag.NoItemFlags)
@@ -79,6 +81,7 @@ class RandomMailTabWidget(BaseTabWidget):
             self.list_mails.addItem(tip_item)
             self.mail_count_label.setText("0 封邮件")
             self.txt_mail_content.clear()
+        self.update_delete_button_state()
 
     def init_loading_overlay(self):
         """初始化加载中蒙层"""
@@ -295,13 +298,21 @@ class RandomMailTabWidget(BaseTabWidget):
         self.chk_auto_refresh.toggled.connect(self.toggle_auto_refresh)
         self.btn_copy_email.clicked.connect(self.copy_email)
 
+    def update_delete_button_state(self):
+        """根据邮箱列表内容更新删除按钮状态"""
+        current_text = self.combo_emails.currentText()
+        if current_text == NO_EMAIL_PLACEHOLDER or not current_text:
+            self.btn_delete.setEnabled(False)
+        else:
+            self.btn_delete.setEnabled(True)
+
     def generate_email(self):
         """生成新邮箱"""
         try:
             self.show_loading_overlay("正在生成邮箱...")
             email = self.service.create_account()
             # 移除“暂无可用邮箱”选项（如果存在）
-            idx = self.combo_emails.findText("暂无可用邮箱")
+            idx = self.combo_emails.findText(NO_EMAIL_PLACEHOLDER)
             if idx >= 0:
                 self.combo_emails.removeItem(idx)
             self.combo_emails.addItem(email)
@@ -309,6 +320,7 @@ class RandomMailTabWidget(BaseTabWidget):
             self.txt_mail_content.clear()
             self.refresh_mails()
             self.hide_loading_overlay()
+            self.update_delete_button_state()
         except Exception as e:
             self.hide_loading_overlay()
             self.service.log(f"生成邮箱失败: {str(e)}", "error")
@@ -317,7 +329,8 @@ class RandomMailTabWidget(BaseTabWidget):
     def switch_account(self, email):
         """切换邮箱账户"""
         # 如果是提示语或无效邮箱，直接返回
-        if not email or email == "暂无可用邮箱":
+        if not email or email == NO_EMAIL_PLACEHOLDER:
+            self.update_delete_button_state()
             return
         if not self._is_loading:
             try:
@@ -330,6 +343,7 @@ class RandomMailTabWidget(BaseTabWidget):
             except Exception as e:
                 self.service.log(f"切换邮箱失败: {str(e)}", "error")
                 self.show_error_message("切换邮箱失败", str(e))
+        self.update_delete_button_state()
 
     def refresh_mails(self):
         """刷新邮件列表"""
@@ -461,8 +475,9 @@ class RandomMailTabWidget(BaseTabWidget):
                     self.list_mails.clear()
                     self.mail_count_label.setText("0 封邮件")
                     self.txt_mail_content.clear()
-                    self.combo_emails.addItem("暂无可用邮箱")
+                    self.combo_emails.addItem(NO_EMAIL_PLACEHOLDER)
                     self.combo_emails.setCurrentIndex(0)
+                self.update_delete_button_state()
             except Exception as e:
                 self.service.log(f"删除邮箱失败: {str(e)}", "error")
                 self.show_error_message("删除邮箱失败", str(e))
