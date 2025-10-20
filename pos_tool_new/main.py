@@ -274,14 +274,6 @@ class MainWindow(QMainWindow):
         from pos_tool_new.random_mail.random_mail_window import RandomMailTabWidget
         self.random_mail_tab = RandomMailTabWidget(self)
         self.tabs.addTab(self.random_mail_tab, "📧 随机邮箱")
-        # 连接选项卡切换信号
-        self.tabs.currentChanged.connect(self.on_tab_changed)
-
-    def on_tab_changed(self, index):
-        """选项卡切换事件"""
-        tab_names = ["Linux POS", "Windows POS", "Caller ID", "License Backup", "Download War", "图片生成"]
-        if 0 <= index < len(tab_names):
-            self.append_log(f"📁 切换到选项卡: {tab_names[index]}", "info")
 
     def show_version_info(self):
         """显示版本信息对话框"""
