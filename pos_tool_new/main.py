@@ -1,9 +1,9 @@
 import os
 import sys
+import time
+from typing import Tuple
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from pos_tool_new.utils.log_manager import global_log_manager
-from typing import Tuple
 from PyQt6.QtGui import QFont, QPalette, QTextCharFormat, QTextCursor, QAction
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QTabWidget, QTextEdit,
@@ -13,6 +13,7 @@ from PyQt6.QtWidgets import (
 )
 from pos_tool_new.backend import Backend
 from pos_tool_new.version_info.version_info import VersionInfoDialog
+from pos_tool_new.utils.log_manager import global_log_manager
 
 
 def resource_path(relative_path: str) -> str:
@@ -696,15 +697,16 @@ class ModernSplashScreen(QWidget):
 
 
 if __name__ == "__main__":
+    start_time = time.time()
     app = QApplication(sys.argv)
-    # 创建现代化启动画面
     splash = ModernSplashScreen(resource_path('UI/loading.gif'), duration=1800)
 
-
     def create_main_window():
-        return MainWindow()
+        win = MainWindow()
+        end_time = time.time()
+        cost_ms = int((end_time - start_time) * 1000)
+        global_log_manager.log(f"应用启动耗时: {cost_ms} ms", "info")
+        return win
 
-
-    # 显示启动画面
     splash.start(create_main_window)
     sys.exit(app.exec())
