@@ -85,7 +85,7 @@ class RandomMailService(Backend):
         return sorted(emails, key=lambda x: x["createdAt"], reverse=True)
 
     def get_email_content(self, mail_id):
-        """获取邮件HTML内容，复杂或过大内容则提示无法展示"""
+        """获取邮件HTML内容，始终正常展示，无论大小和复杂度"""
         headers = {"Authorization": f"Bearer {self.current_account['token']}"}
         response = self.session.get(
             f"{self.base_url}/messages/{mail_id}",
@@ -95,11 +95,6 @@ class RandomMailService(Backend):
         if not html_list or not html_list[0]:
             return "<html><body><b>无内容</b></body></html>"
         html = html_list[0]
-        # 判断复杂富文本标签或内容超长
-        complex_tags = r'<(img|iframe|script|style|object|embed|link|video|audio|form|svg|canvas)[\s>]'
-        max_len = 10*1024  # 进一步收紧最大长度为10KB
-        if re.search(complex_tags, html, re.I) or len(html) > max_len:
-            return "<html><body><b>内容过大或过于复杂，无法展示</b></body></html>"
         return html
 
     def _get_available_domain(self):
