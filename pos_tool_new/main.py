@@ -4,16 +4,15 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from pos_tool_new.utils.log_manager import global_log_manager
 from typing import Tuple
-from PyQt6.QtGui import QFont, QPalette, QTextCharFormat, QTextCursor, QIcon, QAction
+from PyQt6.QtGui import QFont, QPalette, QTextCharFormat, QTextCursor, QAction
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QTabWidget, QTextEdit,
     QPushButton, QHBoxLayout, QLabel, QRadioButton,
     QButtonGroup, QGroupBox, QProgressBar,
-    QMainWindow, QToolBar, QToolButton, QMenuBar, QMenu, QWidgetAction
+    QMainWindow, QToolButton, QMenuBar, QMessageBox
 )
 from pos_tool_new.backend import Backend
 from pos_tool_new.version_info.version_info import VersionInfoDialog
-from PyQt6.QtWidgets import QSizePolicy
 
 
 def resource_path(relative_path: str) -> str:
@@ -108,6 +107,14 @@ class BaseTabWidget(QWidget):
         parent_button_layout.addStretch()
         parent_button_layout.addWidget(help_btn)
 
+    def show_upgrade_help(self, info: str):
+        """显示升级帮助"""
+        QMessageBox.information(
+            self,
+            "使用说明",
+            info
+        )
+
     def _find_mainwindow(self):
         parent = self.parent()
         from PyQt6.QtWidgets import QMainWindow
@@ -196,7 +203,7 @@ class MainWindow(QMainWindow):
     def setup_ui(self):
         """设置UI"""
         self.setWindowIcon(QIcon(resource_path('UI/app.ico')))
-        self.setWindowTitle("POS测试工具 v1.5.0.3 by Mansuper")
+        self.setWindowTitle("POS测试工具 v1.5.0.6 by Mansuper")
         self.resize(900, 580)
         # 设置样式
         self.setup_styles()
@@ -253,7 +260,7 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.caller_tab, "📞 Caller ID")
         from pos_tool_new.license_backup.license_window import LicenseToolTabWidget
         self.license_tab = LicenseToolTabWidget(self)
-        self.tabs.addTab(self.license_tab, "🔐 License Backup")
+        self.tabs.addTab(self.license_tab, "🔐 Device&&App License")
         from pos_tool_new.download_war.download_war_window import DownloadWarTabWidget
         self.download_war_tab = DownloadWarTabWidget(self)
         self.tabs.addTab(self.download_war_tab, "📥 Download War")
@@ -609,7 +616,7 @@ class ModernSplashScreen(QWidget):
         """)
         layout.addWidget(self.title_label)
 
-        self.version_label = QLabel("v1.5.0.3 - 正在加载...")
+        self.version_label = QLabel("v1.5.0.6 - 正在加载...")
         self.version_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.version_label.setStyleSheet("""
             QLabel {

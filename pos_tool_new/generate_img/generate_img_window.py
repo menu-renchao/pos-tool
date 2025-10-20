@@ -11,6 +11,17 @@ from ..work_threads import GenerateImgThread
 class GenerateImgTabWidget(BaseTabWidget):
     def __init__(self, title="图片生成", parent=None):
         super().__init__(title, parent)
+        self.status_label = None
+        self.gen_btn = None
+        self.mode_group = None
+        self.size_group_box = None
+        self.width_input = None
+        self.radio_size = None
+        self.format_box = None
+        self.height_input = None
+        self.radio_dim = None
+        self.dim_group_box = None
+        self.mb_input = None
         self.service = GenerateImgService()
         self.thread = None
         self.init_ui()

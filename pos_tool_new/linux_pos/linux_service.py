@@ -115,6 +115,20 @@ class LinuxService(Backend):
                 # 清理临时文件
                 os.unlink(temp_path)
 
+    def fix_expiration_management_url(self, content: str, env: str) -> str:
+        """
+        根据env将 expiration-management 的域名替换为 QA/DEV 或 PROD 地址
+        """
+        env_upper = env.strip().upper()
+        if env_upper in ("QA", "DEV"):
+            target_url = "https://wms.balamxqa.com/expiration-management"
+        else:  # 默认为PROD
+            target_url = "https://wms.balamx.com/expiration-management"
+        # 无论原来是什么，统一替换为目标
+        content = content.replace("https://wms.balamx.com/expiration-management", target_url)
+        content = content.replace("https://wms.balamxqa.com/expiration-management", target_url)
+        return content
+
     def _modify_remote_file(self, ssh: paramiko.SSHClient, remote_path: str, env: str) -> Tuple[bool, bool]:
         """修改单个远程文件"""
         if not self._check_file_exists(ssh, remote_path):
@@ -122,7 +136,10 @@ class LinuxService(Backend):
             return False, False
 
         content = self._read_remote_file(ssh, remote_path)
+        # 先做通用替换，再做 expiration-management 专属替换
         new_content = self.replace_domain(content, env)
+        if "cloudUrlConfig.json" in remote_path:
+            new_content = self.fix_expiration_management_url(new_content, env)
 
         if new_content == content:
             self.log("文件已是目标值，无需修改", level="info")
@@ -500,7 +517,6 @@ class LinuxService(Backend):
         except Exception as e:
             self.log(f"重启Tomcat服务时出错: {str(e)}", level="error")
 
-
     def list_backup_items(self, host: str, username: str, password: str) -> List[str]:
         """列出/opt/backup下所有.zip和文件夹，按时间倒序"""
         try:
@@ -584,7 +600,7 @@ class LinuxService(Backend):
                 err = stderr.read().decode()
                 if err:
                     if log_callback:
-                        log_callback(f"解压错误: {err}","error")
+                        log_callback(f"解压错误: {err}", "error")
                     if error_callback:
                         error_callback(err)
                 folder_name = item_name.replace('.zip', '')
@@ -614,7 +630,7 @@ class LinuxService(Backend):
             err = stderr.read().decode()
             if err:
                 if log_callback:
-                    log_callback(f"恢复错误: {err}","error")
+                    log_callback(f"恢复错误: {err}", "error")
                 if error_callback:
                     error_callback(err)
 
@@ -626,7 +642,7 @@ class LinuxService(Backend):
 
         except Exception as e:
             if log_callback:
-                log_callback(f"数据恢复异常: {str(e)}","error")
+                log_callback(f"数据恢复异常: {str(e)}", "error")
             if error_callback:
                 error_callback(str(e))
             raise
@@ -662,19 +678,19 @@ class LinuxService(Backend):
             err = stderr.read().decode()
             if err:
                 if log_callback:
-                    log_callback(f"备份脚本错误: {err}","error")
+                    log_callback(f"备份脚本错误: {err}", "error")
                 if error_callback:
                     error_callback(err)
 
             ssh.close()
             if log_callback:
-                log_callback("数据备份完成")
+                log_callback("数据备份完成", "success")
             if progress_callback:
                 progress_callback(100)
 
         except Exception as e:
             if log_callback:
-                log_callback(f"数据备份异常: {str(e)}","error")
+                log_callback(f"数据备份异常: {str(e)}", "error")
             if error_callback:
                 error_callback(str(e))
 
@@ -728,6 +744,10 @@ class LinuxService(Backend):
                 self._execute_command(ssh, f"cd {selected_dir} && sh update.sh")
 
             if progress_callback:
+                progress_callback(60)
+            self.log("等待远程解压完成(5s) ...")
+            time.sleep(5)  # 等待5秒
+            if progress_callback:
                 progress_callback(70)
 
             # 修改配置文件
@@ -748,5 +768,5 @@ class LinuxService(Backend):
 
         except Exception as e:
             if log_callback:
-                log_callback(f"升级异常: {str(e)}","error")
+                log_callback(f"升级异常: {str(e)}", "error")
             raise

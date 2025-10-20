@@ -301,13 +301,7 @@ class LinuxTabWidget(BaseTabWidget):
         if file:
             self.war_path.setText(file)
 
-    def show_upgrade_help(self, info: str):
-        """显示升级帮助"""
-        QMessageBox.information(
-            self,
-            "使用说明",
-            info
-        )
+
 
     def on_test_ssh(self):
         is_valid, error_msg, host, username, password = self._validate_connection_params()
@@ -933,7 +927,7 @@ class LinuxTabWidget(BaseTabWidget):
             self.parent_window.progress_bar.setValue(0)
             self.parent_window.progress_bar.setFormat("正在下载war...")
             self.parent_window.speed_label.setVisible(True)
-            self.parent_window.speed_label.clear()
+            self.parent_window.speed_label.setText("下载速率: 计算中...")
         temp_dir = tempfile.mkdtemp(prefix="war_download_")
         service = DownloadWarService()
         old_cwd = os.getcwd()
@@ -1012,7 +1006,7 @@ class LinuxTabWidget(BaseTabWidget):
             if not war_found:
                 self.log("未在解压包中找到war文件")
         else:
-            self.log(f"下载完成！保存为: {file_path}", "success")
+            self.log(f"解压完成！保存为: {file_path}", "success")
             if self.war_path and file_path.endswith('.war'):
                 self.war_path.setText(file_path)
 

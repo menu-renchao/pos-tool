@@ -1,2 +1,3 @@
 /pos_tool_new/build/
 /pos_tool_new/dist/
+*.pyc

@@ -1,6 +1,3 @@
-import re
-import subprocess
-
 from PyQt6.QtCore import QObject
 from pos_tool_new.backend import Backend
 from pos_tool_new.work_threads import ScanPosWorkerThread
@@ -50,65 +47,70 @@ class ScanPosService(Backend, QObject):
         return {"error": "Failed after retries"}
 
     def scan_network(self, worker, port=22080):
-        def scan_port(ip, port, timeout=1):
-            try:
-                with socket.create_connection((str(ip), port), timeout):
-                    return ip
-            except:
-                return None
-
-        def get_local_network():
-            local_ip = socket.gethostbyname(socket.gethostname())
-            return ipaddress.IPv4Network(f"{local_ip}/23", strict=False)
-
-        def extract_required_info(api_response):
-            try:
-                company = api_response.get("company", {})
-                result = {
-                    "merchantId": company.get("merchantId"),
-                    "name": company.get("name"),
-                    "version": company.get("appInfo", {}).get("version"),
-                }
-                return {k: v for k, v in result.items() if v is not None} or {"error": "No required fields"}
-            except Exception as e:
-                return {"error": str(e)}
-
-        network = get_local_network()
+        network = self._get_local_network()
         hosts = list(network.hosts())
-        open_ips = []
+        open_ips = self._scan_open_ips(worker, hosts, port)
+        worker._results = []
+        self._fetch_profiles_and_emit(worker, open_ips, port)
+        worker.scan_finished.emit(worker._results)
 
+    def _scan_port(self, ip, port, timeout=1):
+        try:
+            with socket.create_connection((str(ip), port), timeout):
+                return ip
+        except:
+            return None
+
+    def _get_local_network(self):
+        local_ip = socket.gethostbyname(socket.gethostname())
+        return ipaddress.IPv4Network(f"{local_ip}/23", strict=False)
+
+    def _extract_required_info(self, api_response):
+        try:
+            company = api_response.get("company", {})
+            result = {
+                "merchantId": company.get("merchantId"),
+                "name": company.get("name"),
+                "version": company.get("appInfo", {}).get("version"),
+            }
+            return {k: v for k, v in result.items() if v is not None} or {"error": "No required fields"}
+        except Exception as e:
+            return {"error": str(e)}
+
+    def _scan_open_ips(self, worker, hosts, port):
+        open_ips = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=200) as executor:
-            futures = {executor.submit(scan_port, ip, port): ip for ip in hosts}
+            futures = {executor.submit(self._scan_port, ip, port): ip for ip in hosts}
             for idx, future in enumerate(concurrent.futures.as_completed(futures)):
                 worker.scan_progress.emit((idx + 1) * 100 // len(hosts), str(futures[future]))
                 if not worker._is_running:
-                    return
+                    return open_ips
                 if (result := future.result()):
                     open_ips.append(str(result))
+        return open_ips
 
-        worker._results = []
-        def fetch_and_emit(ip):
-            if not worker._is_running:
-                return None
-            full_data = self.fetch_company_profile(ip, port)
-            simple_data = extract_required_info(full_data)
-            device_type = self.guess_os_by_ip(ip, port)
-            result = {
-                "ip": ip,
-                "merchantId": simple_data.get("merchantId", ""),
-                "name": simple_data.get("name", ""),
-                "version": simple_data.get("version", ""),
-                "type": device_type,
-                "status": "success" if "error" not in simple_data else "error",
-                "error": simple_data.get("error", ""),
-            }
-            worker.scan_result.emit(result)
-            return result
-        # 并发fetch_company_profile
+    def _fetch_and_emit(self, worker, ip, port):
+        if not worker._is_running:
+            return None
+        full_data = self.fetch_company_profile(ip, port)
+        simple_data = self._extract_required_info(full_data)
+        device_type = self.guess_os_by_ip(ip, port)
+        result = {
+            "ip": ip,
+            "merchantId": simple_data.get("merchantId", ""),
+            "name": simple_data.get("name", ""),
+            "version": simple_data.get("version", ""),
+            "type": device_type,
+            "status": "success" if "error" not in simple_data else "error",
+            "error": simple_data.get("error", ""),
+        }
+        worker.scan_result.emit(result)
+        return result
+
+    def _fetch_profiles_and_emit(self, worker, open_ips, port):
         with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
-            future_to_ip = {executor.submit(fetch_and_emit, ip): ip for ip in open_ips}
+            future_to_ip = {executor.submit(self._fetch_and_emit, worker, ip, port): ip for ip in open_ips}
             for future in concurrent.futures.as_completed(future_to_ip):
                 res = future.result()
                 if res:
                     worker._results.append(res)
-        worker.scan_finished.emit(worker._results)
