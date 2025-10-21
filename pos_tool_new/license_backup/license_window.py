@@ -181,8 +181,8 @@ class LicenseToolTabWidget(BaseTabWidget):
         self.expand_btn = QPushButton("扩充app license")
         self.expand_btn.setFixedWidth(120)
         self.expand_btn.clicked.connect(self.expand_app_license)
-        self.add_help_button(self.expand_btn,
-                             " 用于扩充app license的数量：E-Menu License : 50, Tablet POS License : 50, Phone POS License : 20, Max number of kitchen display instance allowed : 50, POS iOS License : 50, POS Android License : 50, Kiosk License : 50, POS License : 50")
+        self.expand_btn.setToolTip(
+                             " 用于扩充app license的数量：E-Menu License : 50, Tablet POS License : 50, Phone POS License : 20,\n Max number of kitchen display instance allowed : 50, POS iOS License : 50, POS Android License : 50, Kiosk License : 50, POS License : 50")
         self.expand_btn.setEnabled(False)
         app_license_layout.addStretch()
         app_license_layout.addWidget(self.expand_btn)

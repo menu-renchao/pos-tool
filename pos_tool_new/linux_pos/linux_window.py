@@ -19,6 +19,7 @@ class LinuxTabWidget(BaseTabWidget):
 
     def __init__(self, parent: Optional[MainWindow] = None):
         super().__init__("Linux POS")
+        self.upgrade_package_btn = None
         self.status_label = None
         self.host_ip: Optional[QComboBox] = None
         self.username: Optional[QLineEdit] = None
@@ -233,19 +234,15 @@ class LinuxTabWidget(BaseTabWidget):
         file_btn_layout.addWidget(self.upload_btn)
 
         # 为上传按钮添加帮助按钮
-        self.add_help_button(self.upload_btn, "此功能会将zip升级包上传到「/home/menu」下并解压。")
+        self.upload_btn.setToolTip("此功能会将zip升级包上传到「/home/menu」下并解压。")
 
         # 使用升级包升级按钮
         self.upgrade_btn = QPushButton("使用升级包升级")
         self.upgrade_btn.clicked.connect(self.on_upgrade_with_package)
         file_btn_layout.addWidget(self.upgrade_btn)
 
-        # 为升级按钮添加帮助按钮
-        self.add_help_button(
-            self.upgrade_btn,
-            "此功能会扫描「/home/menu」下的所有升级工具。\n"
-            "如果未发现您需要的升级工具，请使用【上传升级包】功能。"
-        )
+        self.upgrade_btn.setToolTip( "此功能会扫描「/home/menu」下的所有升级工具。\n"
+            "如果未发现您需要的升级工具，请使用【上传升级包】功能。")
         top_row_layout.addWidget(file_group, 2)
         file_main_layout.addLayout(file_btn_layout)
         self.layout.addLayout(top_row_layout)
@@ -273,11 +270,11 @@ class LinuxTabWidget(BaseTabWidget):
         pipeline_layout = QHBoxLayout(pipeline_group)
         pipeline_layout.addStretch()  # 左侧留白，按钮靠右
         self.upgrade_btn = QPushButton("一键升级")
-        self.add_help_button(self.upgrade_btn, "依次执行【替换远程war包】->【修改文件】->【重启pos】")
+        self.upgrade_btn.setToolTip("依次执行【替换远程war包】->【修改文件】->【重启pos】")
         self.upgrade_btn.clicked.connect(self.on_pipeline_upgrade)
         pipeline_layout.addWidget(self.upgrade_btn)
         self.upgrade_package_btn = QPushButton("一键升级包升级")
-        self.add_help_button(self.upgrade_package_btn, "依次执行【使用升级包升级】->【修改文件】->【重启pos】")
+        self.upgrade_package_btn.setToolTip("依次执行【使用升级包升级】->【修改文件】->【重启pos】")
         self.upgrade_package_btn.clicked.connect(self.on_pipeline_package_upgrade)
         pipeline_layout.addWidget(self.upgrade_package_btn)
         self.layout.addLayout(pipeline_layout)
