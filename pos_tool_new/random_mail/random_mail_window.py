@@ -267,8 +267,22 @@ class RandomMailTabWidget(BaseTabWidget):
         right_layout.setContentsMargins(8, 8, 8, 8)
         right_layout.setSpacing(8)
 
+        # 同行显示标题和说明
+        content_row = QHBoxLayout()
+        content_row.setSpacing(0)  # 设置水平布局的间距为0
+        content_row.setContentsMargins(0, 0, 0, 0)  # 确保布局本身没有边距
+
         content_title = QLabel("📄 邮件内容")
-        right_layout.addWidget(content_title)
+        content_title.setStyleSheet("margin-right: 1px;")  # 只在右侧添加少量间距
+
+        content_tip = QLabel("（仅支持简单文本内容展示，复杂富文本和附件等暂不支持）")
+        content_tip.setStyleSheet("color: #888; font-size: 11px; margin-left: 0px;")  # 确保左边距为0
+
+        content_row.addWidget(content_title)
+        content_row.addWidget(content_tip)
+        content_row.addStretch()  # 添加拉伸因子，防止后面的内容影响间距
+
+        right_layout.addLayout(content_row)
 
         # 使用 QTextBrowser 替换 QTextEdit
         from PyQt6.QtWidgets import QTextBrowser

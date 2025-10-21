@@ -473,18 +473,6 @@ class RandomMailLoadThread(BaseWorkerThread):
         self.mails_loaded.emit(emails)
 
 
-class RandomMailContentThread(BaseWorkerThread):
-    mail_content_loaded = pyqtSignal(str)
-
-    def __init__(self, service, mail_id, parent=None):
-        super().__init__()
-        self.service = service
-        self.mail_id = mail_id
-        self.parent = parent
-
-    def _run_impl(self):
-        content = self.service.get_email_content(self.mail_id)
-        self.mail_content_loaded.emit(content)
 
 class ReusableMailContentThread(BaseWorkerThread):
     mail_content_loaded = pyqtSignal(str, str)  # html, mail_id
