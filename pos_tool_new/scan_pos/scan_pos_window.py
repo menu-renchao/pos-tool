@@ -32,7 +32,7 @@ class ScanPosTabWidget(BaseTabWidget):
         if len(ips) == 1:
             return ips[0]
         # 多IP弹窗选择
-        ip, ok = QInputDialog.getItem(self, "选择IP地址", "检测到多个IP地址，请选择:", ips, 0, False)
+        ip, ok = QInputDialog.getItem(self, "选择IP网段", "检测到本机多个IP网段，请选择:", ips, 0, False)
         if ok and ip:
             return ip
         # 用户取消时返回None，阻止刷新
