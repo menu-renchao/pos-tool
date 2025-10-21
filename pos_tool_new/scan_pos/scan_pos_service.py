@@ -9,9 +9,10 @@ import concurrent.futures
 
 
 class ScanPosService(Backend, QObject):
-    def __init__(self):
+    def __init__(self, local_ip=None):
         super().__init__()
         self.worker = None
+        self.local_ip = local_ip
 
     @staticmethod
     def guess_os_by_ip(ip, port=22080, timeout=3):
@@ -62,7 +63,7 @@ class ScanPosService(Backend, QObject):
             return None
 
     def _get_local_network(self):
-        local_ip = socket.gethostbyname(socket.gethostname())
+        local_ip = self.local_ip if self.local_ip else socket.gethostbyname(socket.gethostname())
         return ipaddress.IPv4Network(f"{local_ip}/23", strict=False)
 
     def _extract_required_info(self, api_response):

@@ -1,22 +1,42 @@
 from PyQt6.QtCore import Qt, QUrl, QTimer
 from PyQt6.QtGui import QColor, QBrush, QDesktopServices
 from PyQt6.QtWidgets import (QTableWidget, QTableWidgetItem, QPushButton, QVBoxLayout,
-                             QLabel, QProgressBar, QLineEdit, QHBoxLayout, QHeaderView, QWidget)
+                             QLabel, QProgressBar, QLineEdit, QHBoxLayout, QHeaderView, QWidget, QInputDialog)
 
 from pos_tool_new.main import BaseTabWidget
 from .scan_pos_service import ScanPosService
+import socket
 
 
 class ScanPosTabWidget(BaseTabWidget):
     def __init__(self, backend, parent=None):
         super().__init__('扫描POS', parent)
         self.backend = backend
-        self.service = ScanPosService()
+        self.local_ip = None
+        self.service = None
         self._results, self._displayed_results = [], []
         self._total_scan_count = self._scanned_count = self._loaded_count = 0
         self._scan_finished = False
         self.row_colors = [QColor(255, 255, 255), QColor(240, 240, 240)]
         self._init_ui()
+
+    def _select_local_ip(self):
+        # 获取所有本地IPv4地址
+        ips = set()
+        hostname = socket.gethostname()
+        for info in socket.getaddrinfo(hostname, None):
+            ip = info[4][0]
+            if "." in ip and not ip.startswith("127."):
+                ips.add(ip)
+        ips = list(ips)
+        if len(ips) == 1:
+            return ips[0]
+        # 多IP弹窗选择
+        ip, ok = QInputDialog.getItem(self, "选择IP地址", "检测到多个IP地址，请选择:", ips, 0, False)
+        if ok and ip:
+            return ip
+        # 用户取消时返回None，阻止刷新
+        return None
 
     def _init_ui(self):
         self._create_ui()
@@ -85,6 +105,10 @@ class ScanPosTabWidget(BaseTabWidget):
         self.layout.addLayout(main_layout)
 
     def start_scan(self):
+        self.local_ip = self._select_local_ip()  # 点击扫描时选择IP
+        if not self.local_ip:
+            return  # 用户取消则不刷新
+        self.service = ScanPosService(local_ip=self.local_ip)  # 用选中的IP初始化Service
         self.refresh_btn.setEnabled(False)
         self.table.setSortingEnabled(False)
         self.table.setRowCount(0)
