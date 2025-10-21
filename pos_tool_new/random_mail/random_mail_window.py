@@ -384,7 +384,7 @@ class RandomMailTabWidget(BaseTabWidget):
             mail_thread = RandomMailLoadThread(self.service)
             mail_thread.mails_loaded.connect(self.on_mails_loaded)
             mail_thread.error_occurred.connect(self.on_mail_load_error)
-            mail_thread.finished.connect(self.on_mail_load_finished)
+            mail_thread.finished_updated.connect(self.on_mail_load_finished)
             self.mail_threads.append(mail_thread)
             mail_thread.start()
         except Exception as e:

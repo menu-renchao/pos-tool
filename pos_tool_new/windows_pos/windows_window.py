@@ -134,7 +134,7 @@ class WindowsTabWidget(BaseTabWidget):
             return
         thread = thread_class(self.service, self.base_path.text(), *args)
         thread.error_occurred.connect(lambda msg: QMessageBox.warning(self, "错误", msg))
-        thread.finished.connect(self._clear_current_thread)
+        thread.finished_updated.connect(self._clear_current_thread)
         self._current_thread = thread
         thread.start()
 
@@ -182,7 +182,7 @@ class WindowsTabWidget(BaseTabWidget):
         os.chdir(temp_dir)
         self._download_worker = DownloadWarWorker(url, DownloadWarService(), expected_size_mb=217)
         self._download_worker.progress_updated.connect(self._handle_download_progress)
-        self._download_worker.finished.connect(
+        self._download_worker.finished_updated.connect(
             lambda success, result: self._handle_download_finished(success, result, temp_dir, os.getcwd()))
         self._download_worker.start()
 

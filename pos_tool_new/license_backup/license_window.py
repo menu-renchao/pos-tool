@@ -219,7 +219,7 @@ class LicenseToolTabWidget(BaseTabWidget):
         self.db_thread = DatabaseConnectThread(self.service, host)
         self.db_thread.success_signal.connect(self.on_connect_success)
         self.db_thread.error_signal.connect(self.on_connect_error)
-        self.db_thread.finished.connect(self.on_connect_finished)
+        self.db_thread.finished_updated.connect(self.on_connect_finished)
         self.db_thread.start()
 
     def on_connect_success(self, success, message):

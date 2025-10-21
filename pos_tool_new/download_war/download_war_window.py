@@ -54,7 +54,7 @@ class DownloadWarTabWidget(BaseTabWidget):
         self.worker = DownloadWarWorker(url, self.service, expected_size_mb=217)
         self.worker.progress_updated.connect(self.log_progress)
         self.worker.speed_updated.connect(self.log_speed)  # 新增速率信号连接
-        self.worker.finished.connect(self.download_finished)
+        self.worker.finished_updated.connect(self.download_finished)
         self.worker.start()
 
     def log_progress(self, percent, speed=None, downloaded=None, total=None):

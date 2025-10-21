@@ -193,7 +193,7 @@ class GenerateImgTabWidget(BaseTabWidget):
         self.gen_btn.setDisabled(True)
 
         self.thread = GenerateImgThread(self.service, mode, width, height, mb, fmt)
-        self.thread.finished.connect(self.on_generate_finished)
+        self.thread.finished_updated.connect(self.on_generate_finished)
         self.thread.start()
 
     def on_generate_finished(self, output_path):

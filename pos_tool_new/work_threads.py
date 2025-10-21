@@ -9,12 +9,12 @@ from pos_tool_new.windows_pos.windows_service import WindowsService
 
 class BaseWorkerThread(QThread):
     # 统一信号定义
-    progress_updated = pyqtSignal(int, object, object, object)  # 进度百分比, 速率, 已下载, 总大小
-    progress_text_updated = pyqtSignal(str)  # 进度文本
-    speed_updated = pyqtSignal(str)  # 速度信息
-    status_updated = pyqtSignal(str)  # 状态信息
-    error_occurred = pyqtSignal(str)  # 错误信息
-    finished = pyqtSignal(bool, str)  # 完成状态和消息
+    progress_updated: pyqtSignal = pyqtSignal(int, object, object, object)  # 进度百分比, 速率, 已下载, 总大小
+    progress_text_updated: pyqtSignal = pyqtSignal(str)  # 进度文本
+    speed_updated: pyqtSignal = pyqtSignal(str)  # 速度信息
+    status_updated: pyqtSignal = pyqtSignal(str)  # 状态信息
+    error_occurred: pyqtSignal = pyqtSignal(str)  # 错误信息
+    finished_updated: pyqtSignal = pyqtSignal(bool, str)  # 完成状态和消息
 
     def __init__(self):
         super().__init__()
@@ -23,11 +23,11 @@ class BaseWorkerThread(QThread):
     def run(self):
         try:
             self._run_impl()
-            self.finished.emit(True, "操作完成")
+            self.finished_updated.emit(True, "操作完成")
         except Exception as e:
             error_msg = f"执行失败: {str(e)}"
             self.error_occurred.emit(error_msg)
-            self.finished.emit(False, error_msg)
+            self.finished_updated.emit(False, error_msg)
 
     def _run_impl(self):
         """子类需要实现的具体运行逻辑"""
@@ -270,9 +270,7 @@ class RestoreThread(BaseWorkerThread):
         self.progress_text_updated.emit("数据恢复完成")
 
 
-class SshTestThread(QThread):
-    finished = pyqtSignal(bool, str)  # 测试结果和消息
-
+class SshTestThread(BaseWorkerThread):
     def __init__(self, service, host, username, password):
         super().__init__()
         self.service = service
@@ -284,11 +282,11 @@ class SshTestThread(QThread):
         try:
             result = self.service.test_ssh(self.host, self.username, self.password)
             if result:
-                self.finished.emit(True, "SSH连接测试成功")
+                self.finished_updated.emit(True, "SSH连接测试成功")
             else:
-                self.finished.emit(False, "SSH连接测试失败")
+                self.finished_updated.emit(False, "SSH连接测试失败")
         except Exception as e:
-            self.finished.emit(False, f"SSH连接测试异常: {str(e)}")
+            self.finished_updated.emit(False, f"SSH连接测试异常: {str(e)}")
 
 
 class PipelineUpgradeThread(BaseWorkerThread):
@@ -413,12 +411,12 @@ class DownloadWarWorker(BaseWorkerThread):
 
             if not success:
                 self.service.log(f"WAR包下载失败: {result}", level="error")
-                self.finished.emit(False, f"WAR包下载失败: {result}")
+                self.finished_updated.emit(False, f"WAR包下载失败: {result}")
             else:
-                self.finished.emit(True, result)
+                self.finished_updated.emit(True, result)
         except Exception as e:
             self.service.log(f"WAR包下载异常: {e}", level="error")
-            self.finished.emit(False, f"WAR包下载异常: {e}")
+            self.finished_updated.emit(False, f"WAR包下载异常: {e}")
 
 
 class GenerateImgThread(BaseWorkerThread):
@@ -445,9 +443,9 @@ class GenerateImgThread(BaseWorkerThread):
 
 
 class ScanPosWorkerThread(BaseWorkerThread):
-    scan_progress = pyqtSignal(int, str)  # 扫描进度百分比和当前IP
-    scan_result = pyqtSignal(dict)        # 单个扫描结果
-    scan_finished = pyqtSignal(list)      # 扫描完成后的结果列表
+    scan_progress: pyqtSignal = pyqtSignal(int, str)  # 扫描进度百分比和当前IP
+    scan_result: pyqtSignal = pyqtSignal(dict)        # 单个扫描结果
+    scan_finished: pyqtSignal = pyqtSignal(list)      # 扫描完成后的结果列表
 
     def __init__(self, service, port=22080):
         super().__init__()
@@ -502,4 +500,3 @@ class ReusableMailContentThread(BaseWorkerThread):
 
     def stop(self):
         self._is_running = False
-
