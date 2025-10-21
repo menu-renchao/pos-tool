@@ -524,7 +524,9 @@ class DbConfigWindow(BaseTabWidget):
         msg = f"执行完成！\n\n立即生效: {success_count} 个\n需要重启: {restart_count} 个\n\n"
         msg += "\n".join([f"{k}: {'需重启' if v else '立即生效'}" for k, v in result.items()])
 
-        QMessageBox.information(self, '执行结果', msg)
+        msg_box = QMessageBox(QMessageBox.Icon.Information, '执行结果', msg, parent=self)
+        msg_box.setMinimumSize(400, 200)
+        msg_box.exec()
 
     def on_run_config(self, row):
         """执行单个配置项"""
@@ -542,8 +544,9 @@ class DbConfigWindow(BaseTabWidget):
             QMessageBox.critical(self, '错误', f'执行配置项时发生错误: {str(e)}')
             return
         msg = f"{item.description}: {'需重启生效' if result.get(item.description) else '立即生效'}"
-        QMessageBox.information(self, '执行结果', msg)
-
+        msg_box = QMessageBox(QMessageBox.Icon.Information, '执行结果', msg, parent=self)
+        msg_box.setMinimumSize(400, 200)
+        msg_box.exec()
     def on_worker_error(self, msg):
         self.log_message(msg, "error")
 
@@ -571,7 +574,7 @@ class DbConfigWindow(BaseTabWidget):
 
     def on_connect_success(self, success, message):
         if success:
-            self.status_label.setText("已连接")
+            self.status_label.setText(f"{message}")
             self.status_label.setStyleSheet("color: green; font-weight: normal;")
             self.log_message(message, "success")
         else:

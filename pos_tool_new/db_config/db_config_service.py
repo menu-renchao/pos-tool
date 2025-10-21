@@ -3,8 +3,10 @@ from typing import List, Dict, Any, Tuple
 from pos_tool_new.backend import Backend
 from pos_tool_new.utils.db_utils import get_mysql_connection
 import os
+import sys
 
-CONFIG_JSON_PATH = os.path.join(os.path.dirname(__file__), 'config_items.json')
+APP_DIR = os.path.dirname(sys.argv[0])
+CONFIG_JSON_PATH = os.path.join(APP_DIR, 'config_items.json')
 
 class ConfigItem:
     def __init__(self, description: str, sqls: List[str], need_restart: bool):
@@ -33,6 +35,9 @@ class DbConfigService(Backend):
     """
     def _load_config_items(self) -> List[ConfigItem]:
         if not os.path.exists(CONFIG_JSON_PATH):
+            # 自动新建空配置文件
+            with open(CONFIG_JSON_PATH, 'w', encoding='utf-8') as f:
+                json.dump([], f, ensure_ascii=False, indent=2)
             return []
         with open(CONFIG_JSON_PATH, 'r', encoding='utf-8') as f:
             data = json.load(f)

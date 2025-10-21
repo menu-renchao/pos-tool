@@ -1,13 +1,13 @@
 [
   {
-    "description": "新UI",
+    "description": "切换新UI",
     "sqls": [
       "update system_configuration set val = 'NORMAL_NEW' where name = 'RESTAURANT_DISPLAY_MODE';"
     ],
     "need_restart": true
   },
   {
-    "description": "旧UI",
+    "description": "切换旧UI",
     "sqls": [
       "update kpos.system_configuration set val = 'NORMAL_OLD' where name = 'RESTAURANT_DISPLAY_MODE';"
     ],
@@ -31,6 +31,14 @@
     "description": "重新同步云菜单数据",
     "sqls": [
       "delete from kpos.sync_scheduled_task_his;"
+    ],
+    "need_restart": true
+  },
+  {
+    "description": "估清测试环境配置",
+    "sqls": [
+      "update system_configuration set val = 'https://cloud.menusifucloudqa.com/apicn' where name = 'CLOUD_SERVICE_URL';",
+      "update system_configuration set val = 'dwvJJFJBkh3xZtRfaeqGv5KQxoAPJH6z8lRlXd7G' where name = 'CLOUD_SERVICE_API_KEY';"
     ],
     "need_restart": true
   }
