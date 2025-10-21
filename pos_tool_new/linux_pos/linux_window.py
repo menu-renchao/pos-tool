@@ -19,7 +19,8 @@ class LinuxTabWidget(BaseTabWidget):
 
     def __init__(self, parent: Optional[MainWindow] = None):
         super().__init__("Linux POS")
-        self.upgrade_package_btn = None
+        self.pipeline_upgrade_package_btn: Optional[QPushButton] = None
+        self.upgrade_package_btn: Optional[QPushButton] = None
         self.status_label = None
         self.host_ip: Optional[QComboBox] = None
         self.username: Optional[QLineEdit] = None
@@ -33,8 +34,8 @@ class LinuxTabWidget(BaseTabWidget):
         self.war_path: Optional[QLineEdit] = None
         self.local_md5_btn: Optional[QPushButton] = None
         self.replace_btn: Optional[QPushButton] = None
-        self.upload_btn: Optional[QPushButton] = None
-        self.upgrade_btn: Optional[QPushButton] = None
+        self.upload_updater_btn: Optional[QPushButton] = None
+        self.pipeline_upgrade_btn: Optional[QPushButton] = None
         self.restart_tomcat_btn: Optional[QPushButton] = None
         self.restart_btn: Optional[QPushButton] = None
 
@@ -229,19 +230,19 @@ class LinuxTabWidget(BaseTabWidget):
         self.replace_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         file_btn_layout.addWidget(self.replace_btn)
         # 上传升级包按钮
-        self.upload_btn = QPushButton("上传升级包")
-        self.upload_btn.clicked.connect(self.on_upload_upgrade_package)
-        file_btn_layout.addWidget(self.upload_btn)
+        self.upload_updater_btn = QPushButton("上传升级包")
+        self.upload_updater_btn.clicked.connect(self.on_upload_upgrade_package)
+        file_btn_layout.addWidget(self.upload_updater_btn)
 
         # 为上传按钮添加帮助按钮
-        self.upload_btn.setToolTip("此功能会将zip升级包上传到「/home/menu」下并解压。")
+        self.upload_updater_btn.setToolTip("此功能会将zip升级包上传到「/home/menu」下并解压。")
 
         # 使用升级包升级按钮
-        self.upgrade_btn = QPushButton("使用升级包升级")
-        self.upgrade_btn.clicked.connect(self.on_upgrade_with_package)
-        file_btn_layout.addWidget(self.upgrade_btn)
+        self.upgrade_package_btn = QPushButton("使用升级包升级")
+        self.upgrade_package_btn.clicked.connect(self.on_upgrade_with_package)
+        file_btn_layout.addWidget(self.upgrade_package_btn)
 
-        self.upgrade_btn.setToolTip( "此功能会扫描「/home/menu」下的所有升级工具。\n"
+        self.upgrade_package_btn.setToolTip( "此功能会扫描「/home/menu」下的所有升级工具。\n"
             "如果未发现您需要的升级工具，请使用【上传升级包】功能。")
         top_row_layout.addWidget(file_group, 2)
         file_main_layout.addLayout(file_btn_layout)
@@ -269,14 +270,14 @@ class LinuxTabWidget(BaseTabWidget):
         pipeline_group = QGroupBox("流水线")
         pipeline_layout = QHBoxLayout(pipeline_group)
         pipeline_layout.addStretch()  # 左侧留白，按钮靠右
-        self.upgrade_btn = QPushButton("一键升级")
-        self.upgrade_btn.setToolTip("依次执行【替换远程war包】->【修改文件】->【重启pos】")
-        self.upgrade_btn.clicked.connect(self.on_pipeline_upgrade)
-        pipeline_layout.addWidget(self.upgrade_btn)
-        self.upgrade_package_btn = QPushButton("一键升级包升级")
-        self.upgrade_package_btn.setToolTip("依次执行【使用升级包升级】->【修改文件】->【重启pos】")
-        self.upgrade_package_btn.clicked.connect(self.on_pipeline_package_upgrade)
-        pipeline_layout.addWidget(self.upgrade_package_btn)
+        self.pipeline_upgrade_btn = QPushButton("一键升级")
+        self.pipeline_upgrade_btn.setToolTip("依次执行【替换远程war包】->【修改文件】->【重启pos】")
+        self.pipeline_upgrade_btn.clicked.connect(self.on_pipeline_upgrade)
+        pipeline_layout.addWidget(self.pipeline_upgrade_btn)
+        self.pipeline_upgrade_package_btn = QPushButton("一键升级包升级")
+        self.pipeline_upgrade_package_btn.setToolTip("依次执行【使用升级包升级】->【修改文件】->【重启pos】")
+        self.pipeline_upgrade_package_btn.clicked.connect(self.on_pipeline_package_upgrade)
+        pipeline_layout.addWidget(self.pipeline_upgrade_package_btn)
         self.layout.addLayout(pipeline_layout)
 
         # 新建一行布局，包含 action_group 和 pipeline_group，水平平分
@@ -526,7 +527,7 @@ class LinuxTabWidget(BaseTabWidget):
                 return
 
             # 禁用按钮
-            self.upgrade_btn.setEnabled(False)
+            self.upgrade_package_btn.setEnabled(False)
 
             # 建立 SSH 连接
             ssh = self.service._connect_ssh(
@@ -540,7 +541,7 @@ class LinuxTabWidget(BaseTabWidget):
             if not valid_dirs:
                 QMessageBox.warning(self, "提示", "未找到符合条件的升级包！")
                 ssh.close()
-                self.upgrade_btn.setEnabled(True)
+                self.upgrade_package_btn.setEnabled(True)
                 return
 
             # 弹窗选择升级包
@@ -550,7 +551,7 @@ class LinuxTabWidget(BaseTabWidget):
 
             if not ok or not selected_dir:
                 ssh.close()
-                self.upgrade_btn.setEnabled(True)
+                self.upgrade_package_btn.setEnabled(True)
                 return
 
             # 显示进度条
@@ -574,16 +575,16 @@ class LinuxTabWidget(BaseTabWidget):
         except Exception as e:
             self.log(f"使用升级包升级过程中出错: {str(e)}", level="error")
             QMessageBox.warning(self, "提示", f"升级过程中出错：{str(e)}")
-            if self.upgrade_btn:
-                self.upgrade_btn.setEnabled(True)
+            if self.upgrade_package_btn:
+                self.upgrade_package_btn.setEnabled(True)
 
     def on_upgrade_finished(self):
         """升级完成后处理"""
         if self.parent_window:
             self.parent_window.progress_bar.setVisible(False)
 
-        if self.upgrade_btn:
-            self.upgrade_btn.setEnabled(True)
+        if self.upgrade_package_btn:
+            self.upgrade_package_btn.setEnabled(True)
 
     def on_check_remote_md5(self):
         """计算并打印当前包的MD5值"""
@@ -636,7 +637,7 @@ class LinuxTabWidget(BaseTabWidget):
             return
 
         def upload_callback(host, username, password):
-            self.upload_btn.setEnabled(False)
+            self.upload_updater_btn.setEnabled(False)
 
             # 显示进度条
             self.parent_window.progress_bar.setVisible(True)
@@ -660,8 +661,8 @@ class LinuxTabWidget(BaseTabWidget):
         if self.parent_window:
             self.parent_window.progress_bar.setVisible(False)
 
-        if self.upload_btn:
-            self.upload_btn.setEnabled(True)
+        if self.upload_updater_btn:
+            self.upload_updater_btn.setEnabled(True)
 
     def on_download_log(self):
         """日志下载主流程"""
@@ -813,7 +814,7 @@ class LinuxTabWidget(BaseTabWidget):
         local_war_path = self.war_path.text() if hasattr(self, 'war_path') else ''
         env = self.get_selected_env(self.env_group)
         from pos_tool_new.work_threads import PipelineUpgradeThread
-        self.upgrade_btn.setEnabled(False)
+        self.pipeline_upgrade_btn.setEnabled(False)
         self.parent_window.progress_bar.setVisible(True)
         self.parent_window.progress_bar.setRange(0, 100)
         self.parent_window.progress_bar.setValue(0)
@@ -826,7 +827,7 @@ class LinuxTabWidget(BaseTabWidget):
         self.pipeline_thread.start()
 
     def on_pipeline_upgrade_finished(self, success, msg):
-        self.upgrade_btn.setEnabled(True)
+        self.pipeline_upgrade_btn.setEnabled(True)
         self.parent_window.progress_bar.setVisible(False)
         if success:
             QMessageBox.information(self, "升级成功", msg)
@@ -866,7 +867,7 @@ class LinuxTabWidget(BaseTabWidget):
             )
             if reply != QMessageBox.StandardButton.Yes:
                 return
-            self.upgrade_package_btn.setEnabled(False)
+            self.pipeline_upgrade_package_btn.setEnabled(False)
             self.parent_window.progress_bar.setVisible(True)
             self.parent_window.progress_bar.setRange(0, 100)
             self.parent_window.progress_bar.setValue(0)
@@ -884,11 +885,11 @@ class LinuxTabWidget(BaseTabWidget):
         except Exception as e:
             self.log(f"一键升级包升级失败：{str(e)}", level="error")
             QMessageBox.critical(self, "错误", f"一键升级包升级失败：{str(e)}")
-            self.upgrade_package_btn.setEnabled(True)
+            self.pipeline_upgrade_package_btn.setEnabled(True)
             self.parent_window.progress_bar.setVisible(False)
 
     def on_pipeline_package_upgrade_finished(self, success, msg):
-        self.upgrade_package_btn.setEnabled(True)
+        self.pipeline_upgrade_package_btn.setEnabled(True)
         self.parent_window.progress_bar.setVisible(False)
         if success:
             QMessageBox.information(self, "升级成功", msg)
