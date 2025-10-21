@@ -1,10 +1,111 @@
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QComboBox, QRadioButton, QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QGroupBox, \
-    QFormLayout, QMessageBox
+from PyQt6.QtWidgets import QComboBox, QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QGroupBox, \
+    QFormLayout, QMessageBox, QDialog, QLineEdit, QTextEdit, QCheckBox, QDialogButtonBox, \
+    QTableWidget, QTableWidgetItem, QAbstractItemView, QWidget, QHeaderView, QSizePolicy
 
 from pos_tool_new.main import BaseTabWidget
-from pos_tool_new.work_threads import DbConfigWorkerThread, DatabaseConnectThread
-from .db_config_service import DbConfigService
+from pos_tool_new.work_threads import DatabaseConnectThread
+from .db_config_service import DbConfigService, ConfigItem
+
+
+class SqlDetailDialog(QDialog):
+    """SQL详情弹窗"""
+
+    def __init__(self, sql_text, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle('SQL详情')
+        self.setMinimumSize(800, 300)
+        layout = QVBoxLayout(self)
+
+        # SQL内容显示
+        self.sql_edit = QTextEdit()
+        self.sql_edit.setPlainText(sql_text)
+        self.sql_edit.setReadOnly(True)
+        self.sql_edit.setStyleSheet("""
+            QTextEdit {
+                background-color: #f5f5f5;
+                border: 1px solid #ddd;
+                border-radius: 3px;
+                padding: 8px;
+                font-family: monospace;
+            }
+        """)
+        layout.addWidget(QLabel('SQL语句:'))
+        layout.addWidget(self.sql_edit)
+
+        # 按钮
+        self.button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
+        self.button_box.rejected.connect(self.reject)
+        layout.addWidget(self.button_box)
+
+
+class ConfigEditDialog(QDialog):
+    def __init__(self, service, item=None, parent=None):
+        super().__init__(parent)
+        self.service = service
+        self.item = item
+        self.setWindowTitle('编辑配置项' if item else '新增配置项')
+        self.setMinimumWidth(500)
+        self.setMinimumHeight(400)
+        layout = QFormLayout(self)
+
+        # 描述编辑框
+        self.desc_edit = QLineEdit()
+        self.desc_edit.setPlaceholderText("请输入功能描述...")
+
+        # SQL编辑框
+        self.sqls_edit = QTextEdit()
+        self.sqls_edit.setPlaceholderText("请输入SQL语句，每条SQL占一行...")
+        self.sqls_edit.setMinimumHeight(200)
+
+        # 重启复选框
+        self.restart_check = QCheckBox('需要重启生效')
+        self.restart_check.setToolTip("勾选后表示此配置需要重启数据库才能生效")
+
+        # 填充数据（编辑模式）
+        if item:
+            self.desc_edit.setText(item.description)
+            self.sqls_edit.setPlainText('\n'.join(item.sqls))
+            self.restart_check.setChecked(item.need_restart)
+
+        # 添加表单行
+        layout.addRow('功能描述:', self.desc_edit)
+        layout.addRow('SQL语句组:', self.sqls_edit)
+        layout.addRow('', self.restart_check)
+
+        # 按钮框
+        self.button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        self.button_box.accepted.connect(self.accept)
+        self.button_box.rejected.connect(self.reject)
+        layout.addRow(self.button_box)
+
+    def accept(self):
+        desc = self.desc_edit.text().strip()
+        sqls = [s.strip() for s in self.sqls_edit.toPlainText().split('\n') if s.strip()]
+        if not desc:
+            QMessageBox.warning(self, '错误', '功能描述不能为空')
+            return
+        if not sqls:
+            QMessageBox.warning(self, '错误', '至少需要输入一条SQL语句')
+            return
+        # 唯一性校验（编辑时排除自身）
+        items = self.service.get_config_items()
+        if self.item:
+            if any(i.description.lower() == desc.lower() and i.description != self.item.description for i in items):
+                QMessageBox.warning(self, '错误', '功能描述必须唯一，请重新输入')
+                return
+        else:
+            if any(i.description.lower() == desc.lower() for i in items):
+                QMessageBox.warning(self, '错误', '功能描述必须唯一，请重新输入')
+                return
+        super().accept()
+
+    def get_data(self):
+        desc = self.desc_edit.text().strip()
+        sqls = [s.strip() for s in self.sqls_edit.toPlainText().split('\n') if s.strip()]
+        need_restart = self.restart_check.isChecked()
+        return ConfigItem(desc, sqls, need_restart)
+
 
 
 class DbConfigWindow(BaseTabWidget):
@@ -25,7 +126,18 @@ class DbConfigWindow(BaseTabWidget):
 
         # 数据库连接组
         db_group = QGroupBox("数据库连接")
-        db_group.setStyleSheet("QGroupBox { font-weight: bold; font-size: 10px; }")
+        db_group.setStyleSheet("""
+            QGroupBox { 
+                font-weight: bold; 
+                font-size: 12px; 
+                margin-top: 10px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+            }
+        """)
         db_layout = QFormLayout()
         db_layout.setContentsMargins(8, 12, 8, 12)
         db_layout.setSpacing(8)
@@ -37,7 +149,8 @@ class DbConfigWindow(BaseTabWidget):
             "10.1.10.", "10.0.10.", "192.168.252.", "192.168.253."
         ])
         self.host_combo.setEditable(True)
-        self.host_combo.setFixedWidth(180)
+        self.host_combo.setMinimumWidth(200)
+        self.host_combo.setToolTip("选择或输入数据库主机地址")
 
         self.status_label = QLabel("未连接")
         self.status_label.setStyleSheet("color: gray; font-weight: normal;")
@@ -49,10 +162,10 @@ class DbConfigWindow(BaseTabWidget):
                 background-color: #2196F3;
                 color: white;
                 border: none;
-                padding: 4px 8px;
+                padding: 6px 12px;
                 font-weight: bold;
-                border-radius: 3px;
-                font-size: 10px;
+                border-radius: 4px;
+                font-size: 11px;
             }
             QPushButton:hover {
                 background-color: #1976D2;
@@ -80,84 +193,356 @@ class DbConfigWindow(BaseTabWidget):
         db_group.setLayout(db_layout)
         main_layout.addWidget(db_group)
 
-        # 配置项组
-        config_group = QGroupBox("配置设置")
-        config_group.setStyleSheet("QGroupBox { font-weight: bold; font-size: 10px; }")
+        # 配置管理区
+        config_group = QGroupBox("配置规则管理")
+        config_group.setStyleSheet("""
+            QGroupBox { 
+                font-weight: bold; 
+                font-size: 12px; 
+                margin-top: 10px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+            }
+        """)
         config_layout = QVBoxLayout()
-        config_layout.setContentsMargins(8, 12, 8, 12)
-        config_layout.setSpacing(10)
+        config_layout.setSpacing(8)
+        config_layout.setContentsMargins(8, 12, 8, 8)
 
-        # 配置项选择
-        config_form_layout = QFormLayout()
-        config_form_layout.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
+        # 搜索框
+        search_layout = QHBoxLayout()
+        search_layout.addWidget(QLabel("搜索规则:"))
+        self.search_edit = QLineEdit()
+        self.search_edit.setPlaceholderText('输入关键字搜索规则描述或SQL内容...')
+        self.search_edit.textChanged.connect(self.on_search_changed)
+        search_layout.addWidget(self.search_edit)
+        config_layout.addLayout(search_layout)
 
-        self.combo = QComboBox()
-        self.combo.addItems(['Cash discount'])  # 可扩展
-        config_form_layout.addRow(QLabel('配置项:'), self.combo)
-        config_layout.addLayout(config_form_layout)
+        # 表格 - 使用弹性布局
+        self.config_table = QTableWidget()
+        self.config_table.setColumnCount(5)  # 增加一列用于复选框
+        self.config_table.setAlternatingRowColors(True)
+        self.config_table.setHorizontalHeaderLabels(['选择', '描述', 'SQL预览', '重启要求', '操作'])
 
-        # 单选框组
-        radio_group = QGroupBox("开关状态")
-        radio_group.setStyleSheet("QGroupBox { font-weight: normal; font-size: 9px; }")
-        radio_layout = QHBoxLayout()
-        radio_layout.setContentsMargins(8, 8, 8, 8)
+        # 优化表格样式 - 取消行选中样式
+        self.config_table.setStyleSheet("""
+            QTableWidget {
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                background-color: white;
+                selection-background-color: transparent;
+                selection-color: black;
+            }
+            QTableWidget::item {
+                padding: 6px;
+                border-bottom: 1px solid #f0f0f0;
+            }
+            QTableWidget::item:selected {
+                background-color: transparent;
+                color: black;
+            }
+        """)
 
-        self.radio_on = QRadioButton('打开')
-        self.radio_off = QRadioButton('关闭')
-        self.radio_on.setChecked(True)
+        # 设置表格选择行为 - 取消行选择
+        self.config_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectItems)
+        self.config_table.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
 
-        radio_layout.addWidget(self.radio_on)
-        radio_layout.addWidget(self.radio_off)
-        radio_layout.addStretch()
-        radio_group.setLayout(radio_layout)
-        config_layout.addWidget(radio_group)
+        # 设置表格尺寸策略 - 允许扩展
+        self.config_table.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
-        # 执行按钮
-        self.btn_exec = QPushButton('执行配置')
-        self.btn_exec.setFixedHeight(32)
-        self.btn_exec.setStyleSheet("""
+        # 设置列宽比例 - 使用Stretch模式让列自适应宽度
+        header = self.config_table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed)  # 选择列固定宽度
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)  # 描述列自适应
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)  # SQL预览列自适应
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)  # 重启要求列自适应内容
+        header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)  # 操作列自适应内容
+
+        # 设置固定列宽
+        self.config_table.setColumnWidth(0, 60)  # 选择列宽度
+
+        self.config_table.verticalHeader().setVisible(False)
+
+        # 连接单元格点击事件
+        self.config_table.cellClicked.connect(self.on_table_cell_clicked)
+
+        config_layout.addWidget(self.config_table, 1)  # 添加拉伸因子1，让表格占据剩余空间
+
+        # 操作按钮区域
+        btn_layout = QHBoxLayout()
+        self.btn_add = QPushButton('新增规则')
+        self.btn_exec = QPushButton('批量执行选中规则')
+
+        # 按钮样式
+        button_style = """
+            QPushButton {
+                padding: 6px 12px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 11px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #f0f0f0;
+            }
+        """
+        self.btn_add.setStyleSheet(button_style + """
             QPushButton {
                 background-color: #4CAF50;
                 color: white;
-                border: none;
-                padding: 6px 12px;
-                font-weight: bold;
-                border-radius: 4px;
-                font-size: 11px;
+                border-color: #45a049;
             }
             QPushButton:hover {
                 background-color: #45a049;
             }
-            QPushButton:pressed {
-                background-color: #3d8b40;
+        """)
+        self.btn_exec.setStyleSheet(button_style + """
+            QPushButton {
+                background-color: #2196F3;
+                color: white;
+                border-color: #1976D2;
             }
-            QPushButton:disabled {
-                background-color: #A5D6A7;
+            QPushButton:hover {
+                background-color: #1976D2;
             }
         """)
-        self.btn_exec.clicked.connect(self.on_execute)
-        config_layout.addWidget(self.btn_exec)
+
+        self.btn_add.clicked.connect(self.on_add_config)
+        self.btn_exec.clicked.connect(self.on_exec_config)
+
+        btn_layout.addWidget(self.btn_add)
+        btn_layout.addWidget(self.btn_exec)
+        btn_layout.addStretch()
+        config_layout.addLayout(btn_layout)
 
         config_group.setLayout(config_layout)
-        main_layout.addWidget(config_group)
+        main_layout.addWidget(config_group, 1)  # 配置组也添加拉伸因子1
 
-        # 添加弹性空间
-        main_layout.addStretch()
+        # 初始化表格数据
+        self.refresh_config_table()
 
-        # 设置主布局（已在 BaseTabWidget 构造函数设置，无需重复 setLayout）
-        # self.setLayout(main_layout)
+    def on_table_cell_clicked(self, row, column):
+        """处理表格单元格点击事件"""
+        if column == 2:  # SQL预览列
+            item = self.service.get_config_items()[row]
+            sql_text = '\n'.join(item.sqls)
+            dlg = SqlDetailDialog(sql_text, self)
+            dlg.exec()
+        elif column == 0:  # 复选框列，不处理特殊事件，让复选框正常工作
+            pass
 
-    def on_execute(self):
-        config_name = self.combo.currentText()
-        enabled = self.radio_on.isChecked()
-        db_params = self.get_db_params()
-        if hasattr(self, 'worker') and self.worker is not None and self.worker.isRunning():
+    def get_selected_configs(self):
+        """获取选中的配置项（通过复选框）"""
+        selected_items = []
+        for row in range(self.config_table.rowCount()):
+            checkbox = self.config_table.cellWidget(row, 0)
+            if checkbox and isinstance(checkbox, QCheckBox) and checkbox.isChecked():
+                item = self.service.get_config_items()[row]
+                selected_items.append(item.description)
+        return selected_items
+
+
+    def on_search_changed(self, text):
+        self.refresh_config_table(text)
+
+    def refresh_config_table(self, keyword=''):
+        """刷新配置表格"""
+        self.config_table.setRowCount(0)
+        items = self.service.get_config_items()
+
+        # 搜索过滤
+        if keyword:
+            keyword = keyword.strip().lower()
+            items = [item for item in items if
+                     keyword in item.description.lower() or
+                     any(keyword in sql.lower() for sql in item.sqls) or
+                     (keyword in '是需重启' and item.need_restart) or
+                     (keyword in '否无需' and not item.need_restart)]
+
+        # 填充表格数据
+        for row, item in enumerate(items):
+            self.config_table.insertRow(row)
+
+            # 复选框列
+            checkbox = QCheckBox()
+            checkbox.setStyleSheet("QCheckBox { margin-left: 8px; }")
+            self.config_table.setCellWidget(row, 0, checkbox)
+
+            # 描述列 - 完整显示描述
+            desc_item = QTableWidgetItem(item.description)
+            desc_item.setToolTip(item.description)
+            desc_item.setFlags(desc_item.flags() & ~Qt.ItemFlag.ItemIsSelectable)  # 取消可选状态
+            self.config_table.setItem(row, 1, desc_item)
+
+            # SQL预览列 - 完整显示第一条SQL
+            sql_preview = item.sqls[0] if item.sqls else "无SQL语句"
+            sql_item = QTableWidgetItem(sql_preview)
+            sql_item.setToolTip("点击查看完整SQL详情")
+            sql_item.setFlags(sql_item.flags() & ~Qt.ItemFlag.ItemIsSelectable)  # 取消可选状态
+            self.config_table.setItem(row, 2, sql_item)
+
+            # 重启要求列 - 更清晰的显示
+            restart_text = '是，需重启' if item.need_restart else '否，立即生效'
+            restart_item = QTableWidgetItem(restart_text)
+            restart_item.setToolTip("配置生效方式")
+            restart_item.setFlags(restart_item.flags() & ~Qt.ItemFlag.ItemIsSelectable)  # 取消可选状态
+            if item.need_restart:
+                restart_item.setForeground(Qt.GlobalColor.red)
+            else:
+                restart_item.setForeground(Qt.GlobalColor.green)
+            self.config_table.setItem(row, 3, restart_item)
+
+            # 操作列
+            op_widget = QWidget()
+            op_layout = QHBoxLayout(op_widget)
+            op_layout.setContentsMargins(4, 2, 4, 2)
+            op_layout.setSpacing(4)
+
+            btn_edit = QPushButton('编辑')
+            btn_delete = QPushButton('删除')
+            btn_run = QPushButton('执行')
+
+            # 设置按钮大小和样式
+            for btn in [btn_edit, btn_delete, btn_run]:
+                btn.setFixedSize(45, 24)
+                btn.setStyleSheet("""
+                    QPushButton {
+                        font-size: 10px;
+                        padding: 2px 4px;
+                        border: 1px solid #ccc;
+                        border-radius: 3px;
+                    }
+                    QPushButton:hover {
+                        background-color: #f0f0f0;
+                    }
+                """)
+
+            # 特殊样式
+            btn_edit.setStyleSheet("QPushButton { background-color: #FFC107; color: black; }")
+            btn_delete.setStyleSheet("QPushButton { background-color: #F44336; color: white; }")
+            btn_run.setStyleSheet("QPushButton { background-color: #4CAF50; color: white; }")
+
+            # 连接信号
+            btn_edit.clicked.connect(lambda checked, r=row: self.on_edit_config(r))
+            btn_delete.clicked.connect(lambda checked, r=row: self.on_delete_config(r))
+            btn_run.clicked.connect(lambda checked, r=row: self.on_run_config(r))
+
+            op_layout.addWidget(btn_edit)
+            op_layout.addWidget(btn_delete)
+            op_layout.addWidget(btn_run)
+            op_layout.addStretch()
+
+            self.config_table.setCellWidget(row, 4, op_widget)
+
+            # 设置行高自适应内容
+            self.config_table.setRowHeight(row, 40)
+
+    def on_add_config(self):
+        """新增配置项"""
+        dlg = ConfigEditDialog(self.service, parent=self)
+        if dlg.exec():
+            new_item = dlg.get_data()
+            if not new_item.description:
+                QMessageBox.warning(self, '错误', '功能描述不能为空')
+                return
+            if not new_item.sqls:
+                QMessageBox.warning(self, '错误', '至少需要输入一条SQL语句')
+                return
+            # 检查描述是否唯一
+            if any(i.description.lower() == new_item.description.lower()
+                   for i in self.service.get_config_items()):
+                QMessageBox.warning(self, '错误', '功能描述必须唯一，请重新输入')
+                return
+
+            self.service.add_config_item(new_item)
+            self.refresh_config_table()
+            QMessageBox.information(self, '成功', '配置项添加成功')
+
+    def on_edit_config(self, row):
+        """编辑配置项"""
+        original_item = self.service.get_config_items()[row]
+        dlg = ConfigEditDialog(self.service, original_item, parent=self)
+        if dlg.exec():
+            new_item = dlg.get_data()
+
+            # 验证数据
+            if not new_item.description:
+                QMessageBox.warning(self, '错误', '功能描述不能为空')
+                return
+            if not new_item.sqls:
+                QMessageBox.warning(self, '错误', '至少需要输入一条SQL语句')
+                return
+
+            # 检查描述是否唯一（排除自身）
+            if any(i.description.lower() == new_item.description.lower()
+                   and i.description != original_item.description
+                   for i in self.service.get_config_items()):
+                QMessageBox.warning(self, '错误', '功能描述必须唯一，请重新输入')
+                return
+
+            self.service.update_config_item(new_item, original_item.description)
+            self.refresh_config_table()
+            QMessageBox.information(self, '成功', '配置项更新成功')
+
+    def on_delete_config(self, row):
+        """删除配置项"""
+        item = self.service.get_config_items()[row]
+        reply = QMessageBox.question(self, '确认删除',
+                                     f'确定要删除配置项 "{item.description}" 吗？',
+                                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        if reply == QMessageBox.StandardButton.Yes:
+            self.service.delete_config_item(item.description)
+            self.refresh_config_table()
+            QMessageBox.information(self, '成功', '配置项删除成功')
+
+    def on_exec_config(self):
+        """批量执行选中的配置项"""
+        selected_descs = self.get_selected_configs()
+        if not selected_descs:
+            QMessageBox.warning(self, '提示', '请先通过复选框选择要执行的规则')
             return
-        self.worker = DbConfigWorkerThread(self.service, config_name, enabled, db_params)
-        self.worker.finished.connect(self.on_worker_finished)
-        self.worker.error_occurred.connect(self.on_worker_error)
-        self.worker.finished_updated.connect(self.on_worker_result)
-        self.worker.start()
+
+        reply = QMessageBox.question(self, '确认执行',
+                                     f'确定要执行选中的 {len(selected_descs)} 个配置规则吗？',
+                                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+
+        db_params = self.get_db_params()
+        try:
+            result = self.service.set_config(selected_descs, db_params)
+        except Exception as e:
+            QMessageBox.critical(self, '错误', f'执行配置项时发生错误: {str(e)}')
+            return
+
+        # 格式化执行结果
+        success_count = sum(1 for v in result.values() if not v)  # 无需重启的视为立即成功
+        restart_count = sum(1 for v in result.values() if v)  # 需要重启的
+
+        msg = f"执行完成！\n\n立即生效: {success_count} 个\n需要重启: {restart_count} 个\n\n"
+        msg += "\n".join([f"{k}: {'需重启' if v else '立即生效'}" for k, v in result.items()])
+
+        QMessageBox.information(self, '执行结果', msg)
+
+    def on_run_config(self, row):
+        """执行单个配置项"""
+        item = self.service.get_config_items()[row]
+        reply = QMessageBox.question(self, '确认执行',
+                                     f'确定要执行配置项 "{item.description}" 吗？',
+                                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+
+        db_params = self.get_db_params()
+        try:
+            result = self.service.set_config([item.description], db_params)
+        except Exception as e:
+            QMessageBox.critical(self, '错误', f'执行配置项时发生错误: {str(e)}')
+            return
+        msg = f"{item.description}: {'需重启生效' if result.get(item.description) else '立即生效'}"
+        QMessageBox.information(self, '执行结果', msg)
 
     def on_worker_error(self, msg):
         self.log_message(msg, "error")
@@ -174,10 +559,10 @@ class DbConfigWindow(BaseTabWidget):
     def get_db_params(self):
         return {
             'host': self.host_combo.currentText(),
-            'port': 22108,  # 默认值
+            'port': 22108,
             'user': 'shohoku',
             'password': 'N0mur@4$99!',
-            'database': 'kpos'  # 默认值
+            'database': 'kpos'
         }
 
     def log_message(self, message: str, level: str = "info"):
@@ -216,3 +601,15 @@ class DbConfigWindow(BaseTabWidget):
         self.db_thread.finished_updated.connect(self.on_connect_success)
         self.db_thread.error_occurred.connect(self.on_connect_error)
         self.db_thread.start()
+
+    def showEvent(self, event):
+        """显示事件处理"""
+        super().showEvent(event)
+        if hasattr(self, 'hide_main_log_area'):
+            self.hide_main_log_area()
+
+    def hideEvent(self, event):
+        """隐藏事件处理"""
+        super().hideEvent(event)
+        if hasattr(self, 'show_main_log_area'):
+            self.show_main_log_area()

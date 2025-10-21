@@ -1,0 +1,37 @@
+[
+  {
+    "description": "新UI",
+    "sqls": [
+      "update system_configuration set val = 'NORMAL_NEW' where name = 'RESTAURANT_DISPLAY_MODE';"
+    ],
+    "need_restart": true
+  },
+  {
+    "description": "旧UI",
+    "sqls": [
+      "update kpos.system_configuration set val = 'NORMAL_OLD' where name = 'RESTAURANT_DISPLAY_MODE';"
+    ],
+    "need_restart": true
+  },
+  {
+    "description": "打开云菜单",
+    "sqls": [
+      "UPDATE kpos.system_configuration SET val='Cloudify' WHERE name='ADMIN_SRC_SERVICE';"
+    ],
+    "need_restart": true
+  },
+  {
+    "description": "关闭云菜单",
+    "sqls": [
+      "UPDATE kpos.system_configuration SET val='Local' WHERE name='ADMIN_SRC_SERVICE';"
+    ],
+    "need_restart": true
+  },
+  {
+    "description": "重新同步云菜单数据",
+    "sqls": [
+      "delete from kpos.sync_scheduled_task_his;"
+    ],
+    "need_restart": true
+  }
+]

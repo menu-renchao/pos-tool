@@ -1,32 +1,105 @@
-from typing import Tuple
+import json
+from typing import List, Dict, Any, Tuple
 from pos_tool_new.backend import Backend
 from pos_tool_new.utils.db_utils import get_mysql_connection
+import os
+
+CONFIG_JSON_PATH = os.path.join(os.path.dirname(__file__), 'config_items.json')
+
+class ConfigItem:
+    def __init__(self, description: str, sqls: List[str], need_restart: bool):
+        self.description = description
+        self.sqls = sqls
+        self.need_restart = need_restart
+
+    def to_dict(self):
+        return {
+            'description': self.description,
+            'sqls': self.sqls,
+            'need_restart': self.need_restart
+        }
+
+    @staticmethod
+    def from_dict(data: Dict[str, Any]):
+        return ConfigItem(
+            description=data['description'],
+            sqls=data['sqls'],
+            need_restart=data['need_restart']
+        )
 
 class DbConfigService(Backend):
     """
     数据库配置项服务，负责根据配置项和开关状态生成 SQL 并执行。
     """
-    # 可扩展配置项映射
-    CONFIG_MAP = {
-        'Cash discount': 'CASH_DISCOUNT_ENABLE',
-        # 可继续添加更多配置项
-    }
-    def set_config(self, config_name: str, enabled: bool, db_params: dict):
+    def _load_config_items(self) -> List[ConfigItem]:
+        if not os.path.exists(CONFIG_JSON_PATH):
+            return []
+        with open(CONFIG_JSON_PATH, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return [ConfigItem.from_dict(item) for item in data]
+
+    def _save_config_items(self, items: List[ConfigItem]):
+        with open(CONFIG_JSON_PATH, 'w', encoding='utf-8') as f:
+            json.dump([item.to_dict() for item in items], f, ensure_ascii=False, indent=2)
+
+    def get_config_items(self) -> List[ConfigItem]:
+        return self._load_config_items()
+
+    def add_config_item(self, item: ConfigItem) -> bool:
+        items = self._load_config_items()
+        if any(i.description == item.description for i in items):
+            return False  # 名称唯一性校验失败
+        items.append(item)
+        self._save_config_items(items)
+        return True
+
+
+    def update_config_item(self, new_item, original_description):
         """
-        根据配置项和开关状态，生成 SQL 并执行。
+        Update the config item whose description matches original_description with new_item.
         """
-        if config_name not in self.CONFIG_MAP:
-            raise ValueError('未知配置项')
-        key = self.CONFIG_MAP[config_name]
-        value = 1 if enabled else 0
-        sql = f"update system_configuration set boolean_val={value} where name='{key}'"
+        items = self.get_config_items()
+        updated = False
+        for idx, item in enumerate(items):
+            if item.description == original_description:
+                items[idx] = new_item
+                updated = True
+                break
+        if updated:
+            self._save_config_items(items)
+        else:
+            raise ValueError(f"Config item with description '{original_description}' not found.")
+
+    def delete_config_item(self, description: str) -> bool:
+        items = self._load_config_items()
+        new_items = [i for i in items if i.description != description]
+        if len(new_items) == len(items):
+            return False  # 未找到
+        self._save_config_items(new_items)
+        return True
+
+    def set_config(self, descriptions: List[str], db_params: dict) -> Dict[str, bool]:
+        """
+        根据描述列表，批量执行SQL。
+        返回每个规则是否需要重启。
+        """
+        items = self._load_config_items()
+        result = {}
         conn = get_mysql_connection(**db_params)
         cursor = conn.cursor()
-        self.log(f"执行SQL: {sql}")
-        cursor.execute(sql)
+        for desc in descriptions:
+            item = next((i for i in items if i.description == desc), None)
+            if not item:
+                result[desc] = False
+                continue
+            for sql in item.sqls:
+                self.log(f"执行SQL: {sql}")
+                cursor.execute(sql)
+            result[desc] = item.need_restart
         conn.commit()
         cursor.close()
         conn.close()
+        return result
 
     def connect_database(self, host: str) -> Tuple[bool, str]:
         """

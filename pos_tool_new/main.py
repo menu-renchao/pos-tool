@@ -274,9 +274,9 @@ class MainWindow(QMainWindow):
         from pos_tool_new.random_mail.random_mail_window import RandomMailTabWidget
         self.random_mail_tab = RandomMailTabWidget(self)
         self.tabs.addTab(self.random_mail_tab, "📧 随机邮箱")
-        # from pos_tool_new.db_config.db_config_window import DbConfigWindow
-        # self.db_config_tab = DbConfigWindow(self)
-        # self.tabs.addTab(self.db_config_tab, "🗄️ 数据库配置")
+        from pos_tool_new.db_config.db_config_window import DbConfigWindow
+        self.db_config_tab = DbConfigWindow(self)
+        self.tabs.addTab(self.db_config_tab, "🗄️ 数据库配置")
 
     def show_version_info(self):
         """显示版本信息对话框"""
