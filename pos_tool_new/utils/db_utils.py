@@ -28,4 +28,3 @@ def get_mysql_connection(host: str, database: str, user: str, password: str, por
         return connection
     except pymysql.Error as e:
         raise Exception(f"数据库连接失败: {str(e)}")
-

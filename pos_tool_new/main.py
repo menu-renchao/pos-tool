@@ -6,7 +6,7 @@ from typing import Tuple
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from PyQt6.QtGui import QFont, QPalette, QTextCharFormat, QTextCursor, QAction
 from PyQt6.QtWidgets import (
-    QApplication, QWidget, QVBoxLayout, QTabWidget, QTextEdit,
+    QApplication, QWidget, QTabWidget, QTextEdit,
     QPushButton, QHBoxLayout, QLabel, QRadioButton,
     QButtonGroup, QGroupBox, QProgressBar,
     QMainWindow, QToolButton, QMenuBar, QMessageBox
@@ -693,12 +693,14 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     splash = ModernSplashScreen(resource_path('UI/loading.gif'), duration=1800)
 
+
     def create_main_window():
         win = MainWindow()
         end_time = time.time()
         cost_ms = int((end_time - start_time) * 1000)
         global_log_manager.log(f"应用启动耗时: {cost_ms} ms", "info")
         return win
+
 
     splash.start(create_main_window)
     sys.exit(app.exec())

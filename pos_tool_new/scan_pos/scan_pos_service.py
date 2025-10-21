@@ -1,11 +1,13 @@
-from PyQt6.QtCore import QObject
-from pos_tool_new.backend import Backend
-from pos_tool_new.work_threads import ScanPosWorkerThread
-import requests
+import concurrent.futures
+import ipaddress
 import json
 import socket
-import ipaddress
-import concurrent.futures
+
+import requests
+from PyQt6.QtCore import QObject
+
+from pos_tool_new.backend import Backend
+from pos_tool_new.work_threads import ScanPosWorkerThread
 
 
 class ScanPosService(Backend, QObject):

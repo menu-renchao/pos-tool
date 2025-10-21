@@ -4,9 +4,9 @@ from pathlib import Path
 from typing import Tuple
 
 import pymysql  # 将 mysql.connector 替换为 pymysql
-from pos_tool_new.utils.db_utils import get_mysql_connection  # 新增导入
 
 from pos_tool_new.backend import Backend
+from pos_tool_new.utils.db_utils import get_mysql_connection  # 新增导入
 
 
 class LicenseService(Backend):
@@ -463,4 +463,3 @@ class LicenseService(Backend):
             return True, "扩充app license成功！"
         except Exception as e:
             return False, f"扩充app license失败: {str(e)}"
-

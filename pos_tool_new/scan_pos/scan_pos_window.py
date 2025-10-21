@@ -1,3 +1,5 @@
+import socket
+
 from PyQt6.QtCore import Qt, QUrl, QTimer
 from PyQt6.QtGui import QColor, QBrush, QDesktopServices
 from PyQt6.QtWidgets import (QTableWidget, QTableWidgetItem, QPushButton, QVBoxLayout,
@@ -5,7 +7,6 @@ from PyQt6.QtWidgets import (QTableWidget, QTableWidgetItem, QPushButton, QVBoxL
 
 from pos_tool_new.main import BaseTabWidget
 from .scan_pos_service import ScanPosService
-import socket
 
 
 class ScanPosTabWidget(BaseTabWidget):
@@ -175,6 +176,7 @@ class ScanPosTabWidget(BaseTabWidget):
     def _set_table_row_items(self, row, result, bg_color):
         def get_value(key):
             return result.get(key, '')
+
         for col, key in enumerate(['ip', 'type', 'merchantId', 'name', 'version']):
             value = get_value(key)
             if key == 'merchantId':
@@ -192,6 +194,7 @@ class ScanPosTabWidget(BaseTabWidget):
     def _create_row_buttons(self, row, result):
         def get_value(key):
             return result.get(key, '')
+
         btn_open = QPushButton('打开')
         btn_open.setFixedWidth(48)
         btn_open.setFixedHeight(22)
@@ -260,7 +263,8 @@ class ScanPosTabWidget(BaseTabWidget):
     def _filter_none_and_exclude(self, data):
         exclude_keys = {"appInstance", "images", "result", "printLogo"}
         if isinstance(data, dict):
-            return {k: self._filter_none_and_exclude(v) for k, v in data.items() if v is not None and k not in exclude_keys}
+            return {k: self._filter_none_and_exclude(v) for k, v in data.items() if
+                    v is not None and k not in exclude_keys}
         elif isinstance(data, list):
             return [self._filter_none_and_exclude(item) for item in data if item is not None]
         else:

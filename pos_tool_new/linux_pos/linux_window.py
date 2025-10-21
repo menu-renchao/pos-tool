@@ -242,12 +242,11 @@ class LinuxTabWidget(BaseTabWidget):
         self.upgrade_package_btn.clicked.connect(self.on_upgrade_with_package)
         file_btn_layout.addWidget(self.upgrade_package_btn)
 
-        self.upgrade_package_btn.setToolTip( "此功能会扫描「/home/menu」下的所有升级工具。\n"
-            "如果未发现您需要的升级工具，请使用【上传升级包】功能。")
+        self.upgrade_package_btn.setToolTip("此功能会扫描「/home/menu」下的所有升级工具。\n"
+                                            "如果未发现您需要的升级工具，请使用【上传升级包】功能。")
         top_row_layout.addWidget(file_group, 2)
         file_main_layout.addLayout(file_btn_layout)
         self.layout.addLayout(top_row_layout)
-
 
         # 操作按钮组
         action_group = QGroupBox("重启/数据服务")
@@ -298,8 +297,6 @@ class LinuxTabWidget(BaseTabWidget):
         file, _ = QFileDialog.getOpenFileName(self, "选择kpos.war包", "", "WAR文件 (*.war)")
         if file:
             self.war_path.setText(file)
-
-
 
     def on_test_ssh(self):
         is_valid, error_msg, host, username, password = self._validate_connection_params()

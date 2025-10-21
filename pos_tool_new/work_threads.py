@@ -15,6 +15,7 @@ class BaseWorkerThread(QThread):
     status_updated: pyqtSignal = pyqtSignal(str)  # 状态信息
     error_occurred: pyqtSignal = pyqtSignal(str)  # 错误信息
     finished_updated: pyqtSignal = pyqtSignal(bool, str)  # 完成状态和消息
+    success_signal = pyqtSignal(bool, str)
 
     def __init__(self):
         super().__init__()
@@ -252,7 +253,7 @@ class RestoreThread(BaseWorkerThread):
         def error_callback(err):
             self.error_occurred.emit(err)
 
-        def log_callback(msg,level="info"):
+        def log_callback(msg, level="info"):
             self.status_updated.emit(msg)
             self.service.log(msg, level=level)
 
@@ -444,8 +445,8 @@ class GenerateImgThread(BaseWorkerThread):
 
 class ScanPosWorkerThread(BaseWorkerThread):
     scan_progress: pyqtSignal = pyqtSignal(int, str)  # 扫描进度百分比和当前IP
-    scan_result: pyqtSignal = pyqtSignal(dict)        # 单个扫描结果
-    scan_finished: pyqtSignal = pyqtSignal(list)      # 扫描完成后的结果列表
+    scan_result: pyqtSignal = pyqtSignal(dict)  # 单个扫描结果
+    scan_finished: pyqtSignal = pyqtSignal(list)  # 扫描完成后的结果列表
 
     def __init__(self, service, port=22080):
         super().__init__()
@@ -469,7 +470,6 @@ class RandomMailLoadThread(BaseWorkerThread):
         # 调用邮件服务获取邮件列表
         emails = self.service.get_emails()
         self.mails_loaded.emit(emails)
-
 
 
 class ReusableMailContentThread(BaseWorkerThread):
@@ -500,3 +500,17 @@ class ReusableMailContentThread(BaseWorkerThread):
 
     def stop(self):
         self._is_running = False
+
+
+class DatabaseConnectThread(BaseWorkerThread):
+    def __init__(self, license_service, host):
+        super().__init__()
+        self.license_service = license_service
+        self.host = host
+
+    def run(self):
+        try:
+            success, message = self.license_service.connect_database(self.host)
+            self.success_signal.emit(success, message)
+        except Exception as e:
+            self.error_occurred.emit(str(e))

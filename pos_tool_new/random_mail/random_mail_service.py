@@ -1,11 +1,13 @@
 # random_mail_service.py
-from pos_tool_new.backend import Backend
 import json
 import os
-import requests
 import random
 import string
-import re
+
+import requests
+
+from pos_tool_new.backend import Backend
+
 
 class RandomMailService(Backend):
     def __init__(self):

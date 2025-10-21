@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from PyQt6.QtCore import QThread, pyqtSignal, Qt
+from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import (QVBoxLayout, QGroupBox, QFormLayout, QComboBox,
                              QLabel, QPushButton, QMessageBox, QFileDialog,
@@ -9,23 +9,7 @@ from PyQt6.QtWidgets import (QVBoxLayout, QGroupBox, QFormLayout, QComboBox,
 
 from pos_tool_new.license_backup.license_service import LicenseService
 from pos_tool_new.main import BaseTabWidget
-
-
-class DatabaseConnectThread(QThread):
-    success_signal = pyqtSignal(bool, str)
-    error_signal = pyqtSignal(str)
-
-    def __init__(self, license_service, host):
-        super().__init__()
-        self.license_service = license_service
-        self.host = host
-
-    def run(self):
-        try:
-            success, message = self.license_service.connect_database(self.host)
-            self.success_signal.emit(success, message)
-        except Exception as e:
-            self.error_signal.emit(str(e))
+from pos_tool_new.work_threads import DatabaseConnectThread
 
 
 class LicenseToolTabWidget(BaseTabWidget):
@@ -182,7 +166,7 @@ class LicenseToolTabWidget(BaseTabWidget):
         self.expand_btn.setFixedWidth(120)
         self.expand_btn.clicked.connect(self.expand_app_license)
         self.expand_btn.setToolTip(
-                             " 用于扩充app license的数量：E-Menu License : 50, Tablet POS License : 50, Phone POS License : 20,\n Max number of kitchen display instance allowed : 50, POS iOS License : 50, POS Android License : 50, Kiosk License : 50, POS License : 50")
+            " 用于扩充app license的数量：E-Menu License : 50, Tablet POS License : 50, Phone POS License : 20,\n Max number of kitchen display instance allowed : 50, POS iOS License : 50, POS Android License : 50, Kiosk License : 50, POS License : 50")
         self.expand_btn.setEnabled(False)
         app_license_layout.addStretch()
         app_license_layout.addWidget(self.expand_btn)
@@ -218,8 +202,8 @@ class LicenseToolTabWidget(BaseTabWidget):
 
         self.db_thread = DatabaseConnectThread(self.service, host)
         self.db_thread.success_signal.connect(self.on_connect_success)
-        self.db_thread.error_signal.connect(self.on_connect_error)
-        self.db_thread.finished_updated.connect(self.on_connect_finished)
+        self.db_thread.error_occurred.connect(self.on_connect_error)
+        self.db_thread.finished.connect(self.on_connect_finished)
         self.db_thread.start()
 
     def on_connect_success(self, success, message):

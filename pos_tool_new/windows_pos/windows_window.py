@@ -1,12 +1,14 @@
 import os
 import zipfile
+
 from PyQt6.QtWidgets import (
     QPushButton, QHBoxLayout, QLineEdit, QFileDialog, QGroupBox, QMessageBox, QInputDialog, QSizePolicy
 )
+
+from pos_tool_new.download_war.download_war_service import DownloadWarService
 from pos_tool_new.main import BaseTabWidget
 from pos_tool_new.windows_pos.windows_service import WindowsService
 from pos_tool_new.work_threads import RestartPosThreadWindows, ReplaceWarThreadWindows, DownloadWarWorker
-from pos_tool_new.download_war.download_war_service import DownloadWarService
 
 
 class WindowsTabWidget(BaseTabWidget):
@@ -123,7 +125,8 @@ class WindowsTabWidget(BaseTabWidget):
 
     def _get_versions(self):
         try:
-            return [d for d in os.listdir(self.base_path.text()) if os.path.isdir(os.path.join(self.base_path.text(), d))]
+            return [d for d in os.listdir(self.base_path.text()) if
+                    os.path.isdir(os.path.join(self.base_path.text(), d))]
         except Exception as e:
             QMessageBox.warning(self, "提示", f"读取目录失败：{str(e)}")
             return []

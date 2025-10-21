@@ -206,7 +206,7 @@ class LinuxService(Backend):
                 modified_count += modified
                 already_target_count += already_target
 
-                self.log(f"{host}已修改为{env}环境，修改 {modified_count} 个文件，目标值 {already_target_count} 个。",
+                self.log(f"{host}已修改为{env}环境，修改 {modified_count} 个文件，本来就是目标值 {already_target_count} 个。",
                          level="info")
         except Exception as e:
             self.log(f"远程修改出错: {str(e)}", level="error")
