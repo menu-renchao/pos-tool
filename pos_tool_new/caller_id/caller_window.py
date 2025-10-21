@@ -47,6 +47,7 @@ class CallerIdTabWidget(BaseTabWidget):
         self.host_combo.setEditable(True)
         self.host_combo.setCurrentText("192.168.0.")
         self.host_combo.setFixedHeight(28)  # 固定高度
+        self.host_combo.setMaximumWidth(140)
 
         grid_layout.addWidget(host_label, 0, 0)
         grid_layout.addWidget(self.host_combo, 0, 1, 1, 2)
