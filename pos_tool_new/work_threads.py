@@ -513,3 +513,16 @@ class DatabaseConnectThread(BaseWorkerThread):
             self.finished_updated.emit(success, message)
         except Exception as e:
             self.error_occurred.emit(str(e))
+
+
+class DbConfigWorkerThread(BaseWorkerThread):
+    def __init__(self, service, config_name, enabled, db_params):
+        super().__init__()
+        self.service = service
+        self.config_name = config_name
+        self.enabled = enabled
+        self.db_params = db_params
+
+    def _run_impl(self):
+        self.service.set_config(self.config_name, self.enabled, self.db_params)
+
