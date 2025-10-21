@@ -201,9 +201,8 @@ class LicenseToolTabWidget(BaseTabWidget):
         self.connect_btn.setText("连接中...")
 
         self.db_thread = DatabaseConnectThread(self.service, host)
-        self.db_thread.success_signal.connect(self.on_connect_success)
+        self.db_thread.finished_updated.connect(self.on_connect_success)
         self.db_thread.error_occurred.connect(self.on_connect_error)
-        self.db_thread.finished.connect(self.on_connect_finished)
         self.db_thread.start()
 
     def on_connect_success(self, success, message):
@@ -219,14 +218,13 @@ class LicenseToolTabWidget(BaseTabWidget):
             self.status_label.setStyleSheet("color: red; font-weight: normal;")
             self.log_message(f"连接失败: {message}", "error")
             QMessageBox.warning(self, "连接失败", message)
+        self.connect_btn.setEnabled(True)
+        self.connect_btn.setText("连接")
 
     def on_connect_error(self, error_message):
         self.log_message(f"连接异常: {error_message}", "error")
         QMessageBox.critical(self, "错误", f"连接异常: {error_message}")
 
-    def on_connect_finished(self):
-        self.connect_btn.setEnabled(True)
-        self.connect_btn.setText("连接")
 
     def backup_license(self):
         """备份License"""

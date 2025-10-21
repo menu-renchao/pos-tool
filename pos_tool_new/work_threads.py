@@ -15,7 +15,6 @@ class BaseWorkerThread(QThread):
     status_updated: pyqtSignal = pyqtSignal(str)  # 状态信息
     error_occurred: pyqtSignal = pyqtSignal(str)  # 错误信息
     finished_updated: pyqtSignal = pyqtSignal(bool, str)  # 完成状态和消息
-    success_signal = pyqtSignal(bool, str)
 
     def __init__(self):
         super().__init__()
@@ -511,6 +510,6 @@ class DatabaseConnectThread(BaseWorkerThread):
     def run(self):
         try:
             success, message = self.license_service.connect_database(self.host)
-            self.success_signal.emit(success, message)
+            self.finished_updated.emit(success, message)
         except Exception as e:
             self.error_occurred.emit(str(e))
