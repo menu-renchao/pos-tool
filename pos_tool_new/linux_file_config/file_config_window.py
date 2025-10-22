@@ -360,6 +360,7 @@ class FileConfigTabWidget(BaseTabWidget):
         self.config_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)  # 配置名称
         self.config_table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)  # 操作
         self.config_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.config_table.setAlternatingRowColors(True)
         config_layout.addWidget(self.config_table)
 
         main_layout.addWidget(config_group)
