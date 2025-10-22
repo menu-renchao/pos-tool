@@ -300,9 +300,9 @@ class MainWindow(QMainWindow):
         from pos_tool_new.windows_pos.windows_window import WindowsTabWidget
         self.windows_tab = WindowsTabWidget(self)
         self.tabs.addTab(self.windows_tab, "🪟 Windows POS")
-        from pos_tool_new.file_config.file_config_window import FileConfigTabWidget
+        from pos_tool_new.linux_file_config.file_config_window import FileConfigTabWidget
         file_config_tab = FileConfigTabWidget(self)
-        self.tabs.addTab(file_config_tab, "⚙️ 文件配置管理")
+        self.tabs.addTab(file_config_tab, "⚙️ Linux配置文件管理")
         from pos_tool_new.db_config.db_config_window import DbConfigWindow
         self.db_config_tab = DbConfigWindow(self)
         self.tabs.addTab(self.db_config_tab, "🗄️ 数据库配置")

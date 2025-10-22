@@ -591,7 +591,7 @@ class LinuxService(Backend):
         """
         批量读取 file_config_items.json，依次调用 FileConfigService.execute_config_modification 进行远程配置修改。
         """
-        from pos_tool_new.file_config.file_config_service import FileConfigService
+        from pos_tool_new.linux_file_config.file_config_service import FileConfigService
         service = FileConfigService()
         configs = service.get_all_configs()
         for config_item in configs:

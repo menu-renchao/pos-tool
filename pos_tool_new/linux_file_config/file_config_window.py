@@ -1,19 +1,19 @@
-import os
-from typing import Optional, List, Dict, Any
+from typing import Optional, List
 import copy
 
-from PyQt6.QtCore import Qt, pyqtSignal, QTimer
+import copy
+from typing import Optional, List
+
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QWidget, QLabel, QLineEdit, QPushButton,
     QTableWidget, QTableWidgetItem, QCheckBox, QHeaderView, QMessageBox,
-    QDialog, QDialogButtonBox, QComboBox, QTextEdit, QGroupBox, QTabWidget,
-    QFileDialog, QInputDialog, QSplitter, QSizePolicy
+    QDialog, QDialogButtonBox, QComboBox, QGroupBox
 )
 
-from pos_tool_new.backend import Backend
-from pos_tool_new.file_config.file_config_service import FileConfigService, FileConfigItem, KeyValueItem
+from pos_tool_new.linux_file_config.file_config_service import FileConfigService, FileConfigItem, KeyValueItem
 from pos_tool_new.main import BaseTabWidget, MainWindow
-from pos_tool_new.work_threads import BaseWorkerThread, FileConfigModifyThread
+from pos_tool_new.work_threads import FileConfigModifyThread
 
 
 class KeyValueEditDialog(QDialog):
@@ -304,6 +304,27 @@ class FileConfigTabWidget(BaseTabWidget):
         self.password.setFixedWidth(100)
         ssh_layout.addWidget(password_label)
         ssh_layout.addWidget(self.password)
+
+        # 重启POS按钮
+        self.restart_btn = QPushButton("重启pos")
+        self.restart_btn.setToolTip("重启POS服务，可能耗时1-4分钟")
+        self.restart_btn.setFixedWidth(100)
+        self.restart_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #FF9800;
+                color: white;
+                border: none;
+                padding: 4px 8px;
+                font-weight: bold;
+                border-radius: 3px;
+                font-size: 11px;
+            }
+            QPushButton:hover {
+                background-color: #F57C00;
+            }
+        """)
+        self.restart_btn.clicked.connect(self.on_restart_pos_linux)
+        ssh_layout.addWidget(self.restart_btn)
 
         ssh_layout.addStretch()
         main_layout.addWidget(ssh_group)
@@ -691,3 +712,43 @@ class FileConfigTabWidget(BaseTabWidget):
         """记录日志"""
         if self.parent_window:
             self.parent_window.append_log(message, level)
+
+    def on_restart_pos_linux(self):
+        """重启Linux POS"""
+        from pos_tool_new.linux_pos.linux_service import LinuxService
+        service = LinuxService()
+        host = self.host_ip.currentText().strip()
+        username = self.username.text().strip() or "menu"
+        password = self.password.text().strip() or "M2ei#a$19!"
+        reply = QMessageBox.warning(
+            self,
+            "确认重启",
+            "该过程可能耗时1-4分钟，确定重启吗？",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+        try:
+            ssh = service._connect_ssh(host, username, password)
+            ssh.close()
+        except Exception as e:
+            if hasattr(self, 'parent_window') and self.parent_window:
+                self.parent_window.append_log("SSH连接失败，无法重启POS", "error")
+            return
+        self.restart_btn.setEnabled(False)
+        if hasattr(self, 'parent_window') and self.parent_window:
+            self.parent_window.progress_bar.setVisible(True)
+            self.parent_window.progress_bar.setRange(0, 100)
+            self.parent_window.progress_bar.setValue(0)
+            self.parent_window.progress_bar.setFormat("POS重启中：%p%，请勿进行其他操作！")
+            self.parent_window.setup_progress_animation(600)
+        from pos_tool_new.work_threads import RestartPosThreadLinux
+        self.restart_thread = RestartPosThreadLinux(service, host, username, password)
+        self.restart_thread.error_occurred.connect(lambda msg: QMessageBox.warning(self, "错误", msg))
+        self.restart_thread.finished_updated.connect(self.on_restart_finished)
+        self.restart_thread.start()
+
+    def on_restart_finished(self):
+        if hasattr(self, 'parent_window') and self.parent_window:
+            self.parent_window.on_restart_finished()
+        self.restart_btn.setEnabled(True)

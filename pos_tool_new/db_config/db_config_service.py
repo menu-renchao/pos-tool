@@ -1,9 +1,10 @@
 import json
-from typing import List, Dict, Any, Tuple
-from pos_tool_new.backend import Backend
-from pos_tool_new.utils.db_utils import get_mysql_connection
 import os
 import sys
+from typing import List, Dict, Any, Tuple
+
+from pos_tool_new.backend import Backend
+from pos_tool_new.utils.db_utils import get_mysql_connection
 
 APP_DIR = os.path.dirname(sys.argv[0])
 CONFIG_JSON_PATH = os.path.join(APP_DIR, 'config_items.json')

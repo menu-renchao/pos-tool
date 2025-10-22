@@ -1,12 +1,11 @@
-import os
-import sys
 import json
+import os
 import re
-from typing import List, Dict, Optional, Tuple, Any
-from dataclasses import dataclass, asdict
+import sys
+from dataclasses import dataclass
+from typing import List, Optional, Tuple
 
 from pos_tool_new.backend import Backend
-from pos_tool_new.utils.log_manager import global_log_manager
 
 
 @dataclass
