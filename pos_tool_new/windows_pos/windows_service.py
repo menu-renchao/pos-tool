@@ -207,17 +207,29 @@ class WindowsService(Backend):
         except Exception as e:
             self.log(f"替换 kpos.war 出错: {str(e)}", level="error")
 
-    def restart_pos_windows(self, base_path, selected_version):
-        """重启 Windows 下的 POS 应用"""
+    def stop_pos_windows(self):
+        """结束 Windows 下的 POS 进程"""
+        try:
+            os.system('taskkill /IM "Menusifu POS.exe" /T /F')
+            self.log("POS 进程已结束！", level="success")
+        except Exception as e:
+            self.log(f"结束 POS 进程出错: {str(e)}", level="error")
+
+    def start_pos_windows(self, base_path, selected_version):
+        """启动 Windows 下的 POS 应用"""
         try:
             version_path = os.path.join(base_path, selected_version)
             pos_exe_path = os.path.join(version_path, r"Menusifu Server Manager\Menusifu POS.exe")
-
-            # 结束 POS 进程
-            os.system('taskkill /IM "Menusifu POS.exe" /T /F')
-
-            # 启动 POS
             os.startfile(pos_exe_path)
+            self.log(f"{selected_version} POS 启动成功！", level="success")
+        except Exception as e:
+            self.log(f"启动 POS 出错: {str(e)}", level="error")
+
+    def restart_pos_windows(self, base_path, selected_version):
+        """重启 Windows 下的 POS 应用"""
+        try:
+            self.stop_pos_windows()
+            self.start_pos_windows(base_path, selected_version)
             self.log(f"{selected_version} POS 重启成功！", level="success")
         except Exception as e:
             self.log(f"重启 POS 出错: {str(e)}", level="error")

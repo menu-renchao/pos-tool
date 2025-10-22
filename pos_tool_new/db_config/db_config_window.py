@@ -224,7 +224,7 @@ class DbConfigWindow(BaseTabWidget):
         self.config_table = QTableWidget()
         self.config_table.setColumnCount(5)  # 增加一列用于复选框
         self.config_table.setAlternatingRowColors(True)
-        self.config_table.setHorizontalHeaderLabels(['选择', '描述', 'SQL预览', '重启要求', '操作'])
+        self.config_table.setHorizontalHeaderLabels(['选择', '描述', 'SQL预览(点击展开)', '重启要求', '操作'])
 
         # 优化表格样式 - 取消行选中样式
         self.config_table.setStyleSheet("""
@@ -343,6 +343,14 @@ class DbConfigWindow(BaseTabWidget):
                 selected_items.append(item.description)
         return selected_items
 
+    def get_selected_config_items(self):
+        selected_items = []
+        # 按表格行顺序和勾选状态返回原始ConfigItem对象
+        for row in range(self.config_table.rowCount()):
+            checkbox = self.config_table.cellWidget(row, 0)
+            if checkbox and isinstance(checkbox, QCheckBox) and checkbox.isChecked():
+                selected_items.append(self._current_table_items[row])
+        return selected_items
 
     def on_search_changed(self, text):
         self.refresh_config_table(text)
@@ -360,6 +368,7 @@ class DbConfigWindow(BaseTabWidget):
                      any(keyword in sql.lower() for sql in item.sqls) or
                      (keyword in '是需重启' and item.need_restart) or
                      (keyword in '否无需' and not item.need_restart)]
+        self._current_table_items = items  # 保存当前表格显示的原始ConfigItem列表
 
         # 填充表格数据
         for row, item in enumerate(items):
@@ -398,7 +407,7 @@ class DbConfigWindow(BaseTabWidget):
             op_widget = QWidget()
             op_layout = QHBoxLayout(op_widget)
             op_layout.setContentsMargins(4, 2, 4, 2)
-            op_layout.setSpacing(4)
+            op_layout.setSpacing(10)
 
             btn_edit = QPushButton('编辑')
             btn_delete = QPushButton('删除')
@@ -440,7 +449,6 @@ class DbConfigWindow(BaseTabWidget):
             self.config_table.setRowHeight(row, 40)
 
     def on_add_config(self):
-        """新增配置项"""
         dlg = ConfigEditDialog(self.service, parent=self)
         if dlg.exec():
             new_item = dlg.get_data()
@@ -499,20 +507,20 @@ class DbConfigWindow(BaseTabWidget):
 
     def on_exec_config(self):
         """批量执行选中的配置项"""
-        selected_descs = self.get_selected_configs()
-        if not selected_descs:
+        selected_items = self.get_selected_config_items()
+        if not selected_items:
             QMessageBox.warning(self, '提示', '请先通过复选框选择要执行的规则')
             return
 
         reply = QMessageBox.question(self, '确认执行',
-                                     f'确定要执行选中的 {len(selected_descs)} 个配置规则吗？',
+                                     f'确定要执行选中的 {len(selected_items)} 个配置规则吗？',
                                      QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
         if reply != QMessageBox.StandardButton.Yes:
             return
 
         db_params = self.get_db_params()
         try:
-            result = self.service.set_config(selected_descs, db_params)
+            result = self.service.set_config(selected_items, db_params)
         except Exception as e:
             QMessageBox.critical(self, '错误', f'执行配置项时发生错误: {str(e)}')
             return
@@ -530,7 +538,7 @@ class DbConfigWindow(BaseTabWidget):
 
     def on_run_config(self, row):
         """执行单个配置项"""
-        item = self.service.get_config_items()[row]
+        item = self._current_table_items[row]  # 用当前表格显示的数据
         reply = QMessageBox.question(self, '确认执行',
                                      f'确定要执行配置项 "{item.description}" 吗？',
                                      QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
@@ -539,7 +547,7 @@ class DbConfigWindow(BaseTabWidget):
 
         db_params = self.get_db_params()
         try:
-            result = self.service.set_config([item.description], db_params)
+            result = self.service.set_config([item], db_params)
         except Exception as e:
             QMessageBox.critical(self, '错误', f'执行配置项时发生错误: {str(e)}')
             return

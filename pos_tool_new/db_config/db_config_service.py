@@ -83,24 +83,19 @@ class DbConfigService(Backend):
         self._save_config_items(new_items)
         return True
 
-    def set_config(self, descriptions: List[str], db_params: dict) -> Dict[str, bool]:
+    def set_config(self, items: list, db_params: dict) -> dict:
         """
-        根据描述列表，批量执行SQL。
+        根据传入的 ConfigItem 列表，批量执行SQL。
         返回每个规则是否需要重启。
         """
-        items = self._load_config_items()
         result = {}
         conn = get_mysql_connection(**db_params)
         cursor = conn.cursor()
-        for desc in descriptions:
-            item = next((i for i in items if i.description == desc), None)
-            if not item:
-                result[desc] = False
-                continue
+        for item in items:
             for sql in item.sqls:
                 self.log(f"执行SQL: {sql}")
                 cursor.execute(sql)
-            result[desc] = item.need_restart
+            result[item.description] = item.need_restart
         conn.commit()
         cursor.close()
         conn.close()

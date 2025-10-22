@@ -207,7 +207,7 @@ class LicenseToolTabWidget(BaseTabWidget):
 
     def on_connect_success(self, success, message):
         if success:
-            self.status_label.setText("已连接")
+            self.status_label.setText(f"{message}")
             self.status_label.setStyleSheet("color: green; font-weight: normal;")
             self.backup_btn.setEnabled(True)
             self.restore_btn.setEnabled(True)

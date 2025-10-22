@@ -125,6 +125,8 @@ class ReplaceWarThreadWindows(BaseWorkerThread):
         self.local_war_path = local_war_path
 
     def _run_impl(self):
+        self.progress_text_updated.emit("正在停止Windows POS服务...")
+        self.service.stop_pos_windows()
         self.progress_text_updated.emit("正在替换Windows WAR包...")
         self.run_with_error_handling(
             self.service.replace_war_windows,
