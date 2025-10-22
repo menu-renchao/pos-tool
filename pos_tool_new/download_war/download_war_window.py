@@ -45,7 +45,7 @@ class DownloadWarTabWidget(BaseTabWidget):
             self.parent_window.progress_bar.setValue(0)
             self.parent_window.progress_bar.setFormat("正在下载war...")
             self.parent_window.speed_label.setVisible(True)
-            self.parent_window.speed_label.setText("下载速率:计算中...")
+            self.parent_window.speed_label.setText("下载速率: 计算中...")
 
         self.download_btn.setEnabled(False)
         self.service.log("开始下载任务...")

@@ -195,7 +195,7 @@ class WindowsTabWidget(BaseTabWidget):
             self.parent_window.progress_bar.setValue(0)
             self.parent_window.progress_bar.setFormat("正在下载war...")
             self.parent_window.speed_label.setVisible(True)
-            self.parent_window.speed_label.clear()
+            self.parent_window.speed_label.setText("下载速度: 计算中...")
 
     def _handle_download_progress(self, percent, speed=None, downloaded=None, total=None):
         if hasattr(self.parent_window, 'progress_bar'):
