@@ -189,22 +189,17 @@ class LinuxTabWidget(BaseTabWidget):
         ssh_main_layout.addLayout(ssh_input_layout)
         self.layout.addWidget(self.ssh_group)
 
-        # 环境选择组（1/3）
+        # 环境选择组（1/4）
         env_group = QGroupBox("配置文件环境选择")
         env_layout = QVBoxLayout(env_group)
         env_btn_layout = QHBoxLayout()
         env_frame, self.env_group = self.create_env_selector("QA")
         env_btn_layout.addWidget(env_frame)
         env_btn_layout.addStretch()
-        # 修改文件按钮
-        self.modify_btn = QPushButton("修改文件")
-        self.modify_btn.clicked.connect(self.on_modify_remote)
-        self.modify_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-        env_btn_layout.addWidget(self.modify_btn)
         env_layout.addLayout(env_btn_layout)
         top_row_layout.addWidget(env_group, 1)
 
-        # 换包/升级服务组（2/3）
+        # 换包/升级服务组（3/4）
         file_group = QGroupBox("换包/升级服务")
         file_main_layout = QVBoxLayout(file_group)
         file_select_layout = QHBoxLayout()
@@ -244,7 +239,7 @@ class LinuxTabWidget(BaseTabWidget):
 
         self.upgrade_package_btn.setToolTip("此功能会扫描「/home/menu」下的所有升级工具。\n"
                                             "如果未发现您需要的升级工具，请使用【上传升级包】功能。")
-        top_row_layout.addWidget(file_group, 2)
+        top_row_layout.addWidget(file_group, 3)
         file_main_layout.addLayout(file_btn_layout)
         self.layout.addLayout(top_row_layout)
 
@@ -345,20 +340,6 @@ class LinuxTabWidget(BaseTabWidget):
     def reset_connection_status(self):
         self.status_label.setText("连接状态未检测")
         self.status_label.setStyleSheet("color: red;")
-
-    def on_modify_remote(self):
-        """修改远程文件"""
-
-        def modify_remote_callback(host, username, password):
-            if not self.env_group:
-                QMessageBox.warning(self, "错误", "环境选择器未初始化")
-                return
-
-            env = self.get_selected_env(self.env_group)
-            self.log(f"开始修改远程文件 - 主机: {host}, 用户: {username}, 环境: {env}")
-            self.service.modify_remote_files(host, username, password, env)
-
-        self._execute_with_connection_validation("修改远程文件", modify_remote_callback)
 
     def on_replace_war_linux(self):
         """替换远程WAR包"""

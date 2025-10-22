@@ -20,16 +20,6 @@ class LinuxService(Backend):
 
     def __init__(self):
         super().__init__()
-        # Define file paths and their corresponding patterns for local scanning
-        self.file_paths = [
-            f"{self.WEBAPPS_DIR}/kpos/front/js/cloudUrlConfig.json",
-            f"{self.WEBAPPS_DIR}/kpos/front2/json/cloudUrlConfig.json",
-            f"{self.WEBAPPS_DIR}/kpos/front3/js/cloudUrlConfig.json",
-            f"{self.WEBAPPS_DIR}/kpos/waitlist/cloudUrl.json"
-        ]
-
-        # CloudDatahub application.properties path
-        self.cloud_datahub_app_prop_path = f"{self.WEBAPPS_DIR}/cloudDatahub/WEB-INF/classes/application.properties"
         self.log_manager = log_manager
 
     @staticmethod
@@ -114,103 +104,6 @@ class LinuxService(Backend):
             finally:
                 # 清理临时文件
                 os.unlink(temp_path)
-
-    def fix_expiration_management_url(self, content: str, env: str) -> str:
-        """
-        根据env将 expiration-management 的域名替换为 QA/DEV 或 PROD 地址
-        """
-        env_upper = env.strip().upper()
-        if env_upper in ("QA", "DEV"):
-            target_url = "https://wms.balamxqa.com/expiration-management"
-        else:  # 默认为PROD
-            target_url = "https://wms.balamx.com/expiration-management"
-        # 无论原来是什么，统一替换为目标
-        content = content.replace("https://wms.balamx.com/expiration-management", target_url)
-        content = content.replace("https://wms.balamxqa.com/expiration-management", target_url)
-        return content
-
-    def _modify_remote_file(self, ssh: paramiko.SSHClient, remote_path: str, env: str) -> Tuple[bool, bool]:
-        """修改单个远程文件"""
-        if not self._check_file_exists(ssh, remote_path):
-            self.log(f"文件不存在: {remote_path}", level="error")
-            return False, False
-
-        content = self._read_remote_file(ssh, remote_path)
-        # 先做通用替换，再做 expiration-management 专属替换
-        new_content = self.replace_domain(content, env)
-        if "cloudUrlConfig.json" in remote_path:
-            new_content = self.fix_expiration_management_url(new_content, env)
-
-        if new_content == content:
-            self.log("文件已是目标值，无需修改", level="info")
-            return False, True
-
-        self._write_remote_file(ssh, remote_path, new_content)
-        self.log("文件已修改", level="info")
-        return True, False
-
-    def _modify_cloud_datahub_properties(self, ssh: paramiko.SSHClient, env: str) -> Tuple[bool, bool]:
-        """修改cloudDatahub的application.properties文件"""
-        app_prop_path = self.cloud_datahub_app_prop_path
-        self.log(f"正在处理远程文件: {app_prop_path}", level="info")
-
-        if not self._check_file_exists(ssh, app_prop_path):
-            self.log(f"文件不存在: {app_prop_path}", level="error")
-            return False, False
-
-        content = self._read_remote_file(ssh, app_prop_path)
-        env_type = self.get_env_type_value(env)
-        target_line = f"application.environmentType = {env_type}"
-
-        # 检查是否已经是目标值
-        if target_line in content.splitlines():
-            self.log("application.properties 本来就是目标值，无需修改", level="info")
-            return False, True
-
-        # 修改或追加配置
-        try:
-            if "application.environmentType" in content:
-                new_content = re.sub(
-                    r"^application\.environmentType\s*=.*$",
-                    target_line,
-                    content,
-                    flags=re.MULTILINE
-                )
-                self._write_remote_file(ssh, app_prop_path, new_content)
-                self.log("application.properties 已修改", level="info")
-            else:
-                with ssh.open_sftp() as sftp:
-                    with sftp.file(app_prop_path, 'a') as f:
-                        f.write(f"\n{target_line}\n")
-                self.log("application.properties 已添加目标配置", level="info")
-            return True, False
-        except Exception as e:
-            self.log(f"修改配置失败: {str(e)}", level="error")
-            return False, False
-
-    def modify_remote_files(self, host: str, username: str, password: str, env: str) -> None:
-        """修改远程服务器上所有目标文件"""
-        try:
-            with self._connect_ssh(host, username, password) as ssh:
-                modified_count, already_target_count = 0, 0
-
-                # 处理所有配置文件
-                for i, remote_path in enumerate(self.file_paths):
-                    self.log(f"处理远程文件 {i + 1}: {remote_path}", level="info")
-                    modified, already_target = self._modify_remote_file(ssh, remote_path, env)
-                    modified_count += modified
-                    already_target_count += already_target
-
-                # 处理 cloudDatahub application.properties
-                modified, already_target = self._modify_cloud_datahub_properties(ssh, env)
-                modified_count += modified
-                already_target_count += already_target
-
-                self.log(f"{host}已修改为{env}环境，修改 {modified_count} 个文件，本来就是目标值 {already_target_count} 个。",
-                         level="info")
-        except Exception as e:
-            self.log(f"远程修改出错: {str(e)}", level="error")
-            raise
 
     def stop_pos_linux(self, host: str, username: str, password: str) -> None:
         """远程停止 MenuSifu POS 应用相关进程"""
@@ -693,6 +586,23 @@ class LinuxService(Backend):
                 log_callback(f"数据备份异常: {str(e)}", "error")
             if error_callback:
                 error_callback(str(e))
+
+    def modify_remote_files(self, host: str, username: str, password: str, env: str) -> None:
+        """
+        批量读取 file_config_items.json，依次调用 FileConfigService.execute_config_modification 进行远程配置修改。
+        """
+        from pos_tool_new.file_config.file_config_service import FileConfigService
+        service = FileConfigService()
+        configs = service.get_all_configs()
+        for config_item in configs:
+            if not getattr(config_item, 'enabled', True):
+                continue
+            service.log(f"开始批量修改配置项: {config_item.name}", level="info")
+            success, message = service.execute_config_modification(host, username, password, config_item, env)
+            if success:
+                service.log(f"配置项修改成功: {config_item.name} - {message}", level="info")
+            else:
+                service.log(f"配置项修改失败: {config_item.name} - {message}", level="error")
 
     def pipeline_package_upgrade(self, host, username, password, selected_dir, war_file, env, progress_callback=None,
                                  speed_callback=None, log_callback=None, progress_text_callback=None):

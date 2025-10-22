@@ -528,3 +528,27 @@ class DbConfigWorkerThread(BaseWorkerThread):
     def _run_impl(self):
         self.service.set_config(self.config_name, self.enabled, self.db_params)
 
+
+class FileConfigModifyThread(BaseWorkerThread):
+    """文件配置修改���程"""
+
+    def __init__(self, service, host, username, password, config_item, env):
+        super().__init__()
+        self.service = service
+        self.host = host
+        self.username = username
+        self.password = password
+        self.config_item = config_item
+        self.env = env
+
+    def _run_impl(self):
+        self.progress_text_updated.emit(f"正在修改配置文件: {self.config_item.name}")
+
+        success, message = self.service.execute_config_modification(
+            self.host, self.username, self.password, self.config_item, self.env
+        )
+
+        if success:
+            self.status_updated.emit(message)
+        else:
+            self.error_occurred.emit(message)

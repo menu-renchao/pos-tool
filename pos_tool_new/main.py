@@ -204,7 +204,7 @@ class MainWindow(QMainWindow):
     def setup_ui(self):
         """设置UI"""
         self.setWindowIcon(QIcon(resource_path('UI/app.ico')))
-        self.setWindowTitle("POS测试工具 v1.5.0.7 by Mansuper")
+        self.setWindowTitle("POS测试工具 v1.5.0.8 by Mansuper")
         self.resize(900, 580)
         # 设置样式
         self.setup_styles()
@@ -250,12 +250,22 @@ class MainWindow(QMainWindow):
         self.setMenuBar(menubar)
 
     def create_tab_contents(self):
+
         from pos_tool_new.linux_pos.linux_window import LinuxTabWidget
         self.linux_tab = LinuxTabWidget(self)
         self.tabs.addTab(self.linux_tab, "🐧 Linux POS")
         from pos_tool_new.windows_pos.windows_window import WindowsTabWidget
         self.windows_tab = WindowsTabWidget(self)
         self.tabs.addTab(self.windows_tab, "🪟 Windows POS")
+        from pos_tool_new.file_config.file_config_window import FileConfigTabWidget
+        file_config_tab = FileConfigTabWidget(self)
+        self.tabs.addTab(file_config_tab, "⚙️ 文件配置管理")
+        from pos_tool_new.db_config.db_config_window import DbConfigWindow
+        self.db_config_tab = DbConfigWindow(self)
+        self.tabs.addTab(self.db_config_tab, "🗄️ 数据库配置")
+        from pos_tool_new.scan_pos.scan_pos_window import ScanPosTabWidget
+        self.scan_pos_tab = ScanPosTabWidget(self.backend, self)
+        self.tabs.addTab(self.scan_pos_tab, "🔍 扫描POS")
         from pos_tool_new.caller_id.caller_window import CallerIdTabWidget
         self.caller_tab = CallerIdTabWidget(self.backend, self)
         self.tabs.addTab(self.caller_tab, "📞 Caller ID")
@@ -268,15 +278,11 @@ class MainWindow(QMainWindow):
         from pos_tool_new.generate_img.generate_img_window import GenerateImgTabWidget
         self.generate_img_tab = GenerateImgTabWidget(self)
         self.tabs.addTab(self.generate_img_tab, "🖼️ 图片生成")
-        from pos_tool_new.scan_pos.scan_pos_window import ScanPosTabWidget
-        self.scan_pos_tab = ScanPosTabWidget(self.backend, self)
-        self.tabs.addTab(self.scan_pos_tab, "🔍 扫描POS")
         from pos_tool_new.random_mail.random_mail_window import RandomMailTabWidget
         self.random_mail_tab = RandomMailTabWidget(self)
         self.tabs.addTab(self.random_mail_tab, "📧 随机邮箱")
-        from pos_tool_new.db_config.db_config_window import DbConfigWindow
-        self.db_config_tab = DbConfigWindow(self)
-        self.tabs.addTab(self.db_config_tab, "🗄️ 数据库配置")
+
+
 
     def show_version_info(self):
         """显示版本信息对话框"""
@@ -612,7 +618,7 @@ class ModernSplashScreen(QWidget):
         """)
         layout.addWidget(self.title_label)
 
-        self.version_label = QLabel("v1.5.0.7 - 正在加载...")
+        self.version_label = QLabel("v1.5.0.8 - 正在加载...")
         self.version_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.version_label.setStyleSheet("""
             QLabel {

@@ -19,7 +19,7 @@ class LogManager(QObject):
     def _setup_file_logging(self):
         """配置文件日志（可选）"""
         logging.basicConfig(
-            level=logging.INFO,
+            level=logging.DEBUG,  # 由INFO改为DEBUG，确保debug日志也写入文件
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
             filename='app.log',
             filemode='a',
@@ -33,19 +33,19 @@ class LogManager(QObject):
         level: 'debug', 'info', 'success', 'warning', 'error'
         'success' 会被映射为 logging.INFO 级别（标准 logging 无 success 级别）。
         """
-        # 1. 发送信号到UI（主线程）
-        timestamp = datetime.now().strftime('%H:%M:%S')
-        levels = {
-            "info": ("\u2139\ufe0f", "#007bff"),
-            "success": ("\u2705", "#28a745"),
-            "warning": ("\u26a0\ufe0f", "#ffc107"),
-            "error": ("\u274c", "#dc3545"),
-            "debug": ("\ud83d\udd0d", "#6c757d")
-        }
-        icon, color = levels.get(level, ("\ud83d\udccc", "#6c757d"))
-        formatted_message = f"[{timestamp}] {icon} {message}"
-        # 发射信号，让UI更新日志框
-        self.log_received.emit(formatted_message, color)
+        # 1. 发送信号到UI（主线程），debug日志不显示在前台
+        if level.lower() != "debug":
+            timestamp = datetime.now().strftime('%H:%M:%S')
+            levels = {
+                "info": ("\u2139\ufe0f", "#007bff"),
+                "success": ("\u2705", "#28a745"),
+                "warning": ("\u26a0\ufe0f", "#ffc107"),
+                "error": ("\u274c", "#dc3545"),
+                "debug": ("\ud83d\udd0d", "#6c757d")
+            }
+            icon, color = levels.get(level, ("\ud83d\udccc", "#6c757d"))
+            formatted_message = f"[{timestamp}] {icon} {message}"
+            self.log_received.emit(formatted_message, color)
 
         # 2. 同时记录到文件（使用标准logging）
         # 'success' 不是标准日志级别，映射为 INFO
