@@ -233,7 +233,9 @@ class DbConfigWindow(BaseTabWidget):
                 padding: 0 4px 0 4px;
             }
         """)
-        config_layout = QVBoxLayout()
+
+        # 关键修改：直接创建 QVBoxLayout 并设置给 config_group
+        config_layout = QVBoxLayout(config_group)  # 直接设置给 config_group
         config_layout.setSpacing(4)  # 减少间距
         config_layout.setContentsMargins(6, 8, 6, 6)  # 减少内边距
 
@@ -249,6 +251,54 @@ class DbConfigWindow(BaseTabWidget):
         self.search_edit.textChanged.connect(self.on_search_changed)
         search_layout.addWidget(self.search_edit)
         config_layout.addLayout(search_layout)
+
+        # 操作按钮区域 - 紧凑样式
+        btn_layout = QHBoxLayout()
+        btn_layout.setSpacing(6)
+        self.btn_add = QPushButton('新增规则')
+        self.btn_exec = QPushButton('批量执行选中规则')
+
+        # 紧凑按钮样式
+        button_style = """
+            QPushButton {
+                padding: 4px 8px;
+                border: 1px solid #ccc;
+                border-radius: 3px;
+                font-size: 9px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #f0f0f0;
+            }
+        """
+        self.btn_add.setStyleSheet(button_style + """
+            QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                border-color: #45a049;
+            }
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+        """)
+        self.btn_exec.setStyleSheet(button_style + """
+            QPushButton {
+                background-color: #2196F3;
+                color: white;
+                border-color: #1976D2;
+            }
+            QPushButton:hover {
+                background-color: #1976D2;
+            }
+        """)
+
+        self.btn_add.clicked.connect(self.on_add_config)
+        self.btn_exec.clicked.connect(self.on_exec_config)
+
+        btn_layout.addWidget(self.btn_add)
+        btn_layout.addWidget(self.btn_exec)
+        btn_layout.addStretch()
+        config_layout.addLayout(btn_layout)
 
         # 表格 - 紧凑样式
         self.config_table = QTableWidget()
@@ -299,65 +349,18 @@ class DbConfigWindow(BaseTabWidget):
         header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
 
         # 设置固定列宽 - 减小宽度
-        self.config_table.setColumnWidth(0, 50)   # 选择列
-        self.config_table.setColumnWidth(3, 80)   # 重启要求列
+        self.config_table.setColumnWidth(0, 50)  # 选择列
+        self.config_table.setColumnWidth(3, 80)  # 重启要求列
         self.config_table.setColumnWidth(4, 140)  # 操作列
 
         self.config_table.verticalHeader().setVisible(False)
         self.config_table.cellClicked.connect(self.on_table_cell_clicked)
 
-        config_layout.addWidget(self.config_table, 1)
+        # 关键修改：将表格添加到布局并设置拉伸因子
+        config_layout.addWidget(self.config_table, 1)  # 拉伸因子为1
 
-        # 操作按钮区域 - 紧凑样式
-        btn_layout = QHBoxLayout()
-        btn_layout.setSpacing(6)
-        self.btn_add = QPushButton('新增规则')
-        self.btn_exec = QPushButton('批量执行选中规则')
-
-        # 紧凑按钮样式
-        button_style = """
-            QPushButton {
-                padding: 4px 8px;
-                border: 1px solid #ccc;
-                border-radius: 3px;
-                font-size: 9px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #f0f0f0;
-            }
-        """
-        self.btn_add.setStyleSheet(button_style + """
-            QPushButton {
-                background-color: #4CAF50;
-                color: white;
-                border-color: #45a049;
-            }
-            QPushButton:hover {
-                background-color: #45a049;
-            }
-        """)
-        self.btn_exec.setStyleSheet(button_style + """
-            QPushButton {
-                background-color: #2196F3;
-                color: white;
-                border-color: #1976D2;
-            }
-            QPushButton:hover {
-                background-color: #1976D2;
-            }
-        """)
-
-        self.btn_add.clicked.connect(self.on_add_config)
-        self.btn_exec.clicked.connect(self.on_exec_config)
-
-        btn_layout.addWidget(self.btn_add)
-        btn_layout.addWidget(self.btn_exec)
-        btn_layout.addStretch()
-        config_layout.addLayout(btn_layout)
-
-        config_group.setLayout(config_layout)
-        main_layout.addWidget(config_group, 1)
+        # 关键修改：将配置组添加到主布局并设置拉伸因子
+        main_layout.addWidget(config_group, 1)  # 拉伸因子为1
 
         # 初始化表格数据
         self.refresh_config_table()
@@ -439,7 +442,7 @@ class DbConfigWindow(BaseTabWidget):
             if item.need_restart:
                 restart_item.setForeground(Qt.GlobalColor.red)
             else:
-                restart_item.setForeground(Qt.GlobalColor.green)
+                restart_item.setForeground(Qt.GlobalColor.darkGreen)
             self.config_table.setItem(row, 3, restart_item)
 
             # 操作列 - 紧凑按钮
