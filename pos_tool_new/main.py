@@ -205,7 +205,7 @@ class MainWindow(QMainWindow):
         """设置UI"""
         self.setWindowIcon(QIcon(resource_path('UI/app.ico')))
         self.setWindowTitle("POS测试工具 v1.5.0.8 by Mansuper")
-        self.resize(900, 580)
+        self.resize(900, 780)
         # 设置样式
         self.setup_styles()
         # 创建菜单栏
