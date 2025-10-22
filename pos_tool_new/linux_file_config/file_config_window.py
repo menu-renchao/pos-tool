@@ -8,7 +8,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QWidget, QLabel, QLineEdit, QPushButton,
     QTableWidget, QTableWidgetItem, QCheckBox, QHeaderView, QMessageBox,
-    QDialog, QDialogButtonBox, QComboBox, QGroupBox
+    QDialog, QDialogButtonBox, QComboBox, QGroupBox, QFormLayout, QAbstractItemView, QSizePolicy
 )
 
 from pos_tool_new.linux_file_config.file_config_service import FileConfigService, FileConfigItem, KeyValueItem
@@ -94,7 +94,8 @@ class FileConfigEditDialog(QDialog):
     def __init__(self, config_item: Optional[FileConfigItem] = None, parent=None):
         super().__init__(parent)
         # 使用深拷贝，确保编辑时不影响主数据
-        self.config_item = copy.deepcopy(config_item) if config_item else FileConfigItem(name="", file_path="", key_values=[])
+        self.config_item = copy.deepcopy(config_item) if config_item else FileConfigItem(name="", file_path="",
+                                                                                         key_values=[])
         self.setup_ui()
         self.load_data()
 
@@ -186,8 +187,6 @@ class FileConfigEditDialog(QDialog):
         self.edit_btn.setEnabled(has_selection)
         self.delete_btn.setEnabled(has_selection)
 
-
-
     def add_key_value(self):
         """新增键值对"""
         dialog = KeyValueEditDialog()
@@ -241,8 +240,6 @@ class FileConfigEditDialog(QDialog):
         )
 
 
-
-
 class FileConfigTabWidget(BaseTabWidget):
     """文件配置管理选项卡"""
 
@@ -264,17 +261,33 @@ class FileConfigTabWidget(BaseTabWidget):
         self.refresh_config_list()
 
     def setup_ui(self):
-        # 由于父类已将 self.layout 赋值为 QVBoxLayout，不能用 self.layout()，直接用 self.layout
+        # 主布局 - 使用更紧凑的间距
         main_layout = self.layout
+        main_layout.setSpacing(6)  # 减少间距
+        main_layout.setContentsMargins(8, 8, 8, 8)  # 减少边距
 
-        # SSH连接组
+        # SSH连接组 - 紧凑样式
         ssh_group = QGroupBox("SSH连接设置")
+        ssh_group.setStyleSheet("""
+            QGroupBox { 
+                font-weight: bold; 
+                font-size: 11px; 
+                margin-top: 6px;
+                padding-top: 8px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 8px;
+                padding: 0 0 0 0;
+            }
+        """)
         ssh_layout = QHBoxLayout(ssh_group)
-        ssh_layout.setSpacing(8)
-        ssh_layout.setContentsMargins(4, 4, 4, 4)
+        ssh_layout.setSpacing(6)  # 减少间距
+        ssh_layout.setContentsMargins(6, 8, 6, 6)  # 减少内边距
 
         # 主机IP
         host_label = QLabel("主机IP:")
+        host_label.setStyleSheet("font-size: 11px;")
         self.host_ip = QComboBox()
         self.host_ip.addItems([
             "192.168.0.", "192.168.1.", "10.24.1.",
@@ -282,6 +295,7 @@ class FileConfigTabWidget(BaseTabWidget):
         ])
         self.host_ip.setEditable(True)
         self.host_ip.setFixedWidth(120)
+        self.host_ip.setStyleSheet("QComboBox { padding: 3px; font-size: 11px; }")
         ssh_layout.addWidget(host_label)
         ssh_layout.addWidget(self.host_ip)
 
@@ -292,16 +306,20 @@ class FileConfigTabWidget(BaseTabWidget):
 
         # 用户名
         username_label = QLabel("用户名:")
+        username_label.setStyleSheet("font-size: 11px;")
         self.username = QLineEdit("menu")
         self.username.setFixedWidth(100)
+        self.username.setStyleSheet("QLineEdit { padding: 3px; font-size: 11px; }")
         ssh_layout.addWidget(username_label)
         ssh_layout.addWidget(self.username)
 
         # 密码
         password_label = QLabel("密码:")
+        password_label.setStyleSheet("font-size: 11px;")
         self.password = QLineEdit("M2ei#a$19!")
         self.password.setEchoMode(QLineEdit.EchoMode.Password)
         self.password.setFixedWidth(100)
+        self.password.setStyleSheet("QLineEdit { padding: 3px; font-size: 11px; }")
         ssh_layout.addWidget(password_label)
         ssh_layout.addWidget(self.password)
 
@@ -329,45 +347,160 @@ class FileConfigTabWidget(BaseTabWidget):
         ssh_layout.addStretch()
         main_layout.addWidget(ssh_group)
 
-        # 配置列表组
+        # 配置列表组 - 紧凑样式
         config_group = QGroupBox("文件配置列表")
-        config_layout = QVBoxLayout(config_group)
+        config_group.setStyleSheet("""
+            QGroupBox { 
+                font-weight: bold; 
+                font-size: 11px; 
+                margin-top: 6px;
+                padding-top: 8px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 8px;
+                padding: 0 4px 0 4px;
+            }
+        """)
 
-        # 操作按钮
+        # 关键修改：直接创建 QVBoxLayout 并设置给 config_group
+        config_layout = QVBoxLayout(config_group)  # 直接设置给 config_group
+        config_layout.setSpacing(4)  # 减少间距
+        config_layout.setContentsMargins(6, 8, 6, 6)  # 减少内边距
+
+        # 操作按钮区域 - 紧凑样式
         button_layout = QHBoxLayout()
+        button_layout.setSpacing(6)
+
         self.add_btn = QPushButton("新增配置")
-        self.add_btn.clicked.connect(self.on_add_config)
-        button_layout.addWidget(self.add_btn)
-
         self.execute_btn = QPushButton("执行选中配置")
-        self.execute_btn.clicked.connect(self.on_execute_selected)
-        button_layout.addWidget(self.execute_btn)
-
         self.execute_all_btn = QPushButton("执行所有启用配置")
-        self.execute_all_btn.clicked.connect(self.on_execute_all_enabled)
-        button_layout.addWidget(self.execute_all_btn)
 
+        # 紧凑按钮样式
+        button_style = """
+            QPushButton {
+                padding: 4px 8px;
+                border: 1px solid #ccc;
+                border-radius: 3px;
+                font-size: 9px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #f0f0f0;
+            }
+        """
+
+        self.add_btn.setStyleSheet(button_style + """
+            QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                border-color: #45a049;
+            }
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+        """)
+
+        self.execute_btn.setStyleSheet(button_style + """
+            QPushButton {
+                background-color: #2196F3;
+                color: white;
+                border-color: #1976D2;
+            }
+            QPushButton:hover {
+                background-color: #1976D2;
+            }
+        """)
+
+        self.execute_all_btn.setStyleSheet(button_style + """
+            QPushButton {
+                background-color: #FF9800;
+                color: white;
+                border-color: #F57C00;
+            }
+            QPushButton:hover {
+                background-color: #F57C00;
+            }
+        """)
+
+        self.add_btn.clicked.connect(self.on_add_config)
+        self.execute_btn.clicked.connect(self.on_execute_selected)
+        self.execute_all_btn.clicked.connect(self.on_execute_all_enabled)
+
+        button_layout.addWidget(self.add_btn)
+        button_layout.addWidget(self.execute_btn)
+        button_layout.addWidget(self.execute_all_btn)
         button_layout.addStretch()
         config_layout.addLayout(button_layout)
 
-        # 配置表格
+        # 配置表格 - 紧凑样式
         self.config_table = QTableWidget()
         self.config_table.setColumnCount(5)
-        self.config_table.setHorizontalHeaderLabels(["启用", "配置名称", "文件路径", "键值对数量", "操作"])
-        self.config_table.setColumnWidth(0, 60)  # 启用列
-        self.config_table.setColumnWidth(3, 80)  # 键值对数量列
-        self.config_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)  # 文件路径列
-        self.config_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)  # 配置名称
-        self.config_table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)  # 操作
-        self.config_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.config_table.setAlternatingRowColors(True)
-        config_layout.addWidget(self.config_table)
+        self.config_table.setHorizontalHeaderLabels(['启用', '配置名称', '文件路径', '键值对数量', '操作'])
 
-        main_layout.addWidget(config_group)
-        main_layout.addStretch()
+        # 紧凑表格样式
+        self.config_table.setStyleSheet("""
+            QTableWidget {
+                border: 1px solid #ddd;
+                border-radius: 3px;
+                background-color: white;
+                selection-color: black;
+                font-size: 11px;
+            }
+            QTableWidget::item {
+                padding: 2px 4px;
+                border-bottom: 1px solid #f0f0f0;
+            }
+            QTableWidget::item:selected {
+                background-color: transparent;
+                color: black;
+            }
+            QHeaderView::section {
+                background-color: #f8f9fa;
+                padding: 4px;
+                border: none;
+                font-size: 11px;
+                font-weight: bold;
+            }
+            QTableWidget::item:selected {
+    background-color: #CCE8FF;  /* 选中行高亮色，可自定义 */
+}
+QTableWidget::item:focus {
+    background-color: #CCE8FF;
+}
+QTableWidget::item {
+    selection-background-color: #CCE8FF;
+}
+        """)
 
-        # 连接信号
+        # 设置表格选择行为
+        self.config_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.config_table.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
+
+        # 设置表格尺寸策略
+        self.config_table.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+
+        # 设置列宽比例 - 更紧凑的列宽
+        header = self.config_table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed)  # 启用列
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)  # 配置名称
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)  # 文件路径
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)  # 键值对数量
+        header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)  # 操作列
+
+        # 设置固定列宽 - 减小宽度
+        self.config_table.setColumnWidth(0, 50)  # 启用列
+        self.config_table.setColumnWidth(3, 80)  # 键值对数量列
+
+        self.config_table.verticalHeader().setVisible(False)
         self.config_table.itemSelectionChanged.connect(self.on_selection_changed)
+
+        # 关键修改：将表格添加到布局并设置拉伸因子
+        config_layout.addWidget(self.config_table, 1)  # 拉伸因子为1
+
+        # 关键修改：将配置组添加到主布局并设置拉伸因子
+        main_layout.addWidget(config_group, 1)  # 拉伸因子为1
 
     def refresh_config_list(self):
         """刷新配置列表"""
@@ -381,53 +514,115 @@ class FileConfigTabWidget(BaseTabWidget):
             checkbox = QCheckBox()
             checkbox.setChecked(config.enabled)
             checkbox.stateChanged.connect(lambda state, cfg=config: self.on_toggle_enabled(cfg, state))
-            checkbox_widget = QWidget()
-            checkbox_layout = QHBoxLayout(checkbox_widget)
-            checkbox_layout.addWidget(checkbox)
-            checkbox_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            checkbox_layout.setContentsMargins(0, 0, 0, 0)
-            self.config_table.setCellWidget(i, 0, checkbox_widget)
+            checkbox.setStyleSheet("QCheckBox { margin-left: 5px; }")
+            self.config_table.setCellWidget(i, 0, checkbox)
 
             # 配置名称
-            self.config_table.setItem(i, 1, QTableWidgetItem(config.name))
+            name_item = QTableWidgetItem(config.name)
+            name_item.setToolTip(config.name)
+            name_item.setFlags(name_item.flags() | Qt.ItemFlag.ItemIsSelectable)
+            self.config_table.setItem(i, 1, name_item)
 
             # 文件路径
-            self.config_table.setItem(i, 2, QTableWidgetItem(config.file_path))
+            path_item = QTableWidgetItem(config.file_path)
+            path_item.setToolTip(config.file_path)
+            path_item.setFlags(path_item.flags() | Qt.ItemFlag.ItemIsSelectable)
+            self.config_table.setItem(i, 2, path_item)
 
             # 键值对数量（改为按钮，点击弹窗）
             kv_btn = QPushButton(str(len(config.key_values)))
             kv_btn.clicked.connect(lambda checked, cfg=config: self.on_show_detail(cfg))
-            kv_btn.setStyleSheet('border:none; color:blue; text-decoration:underline; background:transparent;')
+            kv_btn.setStyleSheet('''
+                QPushButton {
+                    border: none; 
+                    color: blue; 
+                    text-decoration: underline; 
+                    background: transparent;
+                    font-size: 11px;
+                    padding: 2px 4px;
+                }
+                QPushButton:hover {
+                    color: darkblue;
+                }
+            ''')
             kv_btn.setCursor(Qt.CursorShape.PointingHandCursor)
             self.config_table.setCellWidget(i, 3, kv_btn)
 
-            # 操作列
+            # 操作列 - 紧凑按钮
             action_widget = QWidget()
             action_layout = QHBoxLayout(action_widget)
-            action_layout.setContentsMargins(0, 0, 0, 0)
-
+            action_layout.setContentsMargins(2, 1, 2, 1)  # 减少内边距
+            action_layout.setSpacing(4)  # 减少间距
 
             # 修改按钮
             edit_btn = QPushButton("修改")
             edit_btn.clicked.connect(lambda checked, cfg=config: self.on_edit_config(cfg))
-            action_layout.addWidget(edit_btn)
+            edit_btn.setFixedSize(45, 24)
+            edit_btn.setStyleSheet("""
+                QPushButton {
+                    background-color: #FFC107;
+                    color: black;
+                    font-size: 10px;
+                    padding: 2px 4px;
+                    border: 1px solid #ccc;
+                    border-radius: 3px;
+                }
+                QPushButton:hover {
+                    background-color: #ffb300;
+                }
+            """)
 
             # 删除按钮
             delete_btn = QPushButton("删除")
             delete_btn.clicked.connect(lambda checked, cfg=config: self.on_delete_config(cfg))
-            action_layout.addWidget(delete_btn)
+            delete_btn.setFixedSize(45, 24)
+            delete_btn.setStyleSheet("""
+                QPushButton {
+                    background-color: #F44336;
+                    color: white;
+                    font-size: 10px;
+                    padding: 2px 4px;
+                    border: 1px solid #d32f2f;
+                    border-radius: 3px;
+                }
+                QPushButton:hover {
+                    background-color: #d32f2f;
+                }
+            """)
 
             # 执行按钮
             execute_btn = QPushButton("执行")
             execute_btn.clicked.connect(lambda checked, cfg=config: self.on_execute_single(cfg))
+            execute_btn.setFixedSize(45, 24)
+            execute_btn.setStyleSheet("""
+                QPushButton {
+                    background-color: #4CAF50;
+                    color: white;
+                    font-size: 10px;
+                    padding: 2px 4px;
+                    border: 1px solid #45a049;
+                    border-radius: 3px;
+                }
+                QPushButton:hover {
+                    background-color: #45a049;
+                }
+            """)
+
+            action_layout.addWidget(edit_btn)
+            action_layout.addWidget(delete_btn)
             action_layout.addWidget(execute_btn)
+            action_layout.addStretch()
 
             self.config_table.setCellWidget(i, 4, action_widget)
 
+            # 设置更小的行高
+            self.config_table.setRowHeight(i, 30)  # 减小行高
+
     def on_selection_changed(self):
         """选择变化时更新按钮状态"""
-        has_selection = len(self.config_table.selectedItems()) > 0
+        has_selection = len(self.config_table.selectionModel().selectedRows()) > 0
         self.execute_btn.setEnabled(has_selection)
+
 
     def on_toggle_enabled(self, config: FileConfigItem, state: int):
         """切换配置启用状态"""
@@ -472,7 +667,7 @@ class FileConfigTabWidget(BaseTabWidget):
     def on_show_detail(self, config: FileConfigItem):
         """显示配置详情"""
         dialog = FileConfigEditDialog(config)
-        dialog.setMinimumSize(1000,600)
+        dialog.setMinimumSize(1000, 600)
         dialog.setWindowTitle(f"配置详情 - {config.name}")
 
         # 隐藏编辑控件
@@ -491,7 +686,7 @@ class FileConfigTabWidget(BaseTabWidget):
         dialog.exec()
 
     def _validate_connection_params(self) -> tuple:
-        """验证连接���数"""
+        """验证连接数"""
         if not all([self.host_ip, self.username, self.password]):
             return False, "SSH连接参数未初始化", "", "", "", ""
 
@@ -553,8 +748,8 @@ class FileConfigTabWidget(BaseTabWidget):
         self.modify_thread.start()
 
     def on_execute_selected(self):
-        """执行选中的配�����"""
-        selected_rows = set(item.row() for item in self.config_table.selectedItems())
+        """执行选中的配"""
+        selected_rows = set(index.row() for index in self.config_table.selectionModel().selectedRows())
         if not selected_rows:
             QMessageBox.warning(self, "提示", "请先选择要执行的配置项")
             return
@@ -633,7 +828,7 @@ class FileConfigTabWidget(BaseTabWidget):
         self.execute_next_config_in_batch(host, username, password, env)
 
     def execute_next_config_in_batch(self, host: str, username: str, password: str, env: str):
-        """执行批次��的下一个配置"""
+        """执行批次的下一个配置"""
         if self.current_batch_index >= len(self.batch_configs):
             # 所有配置执行完成
             self.on_batch_execute_finished()
@@ -753,3 +948,12 @@ class FileConfigTabWidget(BaseTabWidget):
         if hasattr(self, 'parent_window') and self.parent_window:
             self.parent_window.on_restart_finished()
         self.restart_btn.setEnabled(True)
+    def showEvent(self, event):
+        """显示事件处理"""
+        super().showEvent(event)
+        self.hide_main_log_area()
+
+    def hideEvent(self, event):
+        """隐藏事件处理"""
+        super().hideEvent(event)
+        self.show_main_log_area()
