@@ -197,6 +197,25 @@ class MainWindow(QMainWindow):
         self.log_group = None
         self.fake_progress = 0
         self.progress_timer = QTimer(self)
+        # Initialize progress bar and speed label early
+        self.progress_bar = AnimatedProgressBar()
+        self.progress_bar.setMaximumWidth(300)
+        self.progress_bar.setVisible(False)
+        self.progress_bar.setFormat("处理中... %p%")
+        self.speed_label = QLabel()
+        self.speed_label.setVisible(False)
+        self.speed_label.setMinimumWidth(120)
+        self.speed_label.setStyleSheet("""
+            QLabel {
+                font-size: 10px;
+                color: #28a745;
+                font-weight: 500;
+                background: #d4edda;
+                padding: 2px 6px;
+                border-radius: 3px;
+                border: 1px solid #c3e6cb;
+            }
+        """)
         self.setup_backend()
         self.setup_ui()
         global_log_manager.log_received.connect(self.log_text.append_colored_text)
@@ -205,7 +224,7 @@ class MainWindow(QMainWindow):
         """设置UI"""
         self.setWindowIcon(QIcon(resource_path('UI/app.ico')))
         self.setWindowTitle("POS测试工具 v1.5.0.8 by Mansuper")
-        self.resize(900, 780)
+        self.resize(900, 580)
         # 设置样式
         self.setup_styles()
         # 创建菜单栏
@@ -239,6 +258,30 @@ class MainWindow(QMainWindow):
         # 初始化进度条
         self.fake_progress = 0
         self.progress_timer.timeout.connect(self.update_fake_progress)
+
+        # 状态栏区域（已移除进度条和速率标签）
+        status_layout = QHBoxLayout()
+        status_layout.addStretch()
+        # log_layout.addLayout(status_layout)  # 移除进度条和速率标签的添加
+
+        # 新建底部布局，放在主窗口底部，保持美观样式
+        bottom_widget = QWidget()
+        bottom_layout = QHBoxLayout(bottom_widget)
+        bottom_layout.setContentsMargins(16, 8, 16, 8)  # 左右和上下留出空间
+        bottom_layout.setSpacing(16)  # 进度条和速率标签之间留间距
+        bottom_layout.addStretch()
+        bottom_layout.addWidget(self.progress_bar)
+        bottom_layout.addWidget(self.speed_label)
+        bottom_layout.addStretch()
+        # 设置底部背景色和圆角
+        bottom_widget.setStyleSheet("""
+            background: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+        """)
+        # 将底部布局添加到主窗口主布局
+        self.centralWidget().layout().addWidget(bottom_widget)
 
     def create_menubar(self):
         """创建菜单栏并添加关于菜单项"""
@@ -471,33 +514,29 @@ QPushButton:disabled {
         self.log_text = EnhancedTextEdit()
         self.log_text.setMinimumHeight(120)
         log_layout.addWidget(self.log_text)
-        # 状态栏区域
+        # 状态栏区域（已移除进度条和速率标签）
         status_layout = QHBoxLayout()
         status_layout.addStretch()
-        # 进度条
-        self.progress_bar = AnimatedProgressBar()
-        self.progress_bar.setMaximumWidth(300)
-        self.progress_bar.setVisible(False)
-        self.progress_bar.setFormat("处理中... %p%")
-        status_layout.addWidget(self.progress_bar)
-        # 速率显示标签
-        self.speed_label = QLabel()
-        self.speed_label.setVisible(False)
-        self.speed_label.setMinimumWidth(120)
-        self.speed_label.setStyleSheet("""
-            QLabel {
-                font-size: 10px;
-                color: #28a745;
-                font-weight: 500;
-                background: #d4edda;
-                padding: 2px 6px;
-                border-radius: 3px;
-                border: 1px solid #c3e6cb;
-            }
+        # log_layout.addLayout(status_layout)  # 移除进度条和速率标签的添加
+
+        # 新建底部布局，放在主窗口底部，保持美观样式
+        bottom_widget = QWidget()
+        bottom_layout = QHBoxLayout(bottom_widget)
+        bottom_layout.setContentsMargins(16, 8, 16, 8)  # 左右和上下留出空间
+        bottom_layout.setSpacing(16)  # 进度条和速率标签之间留间距
+        bottom_layout.addStretch()
+        bottom_layout.addWidget(self.progress_bar)
+        bottom_layout.addWidget(self.speed_label)
+        bottom_layout.addStretch()
+        # 设置底部背景色和圆角
+        bottom_widget.setStyleSheet("""
+            background: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
         """)
-        status_layout.addWidget(self.speed_label)
-        status_layout.addStretch()
-        log_layout.addLayout(status_layout)
+        # 将底部布局添加到主窗口主布局
+        self.centralWidget().layout().addWidget(bottom_widget)
 
     def filter_logs(self, button):
         """过滤日志显示"""

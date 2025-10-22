@@ -127,7 +127,7 @@ class DbConfigWindow(BaseTabWidget):
         main_layout.setContentsMargins(8, 8, 8, 8)  # 减少边距
 
         # 数据库连接组 - 紧凑样式
-        db_group = QGroupBox("数据库连接")
+        db_group = QGroupBox("连接配置")
         db_group.setStyleSheet("""
             QGroupBox { 
                 font-weight: bold; 
@@ -184,9 +184,9 @@ class DbConfigWindow(BaseTabWidget):
         self.connect_btn.clicked.connect(self.connect_database)
 
         # Add Restart POS button next to connect_btn
-        self.restart_btn = QPushButton("重启pos")
+        self.restart_btn = QPushButton("重启pos（仅作用于linux）")
         self.restart_btn.setToolTip("重启POS服务，可能耗时1-4分钟")
-        self.restart_btn.setFixedWidth(80)  # 减小宽度
+        self.restart_btn.setFixedWidth(180)  # 减小宽度
         self.restart_btn.setStyleSheet("""
             QPushButton {
                 background-color: #FF9800;
@@ -705,3 +705,13 @@ class DbConfigWindow(BaseTabWidget):
 
         if self.restart_btn:
             self.restart_btn.setEnabled(True)
+
+    def showEvent(self, event):
+        """显示事件处理"""
+        super().showEvent(event)
+        self.hide_main_log_area()
+
+    def hideEvent(self, event):
+        """隐藏事件处理"""
+        super().hideEvent(event)
+        self.show_main_log_area()
