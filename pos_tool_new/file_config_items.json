@@ -39,7 +39,7 @@
   {
     "name": "新UI cloudUrlConfig.json",
     "file_path": "kpos/front2/json/cloudUrlConfig.json",
-    "enabled": false,
+    "enabled": true,
     "key_values": [
       {
         "key": "cloudify",
@@ -76,7 +76,7 @@
   {
     "name": "快餐版 cloudUrlConfig.json",
     "file_path": "kpos/front3/js/cloudUrlConfig.json",
-    "enabled": true,
+    "enabled": false,
     "key_values": [
       {
         "key": "cloudify",
@@ -141,11 +141,5 @@
         "dev_value": "https://epager.menusifudev.com/{mid}/front/start"
       }
     ]
-  },
-  {
-    "name": "1",
-    "file_path": "1",
-    "enabled": true,
-    "key_values": []
   }
 ]

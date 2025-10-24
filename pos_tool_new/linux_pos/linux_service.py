@@ -13,8 +13,6 @@ from pos_tool_new.utils import log_manager
 
 class LinuxService(Backend):
     # 常量定义
-    TOMCAT_HOME = "/opt/tomcat7"
-    WEBAPPS_DIR = f"{TOMCAT_HOME}/webapps"
     BACKUP_DIR = "/opt/backup"
     MENU_HOME = "/home/menu"
 
@@ -411,12 +409,12 @@ class LinuxService(Backend):
             self.log(f"重启Tomcat服务时出错: {str(e)}", level="error")
 
     def list_backup_items(self, host: str, username: str, password: str) -> List[str]:
-        """列出/opt/backup下所有.zip和文件夹，按时间倒序"""
+        """列出备份目录下所有.zip和文件夹，按时间倒序"""
         try:
             with self._connect_ssh(host, username, password) as ssh:
                 # 获取所有.zip和文件夹，按时间倒序
                 out, _, _ = self._execute_command(
-                    ssh, "ls -dt /opt/backup/*.zip /opt/backup/*/ 2>/dev/null"
+                    ssh, f"ls -dt {self.BACKUP_DIR}/*.zip {self.BACKUP_DIR}/*/ 2>/dev/null"
                 )
                 items = [
                     os.path.basename(line.strip().rstrip('/'))
@@ -478,8 +476,8 @@ class LinuxService(Backend):
             # 解压zip
             if is_zip:
                 if log_callback:
-                    log_callback(f"解压zip文件: /opt/backup/{item_name}")
-                unzip_cmd = f"sudo unzip /opt/backup/{item_name} -d /opt/backup/"
+                    log_callback(f"解压zip文件: {self.BACKUP_DIR}/{item_name}")
+                unzip_cmd = f"sudo unzip {self.BACKUP_DIR}/{item_name} -d {self.BACKUP_DIR}/"
                 stdin, stdout, stderr = ssh.exec_command(unzip_cmd)
                 unzip_progress = progress
                 while not stdout.channel.exit_status_ready():
@@ -506,8 +504,8 @@ class LinuxService(Backend):
                 folder_name = folder_name + '/'
 
             if log_callback:
-                log_callback(f"执行dbrestore: cd /opt/backup && dbrestore {folder_name}")
-            restore_cmd = f"cd /opt/backup && dbrestore {folder_name}"
+                log_callback(f"执行dbrestore: cd {self.BACKUP_DIR} && dbrestore {folder_name}")
+            restore_cmd = f"cd {self.BACKUP_DIR} && dbrestore {folder_name}"
             stdin, stdout, stderr = ssh.exec_command(restore_cmd)
             restore_progress = progress
             while not stdout.channel.exit_status_ready():
@@ -549,8 +547,8 @@ class LinuxService(Backend):
                 log_callback(f"开始数据备份: {host}")
             ssh = self._connect_ssh(host, username, password)
             if log_callback:
-                log_callback("执行备份脚本: cd /opt/backup && sh backup.sh")
-            cmd = "cd /opt/backup && sh backup.sh"
+                log_callback(f"执行备份脚本: cd {self.BACKUP_DIR} && sh backup.sh")
+            cmd = f"cd {self.BACKUP_DIR} && sh backup.sh"
             stdin, stdout, stderr = ssh.exec_command(cmd)
             progress = 5
             if progress_callback:
