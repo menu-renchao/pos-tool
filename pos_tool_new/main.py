@@ -618,7 +618,7 @@ class ModernSplashScreen(QWidget):
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.SplashScreen)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setFixedSize(400, 300)
+        self.setFixedSize(900, 580)
 
         self._is_dark_mode = self.palette().window().color().lightness() < 128
         self._setup_ui(gif_path)
@@ -684,7 +684,7 @@ class ModernSplashScreen(QWidget):
     def _setup_animation(self, gif_path):
         self.movie = QMovie(gif_path)
         if self.movie.isValid():
-            self.movie.setScaledSize(QSize(80, 80))
+            self.movie.setScaledSize(QSize(280, 280))
             self.animation_label.setMovie(self.movie)
         else:
             self.animation_label.setText("加载中...")

@@ -76,12 +76,5 @@
       "UPDATE `kpos`.`system_configuration` SET `val` = 'zFhFfSQP0Rb2iwcHJrcQ8B3g71MXl34TP04JN+HULceWRSS2gxione+EOdHavZDZ' WHERE `name` = 'MAX_WEARABLE_DEVICE_ALLOWED';"
     ],
     "need_restart": true
-  },
-  {
-    "description": "213423",
-    "sqls": [
-      "423423423"
-    ],
-    "need_restart": false
   }
 ]
