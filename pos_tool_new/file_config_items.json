@@ -39,7 +39,7 @@
   {
     "name": "新UI cloudUrlConfig.json",
     "file_path": "kpos/front2/json/cloudUrlConfig.json",
-    "enabled": true,
+    "enabled": false,
     "key_values": [
       {
         "key": "cloudify",

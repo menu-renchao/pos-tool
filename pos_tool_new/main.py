@@ -293,19 +293,18 @@ class MainWindow(QMainWindow):
         self.setMenuBar(menubar)
 
     def create_tab_contents(self):
-
         from pos_tool_new.linux_pos.linux_window import LinuxTabWidget
         self.linux_tab = LinuxTabWidget(self)
         self.tabs.addTab(self.linux_tab, "🐧 Linux POS")
+        from pos_tool_new.linux_file_config.file_config_window import FileConfigTabWidget
+        file_config_tab = FileConfigTabWidget(self)
+        self.tabs.addTab(file_config_tab, "⚙️ Linux配置文件")
         from pos_tool_new.windows_pos.windows_window import WindowsTabWidget
         self.windows_tab = WindowsTabWidget(self)
         self.tabs.addTab(self.windows_tab, "🪟 Windows POS")
-        from pos_tool_new.linux_file_config.file_config_window import FileConfigTabWidget
-        file_config_tab = FileConfigTabWidget(self)
-        self.tabs.addTab(file_config_tab, "⚙️ Linux配置文件管理")
         from pos_tool_new.windows_file_config.file_config_window import WindowsFileConfigTabWidget
         file_config_tab = WindowsFileConfigTabWidget(self)
-        self.tabs.addTab(file_config_tab, "⚙️ Windows配置文件管理")
+        self.tabs.addTab(file_config_tab, "⚙️ Windows配置文件")
         from pos_tool_new.db_config.db_config_window import DbConfigWindow
         self.db_config_tab = DbConfigWindow(self)
         self.tabs.addTab(self.db_config_tab, "🗄️ 数据库配置")

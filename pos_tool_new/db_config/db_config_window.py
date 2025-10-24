@@ -264,7 +264,7 @@ class DbConfigWindow(BaseTabWidget):
                 padding: 4px 8px;
                 border: 1px solid #ccc;
                 border-radius: 3px;
-                font-size: 9px;
+                font-size: 11px;
                 font-weight: bold;
             }
             QPushButton:hover {

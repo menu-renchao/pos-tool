@@ -7,7 +7,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
     QPushButton, QTableWidget, QTableWidgetItem, QCheckBox, QHeaderView,
     QDialog, QDialogButtonBox, QGroupBox, QRadioButton, QButtonGroup, QComboBox, QMessageBox,
-    QWidget, QFileDialog, QInputDialog
+    QWidget, QFileDialog, QInputDialog, QAbstractItemView, QSizePolicy
 )
 
 from pos_tool_new.main import BaseTabWidget, MainWindow
@@ -348,7 +348,45 @@ class WindowsFileConfigTabWidget(BaseTabWidget):
         self.config_table.setColumnCount(5)
         self.config_table.setAlternatingRowColors(True)
         self.config_table.setHorizontalHeaderLabels(['启用', '配置名称', '文件路径', '键值对数量', '操作'])
+        # 设置表格选择行为
+        self.config_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.config_table.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
 
+        # 设置表格尺寸策略
+        self.config_table.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.config_table.setStyleSheet("""
+                    QTableWidget {
+                        border: 1px solid #ddd;
+                        border-radius: 3px;
+                        background-color: white;
+                        selection-color: black;
+                        font-size: 11px;
+                    }
+                    QTableWidget::item {
+                        padding: 2px 4px;
+                        border-bottom: 1px solid #f0f0f0;
+                    }
+                    QTableWidget::item:selected {
+                        background-color: transparent;
+                        color: black;
+                    }
+                    QHeaderView::section {
+                        background-color: #f8f9fa;
+                        padding: 4px;
+                        border: none;
+                        font-size: 11px;
+                        font-weight: bold;
+                    }
+                    QTableWidget::item:selected {
+            background-color: #CCE8FF;  /* 选中行高亮色，可自定义 */
+        }
+        QTableWidget::item:focus {
+            background-color: #CCE8FF;
+        }
+        QTableWidget::item {
+            selection-background-color: #CCE8FF;
+        }
+                """)
         header = self.config_table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
