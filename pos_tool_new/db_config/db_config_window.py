@@ -257,6 +257,7 @@ class DbConfigWindow(BaseTabWidget):
         btn_layout.setSpacing(6)
         self.btn_add = QPushButton('新增规则')
         self.btn_exec = QPushButton('批量执行选中规则')
+        self.btn_reload_config = QPushButton('重载配置文件')
 
         # 紧凑按钮样式
         button_style = """
@@ -291,12 +292,24 @@ class DbConfigWindow(BaseTabWidget):
                 background-color: #1976D2;
             }
         """)
+        self.btn_reload_config.setStyleSheet(button_style + """
+            QPushButton {
+                background-color: #FF9800;
+                color: white;
+                border-color: #F57C00;
+            }
+            QPushButton:hover {
+                background-color: #F57C00;
+            }
+        """)
 
         self.btn_add.clicked.connect(self.on_add_config)
         self.btn_exec.clicked.connect(self.on_exec_config)
+        self.btn_reload_config.clicked.connect(self.refresh_config_table)
 
         btn_layout.addWidget(self.btn_add)
         btn_layout.addWidget(self.btn_exec)
+        btn_layout.addWidget(self.btn_reload_config)
         btn_layout.addStretch()
         config_layout.addLayout(btn_layout)
 
@@ -400,8 +413,11 @@ class DbConfigWindow(BaseTabWidget):
     def refresh_config_table(self, keyword=''):
         """刷新配置表格"""
         self.config_table.setRowCount(0)
-        items = self.service.get_config_items()
-
+        try:
+            items = self.service.get_config_items()
+        except Exception as e:
+            self.service.log(f"获取配置项失败: {e}","error")
+            return
         # 搜索过滤
         if keyword:
             keyword = keyword.strip().lower()
@@ -718,3 +734,4 @@ class DbConfigWindow(BaseTabWidget):
         """隐藏事件处理"""
         super().hideEvent(event)
         self.show_main_log_area()
+

@@ -12,7 +12,8 @@ from PyQt6.QtWidgets import (
 
 from pos_tool_new.main import BaseTabWidget, MainWindow
 from pos_tool_new.windows_file_config.file_config_service import FileConfigItem, KeyValueItem, \
-    WindowsFileConfigService, WindowsFileModifyThread
+    WindowsFileConfigService
+from pos_tool_new.work_threads import WindowsFileModifyThread
 
 
 class KeyValueEditDialog(QDialog):
@@ -428,16 +429,14 @@ class WindowsFileConfigTabWidget(BaseTabWidget):
         env_layout.addWidget(QLabel("环境:"))
 
         env_group = QButtonGroup(self)
-        qa_radio = QRadioButton("QA")
         prod_radio = QRadioButton("PROD")
+        qa_radio = QRadioButton("QA")
         dev_radio = QRadioButton("DEV")
-
-        env_group.addButton(qa_radio)
         env_group.addButton(prod_radio)
+        env_group.addButton(qa_radio)
         env_group.addButton(dev_radio)
-
-        env_layout.addWidget(qa_radio)
         env_layout.addWidget(prod_radio)
+        env_layout.addWidget(qa_radio)
         env_layout.addWidget(dev_radio)
 
         if default_env == "QA":
@@ -733,7 +732,8 @@ class WindowsFileConfigTabWidget(BaseTabWidget):
             return
 
         base_path = self.base_path.text()
-        self.execute_configs_batch(enabled_configs, connection_type, host, username, password, env, select_version, base_path)
+        self.execute_configs_batch(enabled_configs, connection_type, host, username, password, env, select_version,
+                                   base_path)
 
     def on_execute_all_enabled(self):
         """执行所有启用的配置"""
@@ -764,7 +764,8 @@ class WindowsFileConfigTabWidget(BaseTabWidget):
             return
 
         base_path = self.base_path.text()
-        self.execute_configs_batch(enabled_configs, connection_type, host, username, password, env, select_version, base_path)
+        self.execute_configs_batch(enabled_configs, connection_type, host, username, password, env, select_version,
+                                   base_path)
 
     def execute_configs_batch(self, configs: List[FileConfigItem], connection_type: str,
                               host: str, username: str, password: str, env: str, select_version: str, base_path: str):
@@ -785,7 +786,8 @@ class WindowsFileConfigTabWidget(BaseTabWidget):
 
         self.execute_next_config_in_batch(connection_type, host, username, password, env, select_version, base_path)
 
-    def execute_next_config_in_batch(self, connection_type: str, host: str, username: str, password: str, env: str, select_version: str, base_path: str):
+    def execute_next_config_in_batch(self, connection_type: str, host: str, username: str, password: str, env: str,
+                                     select_version: str, base_path: str):
         """执行批次的下一个配置"""
         if self.current_batch_index >= len(self.batch_configs):
             self.on_batch_execute_finished()
@@ -807,7 +809,8 @@ class WindowsFileConfigTabWidget(BaseTabWidget):
             lambda percent: self.on_batch_progress_updated(current_index, percent)
         )
         self.modify_thread.finished_updated.connect(
-            lambda success, msg: self.on_single_config_finished(success, msg, connection_type, host, username, password, env, select_version, base_path)
+            lambda success, msg: self.on_single_config_finished(success, msg, connection_type, host, username, password,
+                                                                env, select_version, base_path)
         )
         self.modify_thread.start()
 
@@ -819,7 +822,8 @@ class WindowsFileConfigTabWidget(BaseTabWidget):
             self.parent_window.progress_bar.setValue(current_progress)
 
     def on_single_config_finished(self, success: bool, message: str,
-                                  connection_type: str, host: str, username: str, password: str, env: str, select_version: str, base_path: str):
+                                  connection_type: str, host: str, username: str, password: str, env: str,
+                                  select_version: str, base_path: str):
         """单个配置执行完成"""
         if success:
             self.batch_success_count += 1

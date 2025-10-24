@@ -309,26 +309,25 @@ class FileConfigService(Backend):
         try:
             from pos_tool_new.linux_pos.linux_service import LinuxService
             linux_service = LinuxService()
-            # 建立SSH连接
             ssh = linux_service._connect_ssh(host, username, password)
-            # 获取绝对路径
             remote_path = file_config.get_absolute_path()
             self.log(f"远程主机: {host}, 文件路径: {remote_path}", level="info")
-            # 检查文件是否存在
+
             if not linux_service._check_file_exists(ssh, remote_path):
                 self.log(f"远程文件不存在: {remote_path}", level="error")
                 return False, f"远程文件不存在: {remote_path}"
-            # 读取文件内容
+
             content = linux_service._read_remote_file(ssh, remote_path)
             self.log(f"远程文件原始内容摘要: {content[:500]}", level="debug")
-            # 修改内容
+
             new_content = self.modify_remote_file_content(content, file_config, env)
             self.log(f"远程文件修改后内容摘要: {new_content[:500]}", level="debug")
+
             if content == new_content:
                 self.log(f"文件内容无需修改: {remote_path}", level="info")
                 ssh.close()
                 return True, "文件内容无需修改"
-            # 写入新内容
+
             linux_service._write_remote_file(ssh, remote_path, new_content)
             self.log(f"文件已写入新内容: {remote_path}", level="info")
             ssh.close()

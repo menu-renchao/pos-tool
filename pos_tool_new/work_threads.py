@@ -4,6 +4,7 @@ from PyQt6.QtCore import QThread, pyqtSignal
 
 from pos_tool_new.download_war.download_war_service import DownloadWarService
 from pos_tool_new.linux_pos.linux_service import LinuxService
+from pos_tool_new.windows_file_config.file_config_service import WindowsFileConfigService, FileConfigItem
 from pos_tool_new.windows_pos.windows_service import WindowsService
 
 
@@ -552,3 +553,146 @@ class FileConfigModifyThread(BaseWorkerThread):
             self.status_updated.emit(message)
         else:
             self.error_occurred.emit(message)
+
+class WindowsFileModifyThread(BaseWorkerThread):
+    """Windows文件修改线程"""
+    def __init__(self, service: WindowsFileConfigService, connection_type: str,
+                 host: str, username: str, password: str, file_config: FileConfigItem, env: str, select_version: str,
+                 base_path: str):
+        super().__init__()
+        self.service: WindowsFileConfigService = service
+        self.connection_type = connection_type
+        self.host = host
+        self.username = username
+        self.password = password
+        self.file_config = file_config
+        self.env = env
+        self.select_version = select_version
+        self.base_path = base_path
+
+    def run(self):
+        try:
+            self.progress_text_updated.emit(f"开始执行配置: {self.file_config.name}")
+            self.progress_updated.emit(10,None, None, None)
+
+            if self.connection_type == "local":
+                success, message = self._modify_local_file()
+            else:
+                success, message = self._modify_remote_file()
+
+            self.progress_updated.emit(100,None, None, None)
+            self.finished_updated.emit(success, message)
+
+        except Exception as e:
+            self.error_occurred.emit(f"执行失败: {str(e)}")
+            self.finished_updated.emit(False, f"执行失败: {str(e)}")
+
+    def _modify_local_file(self) -> tuple:
+        """修改本地文件"""
+        file_path = self.file_config.get_absolute_path(self.select_version, self.base_path)
+        try:
+            import os
+            if not os.path.exists(file_path):
+                user = os.getlogin() if hasattr(os, 'getlogin') else 'unknown'
+                msg = f"本地文件不存在: {file_path}，当前用户: {user}。请检查路径拼接是否正确，文件是否已部署。"
+
+                from pos_tool_new.utils.log_manager import global_log_manager
+                self.service.log(msg, "error")
+                return False, msg
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            from pos_tool_new.utils.log_manager import global_log_manager
+            self.service.log(f"[修改前内容] {file_path}:\n{content}", "debug")
+            self.progress_updated.emit(50,None, None, None)
+            new_content = self.service.modify_file_content(content, self.file_config, self.env, self.select_version)
+
+            self.service.log(f"[修改后内容] {file_path}:\n{new_content}", "debug")
+            if content == new_content:
+                msg = "文件内容无需修改"
+                self.service.log(msg, "info")
+                return True, msg
+            # 移除备份逻辑，直接写入新内容
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(new_content)
+            self.progress_updated.emit(90,None, None, None)
+            msg = f"本地文件修改成功: {file_path}"
+            self.service.log(msg, "info")
+            return True, msg
+        except Exception as e:
+            import os
+            user = os.getlogin() if hasattr(os, 'getlogin') else 'unknown'
+            msg = f"修改本地文件失败: {file_path}，当前用户: {user}，错误: {str(e)}"
+            if "Permission denied" in str(e):
+                msg += "。请检查本地用户权限，确保有读写该文件的权限。"
+            elif "No such file" in str(e):
+                msg += "。请检查路径拼接是否正确，文件是否已部署。"
+
+            from pos_tool_new.utils.log_manager import global_log_manager
+            self.service.log(msg, "error")
+            return False, msg
+
+    def _modify_remote_file(self) -> tuple:
+        """修改远程文件（通过OpenSSH）"""
+        file_path = self.file_config.get_absolute_path(self.select_version, self.base_path)
+        try:
+            import paramiko
+            self.progress_text_updated.emit("正在连接远程主机...")
+            self.progress_updated.emit(20,None, None, None)
+            ssh = paramiko.SSHClient()
+            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            ssh.connect(self.host, username=self.username, password=self.password)
+            self.progress_updated.emit(40,None, None, None)
+            self.progress_text_updated.emit("正在读取远程文件...")
+            sftp = ssh.open_sftp()
+            try:
+                with sftp.file(file_path, 'r') as f:
+                    content = f.read().decode('utf-8')
+            except Exception as e:
+                msg = f"远程文件不存在或无法读取: {file_path}，远程用户: {self.username}，错误: {str(e)}"
+                if "Permission denied" in str(e):
+                    msg += "。请检查远程用户权限，确保有读写该文件的权限。"
+                elif "No such file" in str(e):
+                    msg += "。请检查路径拼接是否正确，文件是否已部署。"
+
+                from pos_tool_new.utils.log_manager import global_log_manager
+                self.service.log(msg, "error")
+                return False, msg
+
+            from pos_tool_new.utils.log_manager import global_log_manager
+            self.service.log(f"[修改前内容] {file_path}:\n{content}", "debug")
+            self.progress_updated.emit(60,None, None, None)
+            self.progress_text_updated.emit("正在修改文件内容...")
+            new_content = self.service.modify_file_content(content, self.file_config, self.env, self.select_version)
+
+            self.service.log(f"[修改后内容] {file_path}:\n{new_content}", "debug")
+            if content == new_content:
+                ssh.close()
+                msg = "文件内容无需修改"
+                self.service.log(msg, "info")
+                return True, msg
+            self.progress_updated.emit(80,None, None, None)
+            self.progress_text_updated.emit("正在写入远程文件...")
+            try:
+                # 移除远程备份逻辑，直接写入新内容
+                with sftp.file(file_path, 'w') as f:
+                    f.write(new_content.encode('utf-8'))
+            except Exception as e:
+                msg = f"写入远程文件失败: {file_path}，远程用户: {self.username}，错误: {str(e)}"
+                if "Permission denied" in str(e):
+                    msg += "。请检查远程用户权限，确保有写该文件的权限。"
+
+                self.service.log(msg, "error")
+                return False, msg
+            ssh.close()
+            self.progress_updated.emit(100,None, None, None)
+            msg = f"远程文件修改成功: {file_path}"
+
+            self.service.log(msg, "info")
+            return True, msg
+        except Exception as e:
+            msg = f"远程文件操作失败: {str(e)}"
+
+            from pos_tool_new.utils.log_manager import global_log_manager
+            self.service.log(msg, "error")
+            return False, msg

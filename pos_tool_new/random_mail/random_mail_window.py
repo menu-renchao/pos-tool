@@ -122,9 +122,9 @@ class RandomMailTabWidget(BaseTabWidget):
                     self.loading_movie = QMovie(gif_path)
                     if self.loading_movie.isValid():
                         from PyQt6.QtCore import QSize
-                        self.loading_movie.setScaledSize(QSize(128, 128))  # 设置动画缩放尺寸
+                        self.loading_movie.setScaledSize(QSize(280, 280))  # 设置动画缩放尺寸
                         loading_gif = QLabel()
-                        loading_gif.setFixedSize(128, 128)  # 设置标签固定尺寸
+                        loading_gif.setFixedSize(280, 280)  # 设置标签固定尺寸
                         loading_gif.setMovie(self.loading_movie)
                         loading_gif.setAlignment(Qt.AlignmentFlag.AlignCenter)
                         layout.addWidget(loading_gif)

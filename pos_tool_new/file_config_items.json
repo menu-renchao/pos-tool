@@ -39,7 +39,7 @@
   {
     "name": "新UI cloudUrlConfig.json",
     "file_path": "kpos/front2/json/cloudUrlConfig.json",
-    "enabled": false,
+    "enabled": true,
     "key_values": [
       {
         "key": "cloudify",
@@ -113,7 +113,7 @@
   {
     "name": "云报表",
     "file_path": "cloudDatahub/WEB-INF/classes/application.properties",
-    "enabled": true,
+    "enabled": false,
     "key_values": [
       {
         "key": "application.environmentType",
