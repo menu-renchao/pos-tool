@@ -375,6 +375,10 @@ class LinuxService(Backend):
                 if progress_callback:
                     progress_callback(85)
 
+                # 解压文件前，删除同名文件夹
+                folder_name = os.path.splitext(os.path.basename(remote_file))[0]
+                self.log(f"删除同名文件夹: {self.MENU_HOME}/{folder_name}", level="warning")
+                self._execute_command(ssh, f"sudo rm -rf {self.MENU_HOME}/{folder_name}")
                 # 解压文件
                 self.log("解压文件 ...", level="info")
                 out, err, exit_status = self._execute_command(ssh,
@@ -395,7 +399,7 @@ class LinuxService(Backend):
         try:
             self.log("正在重启Tomcat服务...", level="info")
             with self._connect_ssh(host, username, password) as ssh:
-                cmd = "sudo systemctl stop tomcat.service && sudo systemctl start tomcat.service"
+                cmd = "sudo systemctl restart tomcat"
                 stdin, stdout, stderr = ssh.exec_command(cmd, get_pty=True)
                 stdin.write(f"{password}\n")
                 stdin.flush()
@@ -561,7 +565,6 @@ class LinuxService(Backend):
                 if progress_callback:
                     progress_callback(progress)
 
-            # 命令完成后处理输出
             for line in stdout:
                 if log_callback:
                     log_callback(line.strip())
