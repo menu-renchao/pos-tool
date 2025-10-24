@@ -2,7 +2,7 @@
   {
     "name": "旧UI cloudUrlConfig.json",
     "file_path": "kpos/front/js/cloudUrlConfig.json",
-    "enabled": false,
+    "enabled": true,
     "key_values": [
       {
         "key": "cloudify",
@@ -76,7 +76,7 @@
   {
     "name": "快餐版 cloudUrlConfig.json",
     "file_path": "kpos/front3/js/cloudUrlConfig.json",
-    "enabled": false,
+    "enabled": true,
     "key_values": [
       {
         "key": "cloudify",
