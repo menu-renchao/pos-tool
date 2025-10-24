@@ -4,7 +4,7 @@ from PyQt6.QtCore import QThread, pyqtSignal
 
 from pos_tool_new.download_war.download_war_service import DownloadWarService
 from pos_tool_new.linux_pos.linux_service import LinuxService
-from pos_tool_new.windows_file_config.file_config_service import WindowsFileConfigService, FileConfigItem
+from pos_tool_new.windows_file_config.file_config_win_service import WindowsFileConfigService, FileConfigItem
 from pos_tool_new.windows_pos.windows_service import WindowsService
 
 

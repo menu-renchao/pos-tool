@@ -57,7 +57,7 @@ class FileConfigService(Backend):
     def __init__(self):
         super().__init__()
         self.APP_DIR = os.path.dirname(sys.argv[0])
-        self.CONFIG_JSON_PATH = os.path.join(self.APP_DIR, 'file_config_items.json')
+        self.CONFIG_JSON_PATH = os.path.join(self.APP_DIR, 'file_config.json')
         self._config_items: List[FileConfigItem] = []
         self._load_config()
 
@@ -153,18 +153,48 @@ class FileConfigService(Backend):
             return False
 
     def update_config(self, old_name: str, new_config: FileConfigItem) -> bool:
-        """更新配置项"""
+        """
+        更新配置项，记录详细差异日志
+        """
         try:
             for i, item in enumerate(self._config_items):
                 if item.name == old_name:
                     # 如果名称改变，检查新名称是否重复
                     if old_name != new_config.name:
-                        if any(item.name == new_config.name for item in self._config_items):
+                        if any(x.name == new_config.name for x in self._config_items):
                             return False
+
+                    # 记录差异日志
+                    changes = []
+                    if item.name != new_config.name:
+                        changes.append(f"name: '{item.name}' -> '{new_config.name}'")
+                    if item.file_path != new_config.file_path:
+                        changes.append(f"file_path: '{item.file_path}' -> '{new_config.file_path}'")
+                    if item.enabled != new_config.enabled:
+                        changes.append(f"enabled: {item.enabled} -> {new_config.enabled}")
+                    # 对比 key_values
+                    old_keys = {kv.key: kv for kv in item.key_values}
+                    new_keys = {kv.key: kv for kv in new_config.key_values}
+                    for key in old_keys:
+                        if key not in new_keys:
+                            changes.append(f"删除键: {key}")
+                        else:
+                            old_kv, new_kv = old_keys[key], new_keys[key]
+                            for env in ["QA", "PROD", "DEV"]:
+                                old_val = old_kv.get_value_by_env(env)
+                                new_val = new_kv.get_value_by_env(env)
+                                if old_val != new_val:
+                                    changes.append(f"{key} [{env}]: '{old_val}' -> '{new_val}'")
+                    for key in new_keys:
+                        if key not in old_keys:
+                            changes.append(f"新增键: {key}，值: QA='{new_keys[key].qa_value}', PROD='{new_keys[key].prod_value}', DEV='{new_keys[key].dev_value}'")
+                    if changes:
+                        self.log(f"更新文件配置项: {old_name} -> {new_config.name}，变更: " + "; ".join(changes), level="info")
+                    else:
+                        self.log(f"更新文件配置项: {old_name} -> {new_config.name}，无字段变更", level="info")
 
                     self._config_items[i] = new_config
                     self._save_config()
-                    self.log(f"更新文件配置项: {old_name} -> {new_config.name}", level="info")
                     return True
             return False
         except Exception as e:
@@ -240,6 +270,8 @@ class FileConfigService(Backend):
                     current = current[key]
                 if keys[-1] in current:
                     current[keys[-1]] = target_value
+                else:
+                    self.log(f"未找到字段: {kv_item.key}", level="warning")
             after = json_lib.dumps(data, ensure_ascii=False)[:500]
             self.log(f"JSON内容修改前摘要: {before}", level="debug")
             self.log(f"JSON内容修改后摘要: {after}", level="debug")
@@ -263,14 +295,16 @@ class FileConfigService(Backend):
             key_match = re.match(r'^([^=]+)=.*', line_stripped)
             if key_match:
                 key = key_match.group(1).strip()
+                found = False
                 for kv_item in file_config.key_values:
                     if kv_item.key == key:
                         target_value = kv_item.get_value_by_env(env)
                         if target_value is not None:
                             new_lines.append(f"{key} = {target_value}")
                             modified_keys.add(key)
+                        found = True
                         break
-                else:
+                if not found:
                     new_lines.append(line)
             else:
                 new_lines.append(line)
@@ -280,6 +314,7 @@ class FileConfigService(Backend):
                 target_value = kv_item.get_value_by_env(env)
                 if target_value is not None:
                     new_lines.append(f"{kv_item.key} = {target_value}")
+                    self.log(f"未找到字段: {kv_item.key}", level="warning")
         after = '\n'.join(new_lines)[:500]
         self.log(f"Properties内容修改前摘要: {before}", level="debug")
         self.log(f"Properties内容修改后摘要: {after}", level="debug")
@@ -288,20 +323,22 @@ class FileConfigService(Backend):
     def _modify_text_content(self, content: str, file_config: FileConfigItem, env: str) -> str:
         """修改普通文本文件内容"""
         before = content[:500]
-        # 简单的键值对替换
+        modified_keys = set()
+        result = content
         for kv_item in file_config.key_values:
             if not kv_item.key:
                 continue
             target_value = kv_item.get_value_by_env(env)
             if target_value:
-                # 简单的模式匹配替换
-                pattern = rf'{re.escape(kv_item.key)}\s*[:=]\s*[^\n\r]*'
-                replacement = f'{kv_item.key}: {target_value}'
-                content = re.sub(pattern, replacement, content)
-        after = content[:500]
+                if kv_item.key in content:
+                    result = result.replace(kv_item.key, target_value)
+                    modified_keys.add(kv_item.key)
+                else:
+                    self.log(f"未找到字段: {kv_item.key}", level="warning")
+        after = result[:500]
         self.log(f"文本内容修改前摘要: {before}", level="debug")
         self.log(f"文本内容修改后摘要: {after}", level="debug")
-        return content
+        return result
 
     def execute_config_modification(self, host: str, username: str, password: str,
                                     file_config: FileConfigItem, env: str) -> Tuple[bool, str]:
@@ -335,4 +372,3 @@ class FileConfigService(Backend):
         except Exception as e:
             self.log(f"修改文件失败: {str(e)}", level="error")
             return False, f"修改文件失败: {str(e)}"
-

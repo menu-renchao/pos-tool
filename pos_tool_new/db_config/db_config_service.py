@@ -7,7 +7,7 @@ from pos_tool_new.backend import Backend
 from pos_tool_new.utils.db_utils import get_mysql_connection
 
 APP_DIR = os.path.dirname(sys.argv[0])
-CONFIG_JSON_PATH = os.path.join(APP_DIR, 'config_items.json')
+CONFIG_JSON_PATH = os.path.join(APP_DIR, 'db_config.json')
 
 class ConfigItem:
     def __init__(self, description: str, sqls: List[str], need_restart: bool):
