@@ -878,3 +878,10 @@ class WindowsFileConfigTabWidget(BaseTabWidget):
         """重新加载配置文件并刷新所有tab"""
         self.service._load_config()
         self.refresh_config_list()
+
+    def closeEvent(self, event):
+        if hasattr(self, 'modify_thread') and self.modify_thread.isRunning():
+            self.modify_thread.quit()
+            self.modify_thread.wait()
+        super().closeEvent(event)
+

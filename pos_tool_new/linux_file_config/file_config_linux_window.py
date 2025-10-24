@@ -978,3 +978,9 @@ QTableWidget::item {
         self.service._load_config()
         self.refresh_config_list()
 
+    def closeEvent(self, event):
+        if hasattr(self, 'modify_thread') and self.modify_thread.isRunning():
+            self.modify_thread.quit()
+            self.modify_thread.wait()
+        super().closeEvent(event)
+
