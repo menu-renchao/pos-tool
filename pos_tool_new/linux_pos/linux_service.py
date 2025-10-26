@@ -13,6 +13,8 @@ from pos_tool_new.utils import log_manager
 
 class LinuxService(Backend):
     # 常量定义
+    TOMCAT_HOME = "/opt/tomcat7"
+    WEBAPPS_DIR = f"{TOMCAT_HOME}/webapps"
     BACKUP_DIR = "/opt/backup"
     MENU_HOME = "/home/menu"
 
