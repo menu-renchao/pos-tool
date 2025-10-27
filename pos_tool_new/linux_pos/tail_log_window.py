@@ -1,10 +1,10 @@
-from PyQt6.QtGui import QTextDocument
+from PyQt6.QtCore import Qt, pyqtSignal, QRegularExpression, QTimer
 from PyQt6.QtCore import Qt, pyqtSignal, QRegularExpression, QTimer
 from PyQt6.QtGui import QTextCursor, QSyntaxHighlighter, QTextCharFormat, QColor, QFont
 from PyQt6.QtGui import QTextDocument
 from PyQt6.QtWidgets import (QDialog, QHBoxLayout, QVBoxLayout, QLineEdit, QCheckBox,
                              QPushButton, QLabel, QTextEdit, QSizePolicy)
-from PyQt6.QtWidgets import (QProgressBar, QMessageBox)
+from PyQt6.QtWidgets import (QProgressBar)
 
 from pos_tool_new.work_threads import RemoteTailLogThread
 
@@ -401,6 +401,7 @@ class TailLogWindow(QDialog):
     def setup_ui(self):
         """设置UI界面"""
         self.setWindowTitle(f"实时日志 - {self.file_path.split('/')[-1]}")
+        self.setWindowFlag(Qt.WindowType.WindowMaximizeButtonHint, True)
         self.resize(1400, 700)
         self.setMinimumSize(800, 400)
 
@@ -584,7 +585,6 @@ class TailLogWindow(QDialog):
             self.thread.connection_status.connect(self.update_connection_status)
             self.thread.start()
             self.progress_bar.setVisible(True)
-
 
     def append_log(self, text):
         """追加日志内容"""

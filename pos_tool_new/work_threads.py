@@ -24,7 +24,6 @@ class BaseWorkerThread(QThread):
     def run(self):
         try:
             self._run_impl()
-            self.finished_updated.emit(True, "操作完成")
         except Exception as e:
             error_msg = f"执行失败: {str(e)}"
             self.error_occurred.emit(error_msg)
@@ -59,6 +58,7 @@ class RestartPosThreadLinux(BaseWorkerThread):
             self.host, self.username, self.password
         )
         self.progress_text_updated.emit("Linux POS服务重启完成")
+        self.finished_updated.emit(True, "Linux POS服务重启完成")
 
 
 class ReplaceWarThreadLinux(BaseWorkerThread):
@@ -99,6 +99,7 @@ class ReplaceWarThreadLinux(BaseWorkerThread):
             speed_callback=speed_callback
         )
         self.progress_text_updated.emit("Linux WAR包替换完成")
+        self.finished_updated.emit(True, "Linux WAR包替换完成")
 
 
 class RestartPosThreadWindows(BaseWorkerThread):
@@ -115,6 +116,7 @@ class RestartPosThreadWindows(BaseWorkerThread):
             self.base_path, self.selected_version
         )
         self.progress_text_updated.emit("Windows POS服务重启完成")
+        self.finished_updated.emit(True, "Windows POS服务重启完成")
 
 
 class ReplaceWarThreadWindows(BaseWorkerThread):
@@ -134,6 +136,7 @@ class ReplaceWarThreadWindows(BaseWorkerThread):
             self.base_path, self.selected_version, self.local_war_path
         )
         self.progress_text_updated.emit("Windows WAR包替换完成")
+        self.finished_updated.emit(True, "Windows WAR包替换完成")
 
 
 class UpgradeThread(BaseWorkerThread):
@@ -158,6 +161,7 @@ class UpgradeThread(BaseWorkerThread):
             progress_callback
         )
         self.progress_text_updated.emit("升级流程完成")
+        self.finished_updated.emit(True, "升级流程完成")
 
 
 class UploadUpgradePackageThread(BaseWorkerThread):
@@ -184,6 +188,7 @@ class UploadUpgradePackageThread(BaseWorkerThread):
             progress_callback, speed_callback
         )
         self.progress_text_updated.emit("升级包上传完成")
+        self.finished_updated.emit(True, "升级包上传完成")
 
 
 class RestartTomcatThread(BaseWorkerThread):
@@ -201,6 +206,7 @@ class RestartTomcatThread(BaseWorkerThread):
             self.host, self.username, self.password
         )
         self.progress_text_updated.emit("Tomcat服务重启完成")
+        self.finished_updated.emit(True, "Tomcat服务重启完成")
 
 
 class BackupThread(BaseWorkerThread):
@@ -234,6 +240,7 @@ class BackupThread(BaseWorkerThread):
             log_callback=log_callback
         )
         self.progress_text_updated.emit("数据备份完成")
+        self.finished_updated.emit(True, "数据备份完成")
 
 
 class RestoreThread(BaseWorkerThread):
@@ -271,6 +278,7 @@ class RestoreThread(BaseWorkerThread):
             log_callback=log_callback
         )
         self.progress_text_updated.emit("数据恢复完成")
+        self.finished_updated.emit(True, "数据恢复完成")
 
 
 class SshTestThread(BaseWorkerThread):
@@ -281,7 +289,7 @@ class SshTestThread(BaseWorkerThread):
         self.username = username
         self.password = password
 
-    def run(self):
+    def _run_impl(self):
         try:
             result = self.service.test_ssh(self.host, self.username, self.password)
             if result:
@@ -309,6 +317,7 @@ class PipelineUpgradeThread(BaseWorkerThread):
             self._upload_and_extract_war()
             self._modify_config_files()
             self._start_pos()
+            self.finished_updated.emit(True, "一键升级完成")
         except Exception as e:
             self._handle_exception(e)
 
@@ -387,6 +396,7 @@ class PipelinePackageUpgradeThread(BaseWorkerThread):
             log_callback=log_callback,
             progress_text_callback=progress_text_callback
         )
+        self.finished_updated.emit(True, "一键包升级完成")
 
 
 class DownloadWarWorker(BaseWorkerThread):
@@ -395,6 +405,13 @@ class DownloadWarWorker(BaseWorkerThread):
         self.url = url
         self.service = service
         self.expected_size_mb = expected_size_mb
+        self._is_cancelled = False
+
+    def cancel(self):
+        self._is_cancelled = True
+
+    def is_cancelled(self):
+        return self._is_cancelled
 
     def _run_impl(self):
         self.progress_text_updated.emit("开始下载WAR包...")
@@ -409,7 +426,8 @@ class DownloadWarWorker(BaseWorkerThread):
             success, result = self.service.download_war(
                 self.url,
                 progress_callback=progress_callback,
-                expected_size_mb=self.expected_size_mb
+                expected_size_mb=self.expected_size_mb,
+                is_cancelled=self.is_cancelled
             )
 
             if not success:
@@ -510,7 +528,7 @@ class DatabaseConnectThread(BaseWorkerThread):
         self.license_service = license_service
         self.host = host
 
-    def run(self):
+    def _run_impl(self):
         try:
             success, message = self.license_service.connect_database(self.host)
             self.finished_updated.emit(success, message)
@@ -554,8 +572,10 @@ class FileConfigModifyThread(BaseWorkerThread):
         else:
             self.error_occurred.emit(message)
 
+
 class WindowsFileModifyThread(BaseWorkerThread):
     """Windows文件修改线程"""
+
     def __init__(self, service: WindowsFileConfigService, connection_type: str,
                  host: str, username: str, password: str, file_config: FileConfigItem, env: str, select_version: str,
                  base_path: str):
@@ -570,17 +590,17 @@ class WindowsFileModifyThread(BaseWorkerThread):
         self.select_version = select_version
         self.base_path = base_path
 
-    def run(self):
+    def _run_impl(self):
         try:
             self.progress_text_updated.emit(f"开始执行配置: {self.file_config.name}")
-            self.progress_updated.emit(10,None, None, None)
+            self.progress_updated.emit(10, None, None, None)
 
             if self.connection_type == "local":
                 success, message = self._modify_local_file()
             else:
                 success, message = self._modify_remote_file()
 
-            self.progress_updated.emit(100,None, None, None)
+            self.progress_updated.emit(100, None, None, None)
             self.finished_updated.emit(success, message)
 
         except Exception as e:
@@ -604,7 +624,7 @@ class WindowsFileModifyThread(BaseWorkerThread):
 
             from pos_tool_new.utils.log_manager import global_log_manager
             self.service.log(f"[修改前内容] {file_path}:\n{content}", "debug")
-            self.progress_updated.emit(50,None, None, None)
+            self.progress_updated.emit(50, None, None, None)
             new_content = self.service.modify_file_content(content, self.file_config, self.env, self.select_version)
 
             self.service.log(f"[修改后内容] {file_path}:\n{new_content}", "debug")
@@ -615,7 +635,7 @@ class WindowsFileModifyThread(BaseWorkerThread):
             # 移除备份逻辑，直接写入新内容
             with open(file_path, 'w', encoding='utf-8') as f:
                 f.write(new_content)
-            self.progress_updated.emit(90,None, None, None)
+            self.progress_updated.emit(90, None, None, None)
             msg = f"本地文件修改成功: {file_path}"
             self.service.log(msg, "info")
             return True, msg
@@ -638,11 +658,11 @@ class WindowsFileModifyThread(BaseWorkerThread):
         try:
             import paramiko
             self.progress_text_updated.emit("正在连接远程主机...")
-            self.progress_updated.emit(20,None, None, None)
+            self.progress_updated.emit(20, None, None, None)
             ssh = paramiko.SSHClient()
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             ssh.connect(self.host, username=self.username, password=self.password)
-            self.progress_updated.emit(40,None, None, None)
+            self.progress_updated.emit(40, None, None, None)
             self.progress_text_updated.emit("正在读取远程文件...")
             sftp = ssh.open_sftp()
             try:
@@ -661,7 +681,7 @@ class WindowsFileModifyThread(BaseWorkerThread):
 
             from pos_tool_new.utils.log_manager import global_log_manager
             self.service.log(f"[修改前内容] {file_path}:\n{content}", "debug")
-            self.progress_updated.emit(60,None, None, None)
+            self.progress_updated.emit(60, None, None, None)
             self.progress_text_updated.emit("正在修改文件内容...")
             new_content = self.service.modify_file_content(content, self.file_config, self.env, self.select_version)
 
@@ -671,7 +691,7 @@ class WindowsFileModifyThread(BaseWorkerThread):
                 msg = "文件内容无需修改"
                 self.service.log(msg, "info")
                 return True, msg
-            self.progress_updated.emit(80,None, None, None)
+            self.progress_updated.emit(80, None, None, None)
             self.progress_text_updated.emit("正在写入远程文件...")
             try:
                 # 移除远程备份逻辑，直接写入新内容
@@ -685,7 +705,7 @@ class WindowsFileModifyThread(BaseWorkerThread):
                 self.service.log(msg, "error")
                 return False, msg
             ssh.close()
-            self.progress_updated.emit(100,None, None, None)
+            self.progress_updated.emit(100, None, None, None)
             msg = f"远程文件修改成功: {file_path}"
 
             self.service.log(msg, "info")
@@ -697,7 +717,8 @@ class WindowsFileModifyThread(BaseWorkerThread):
             self.service.log(msg, "error")
             return False, msg
 
-class RemoteTailLogThread(QThread):
+
+class RemoteTailLogThread(BaseWorkerThread):
     log_updated = pyqtSignal(str)
     connection_status = pyqtSignal(str, str)  # 新增：连接状态信号
 
@@ -711,22 +732,25 @@ class RemoteTailLogThread(QThread):
         self.interval = interval
         self._running = True
 
-    def run(self):
+    def stop(self):
+        self._running = False
+
+    def _run_impl(self):
         self.connection_status.emit("connecting", "连接中...")  # 发射连接中信号
+
         def stop_flag():
             return not self._running
+
         def on_log(line):
             # 第一次收到日志时，认为连接成功
             if not hasattr(self, '_connected'):
                 self._connected = True
                 self.connection_status.emit("connected", "已连接")
             self.log_updated.emit(line)
+
         try:
             self.service.stream_remote_log_tail(
                 self.host, self.username, self.password, self.remote_file, self.interval, on_log, stop_flag
             )
         except Exception as e:
             self.connection_status.emit("error", f"连接失败: {str(e)}")
-
-    def stop(self):
-        self._running = False

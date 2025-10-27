@@ -26,9 +26,10 @@ class DownloadWarService(Backend):
                     return new_url
         return None
 
-    def download_war(self, url, progress_callback=None, expected_size_mb=None):
+    def download_war(self, url, progress_callback=None, expected_size_mb=None, is_cancelled=None):
         try:
             import time
+            import os
             initial_url = url
             headers = {
                 "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
@@ -81,6 +82,14 @@ class DownloadWarService(Backend):
             last_downloaded = 0
             with open(filename, 'wb') as f:
                 for chunk in file_response.iter_content(chunk_size=chunk_size):
+                    if is_cancelled and is_cancelled():
+                        self.log("用户取消下载，正在清理文件...", level="warning")
+                        f.close()
+                        try:
+                            os.remove(filename)
+                        except Exception:
+                            pass
+                        return False, "下载已取消"
                     if chunk:
                         f.write(chunk)
                         downloaded += len(chunk)
