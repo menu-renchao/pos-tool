@@ -699,6 +699,7 @@ class WindowsFileModifyThread(BaseWorkerThread):
 
 class RemoteTailLogThread(QThread):
     log_updated = pyqtSignal(str)
+    connection_status = pyqtSignal(str, str)  # 新增：连接状态信号
 
     def __init__(self, service, host, username, password, remote_file, interval=0.5):
         super().__init__()
@@ -711,13 +712,21 @@ class RemoteTailLogThread(QThread):
         self._running = True
 
     def run(self):
+        self.connection_status.emit("connecting", "连接中...")  # 发射连接中信号
         def stop_flag():
             return not self._running
         def on_log(line):
+            # 第一次收到日志时，认为连接成功
+            if not hasattr(self, '_connected'):
+                self._connected = True
+                self.connection_status.emit("connected", "已连接")
             self.log_updated.emit(line)
-        self.service.stream_remote_log_tail(
-            self.host, self.username, self.password, self.remote_file, self.interval, on_log, stop_flag
-        )
+        try:
+            self.service.stream_remote_log_tail(
+                self.host, self.username, self.password, self.remote_file, self.interval, on_log, stop_flag
+            )
+        except Exception as e:
+            self.connection_status.emit("error", f"连接失败: {str(e)}")
 
     def stop(self):
         self._running = False
