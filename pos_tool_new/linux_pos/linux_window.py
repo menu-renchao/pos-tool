@@ -186,6 +186,11 @@ class LinuxTabWidget(BaseTabWidget):
         self.download_log_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         self.download_log_btn.clicked.connect(self.on_download_log)
         ssh_input_layout.addWidget(self.download_log_btn)
+        # 添加实时日志按钮
+        self.tail_log_btn = QPushButton("实时日志")
+        self.tail_log_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        ssh_input_layout.addWidget(self.tail_log_btn)
+        self.tail_log_btn.clicked.connect(self.on_tail_log_clicked)
         ssh_main_layout.addLayout(ssh_input_layout)
         self.layout.addWidget(self.ssh_group)
 
@@ -993,3 +998,31 @@ class LinuxTabWidget(BaseTabWidget):
             self.parent_window.progress_bar.setVisible(False)
             self.parent_window.speed_label.setVisible(False)
             self.parent_window.progress_bar.update()
+
+    def on_tail_log_clicked(self):
+        # 校验SSH连接参数
+        is_valid, error_msg, host, username, password = self._validate_connection_params()
+        if not is_valid:
+            QMessageBox.warning(self, "参数错误", error_msg)
+            return
+        try:
+            # 连接SSH并获取远程日志列表
+            ssh = self.service._connect_ssh(host, username, password)
+            log_files = self.service.scan_remote_logs(ssh)
+            if not log_files:
+                QMessageBox.information(self, "无日志文件", "远程目录下未找到日志文件！")
+                ssh.close()
+                return
+            # 选择远程日志文件
+            file, ok = QInputDialog.getItem(self, "选择日志文件", "请选择要实时查看的日志文件：", log_files, 0, False)
+            if not ok or not file:
+                ssh.close()
+                return
+            remote_file = f"/opt/tomcat7/logs/{file}"
+            ssh.close()
+            # 打开实时日志窗口（远程模式）
+            from pos_tool_new.linux_pos.tail_log_window import TailLogWindow
+            self.tail_log_window = TailLogWindow(remote_file, ssh_params=(self.service, host, username, password), remote=True)
+            self.tail_log_window.show()
+        except Exception as e:
+            QMessageBox.critical(self, "错误", f"获取远程日志文件失败：{str(e)}")

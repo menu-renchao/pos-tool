@@ -696,3 +696,28 @@ class WindowsFileModifyThread(BaseWorkerThread):
             from pos_tool_new.utils.log_manager import global_log_manager
             self.service.log(msg, "error")
             return False, msg
+
+class RemoteTailLogThread(QThread):
+    log_updated = pyqtSignal(str)
+
+    def __init__(self, service, host, username, password, remote_file, interval=0.5):
+        super().__init__()
+        self.service = service
+        self.host = host
+        self.username = username
+        self.password = password
+        self.remote_file = remote_file
+        self.interval = interval
+        self._running = True
+
+    def run(self):
+        def stop_flag():
+            return not self._running
+        def on_log(line):
+            self.log_updated.emit(line)
+        self.service.stream_remote_log_tail(
+            self.host, self.username, self.password, self.remote_file, self.interval, on_log, stop_flag
+        )
+
+    def stop(self):
+        self._running = False

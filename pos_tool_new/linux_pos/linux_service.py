@@ -683,3 +683,32 @@ class LinuxService(Backend):
             if log_callback:
                 log_callback(f"升级异常: {str(e)}", "error")
             raise
+
+    def stream_remote_log_tail(self, host, username, password, remote_file, interval, on_log, stop_flag):
+        """
+        通过SSH tail -F 远程日志文件，持续回调新内容。
+        on_log: 回调函数，接收新日志内容
+        stop_flag: 可调用的函数，返回True时停止
+        """
+        import paramiko
+        ssh = None
+        channel = None
+        try:
+            ssh = self._connect_ssh(host, username, password)
+            channel = ssh.get_transport().open_session()
+            channel.exec_command(f'tail -F "{remote_file}"')
+            while not stop_flag():
+                if channel.recv_ready():
+                    line = channel.recv(4096).decode(errors='ignore')
+                    if line:
+                        on_log(line)
+                else:
+                    import time
+                    time.sleep(interval)
+        except Exception as e:
+            on_log(f"\n[远程实时日志线程异常] {e}\n")
+        finally:
+            if channel:
+                channel.close()
+            if ssh:
+                ssh.close()
