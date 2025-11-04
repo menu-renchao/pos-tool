@@ -754,3 +754,23 @@ class RemoteTailLogThread(BaseWorkerThread):
             )
         except Exception as e:
             self.connection_status.emit("error", f"连接失败: {str(e)}")
+
+
+class ConfigRunThread(BaseWorkerThread):
+    def __init__(self, service, items, db_params, parent=None):
+        super().__init__()
+        self.service = service
+        self.items = items
+        self.db_params = db_params
+
+    def _run_impl(self):
+        try:
+            result = self.service.set_config(self.items, self.db_params)
+            item = self.items[0]
+            msg = f"{item.description}: {'需重启生效' if result.get(item.description) else '立即生效'}"
+            self.status_updated.emit(msg)
+            self.finished_updated.emit(True, msg)
+        except Exception as e:
+            err_msg = f"执行配置项时发生错误: {str(e)}"
+            self.error_occurred.emit(err_msg)
+            self.finished_updated.emit(False, err_msg)

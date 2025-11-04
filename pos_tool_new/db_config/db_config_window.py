@@ -595,7 +595,7 @@ class DbConfigWindow(BaseTabWidget):
         msg_box.exec()
 
     def on_run_config(self, row):
-        """执行单个配置项"""
+        """执行单个配置项（多线程实现，使用BaseWorkerThread信号）"""
         item = self._current_table_items[row]  # 用当前表格显示的数据
         reply = QMessageBox.question(self, '确认执行',
                                      f'确定要执行配置项 "{item.description}" 吗？',
@@ -604,15 +604,24 @@ class DbConfigWindow(BaseTabWidget):
             return
 
         db_params = self.get_db_params()
-        try:
-            result = self.service.set_config([item], db_params)
-        except Exception as e:
-            QMessageBox.critical(self, '错误', f'执行配置项时发生错误: {str(e)}')
-            return
-        msg = f"{item.description}: {'需重启生效' if result.get(item.description) else '立即生效'}"
-        msg_box = QMessageBox(QMessageBox.Icon.Information, '执行结果', msg, parent=self)
-        msg_box.setMinimumSize(400, 200)
-        msg_box.exec()
+        from pos_tool_new.work_threads import ConfigRunThread
+        self._config_thread = ConfigRunThread(self.service, [item], db_params)
+        self._config_thread.status_updated.connect(self._on_config_status)
+        self._config_thread.error_occurred.connect(self._on_config_error)
+        self._config_thread.finished_updated.connect(self._on_config_finished)
+        self._config_thread.start()
+
+    def _on_config_status(self, msg):
+        QMessageBox.information(self, '执行结果', msg)
+
+    def _on_config_error(self, msg):
+        QMessageBox.critical(self, '错误', msg)
+
+    def _on_config_finished(self, success, msg):
+        if success:
+            self.refresh_config_table()
+        self._config_thread = None
+
     def on_worker_error(self, msg):
         self.log_message(msg, "error")
 
@@ -734,4 +743,3 @@ class DbConfigWindow(BaseTabWidget):
         """隐藏事件处理"""
         super().hideEvent(event)
         self.show_main_log_area()
-
