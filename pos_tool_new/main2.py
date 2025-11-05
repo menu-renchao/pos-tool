@@ -513,7 +513,7 @@ class MainWindow(QMainWindow):
         log_toolbar = QHBoxLayout()
         log_toolbar.addStretch()
 
-        clear_btn = QPushButton("🗑🗑️ 清除日志")
+        clear_btn = QPushButton("🗑️ 清除日志")
         clear_btn.setMaximumWidth(100)
         clear_btn.clicked.connect(self.clear_logs)
         clear_btn.setStyleSheet("""
@@ -567,20 +567,19 @@ class MainWindow(QMainWindow):
 
     def on_restart_finished(self):
         """重启完成处理"""
-        self.progress_timer.stop()
+        # 确保 finish_timer 已初始化且为 QTimer 实例
+        if not hasattr(self, 'finish_timer') or self.finish_timer is None:
+            self.finish_timer = QTimer(self)
+        else:
+            self.finish_timer.stop()
+            try:
+                self.finish_timer.timeout.disconnect()
+            except Exception:
+                pass
         self.progress_bar.setVisible(True)
         current_value = self.progress_bar.value()
         target_value = 100
         step = max((target_value - current_value) / 30, 1)
-
-        if not hasattr(self, 'finish_timer'):
-            self.finish_timer = QTimer(self)
-
-        self.finish_timer.stop()
-        try:
-            self.finish_timer.timeout.disconnect()
-        except Exception:
-            pass
 
         def update_progress():
             nonlocal current_value
@@ -778,3 +777,4 @@ if __name__ == "__main__":
     splash = ModernSplashScreen(resource_path('UI/loading.gif'), duration=1800)
     splash.start(create_main_window)
     sys.exit(app.exec())
+

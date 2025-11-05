@@ -632,7 +632,7 @@ class ModernSplashScreen(QWidget):
 
     def _setup_ui(self, gif_path):
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 20, 20, 20)
+        # layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(15)
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
