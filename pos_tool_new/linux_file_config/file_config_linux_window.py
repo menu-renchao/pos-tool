@@ -373,7 +373,6 @@ class FileConfigTabWidget(BaseTabWidget):
         button_layout.setSpacing(6)
 
         self.add_btn = QPushButton("新增配置")
-        self.execute_btn = QPushButton("执行选中配置")
         self.execute_all_btn = QPushButton("执行所有启用配置")
         self.reload_btn = QPushButton("重载配置文件")
 
@@ -403,17 +402,6 @@ class FileConfigTabWidget(BaseTabWidget):
             }
         """)
 
-        self.execute_btn.setStyleSheet(button_style + """
-            QPushButton {
-                background-color: #2196F3;
-                color: white;
-                border-color: #1976D2;
-            }
-            QPushButton:hover {
-                background-color: #1976D2;
-            }
-        """)
-
         self.execute_all_btn.setStyleSheet(button_style + """
             QPushButton {
                 background-color: #FF9800;
@@ -437,12 +425,10 @@ class FileConfigTabWidget(BaseTabWidget):
                 """)
 
         self.add_btn.clicked.connect(self.on_add_config)
-        self.execute_btn.clicked.connect(self.on_execute_selected)
         self.execute_all_btn.clicked.connect(self.on_execute_all_enabled)
         self.reload_btn.clicked.connect(self.reload_config)
 
         button_layout.addWidget(self.add_btn)
-        button_layout.addWidget(self.execute_btn)
         button_layout.addWidget(self.execute_all_btn)
         button_layout.addWidget(self.reload_btn)
         button_layout.addStretch()
@@ -636,7 +622,7 @@ QTableWidget::item {
     def on_selection_changed(self):
         """选择变化时更新按钮状态"""
         has_selection = len(self.config_table.selectionModel().selectedRows()) > 0
-        self.execute_btn.setEnabled(has_selection)
+        self.execute_all_btn.setEnabled(has_selection)
 
 
     def on_toggle_enabled(self, config: FileConfigItem, state: int):
@@ -762,39 +748,6 @@ QTableWidget::item {
         self.modify_thread.finished_updated.connect(self.on_execute_finished)
         self.modify_thread.start()
 
-    def on_execute_selected(self):
-        """执行选中的配"""
-        selected_rows = set(index.row() for index in self.config_table.selectionModel().selectedRows())
-        if not selected_rows:
-            QMessageBox.warning(self, "提示", "请先选择要执行的配置项")
-            return
-
-        is_valid, error_msg, host, username, password, env = self._validate_connection_params()
-        if not is_valid:
-            QMessageBox.warning(self, "参数错误", error_msg)
-            return
-
-        configs = self.service.get_all_configs()
-        selected_configs = [configs[row] for row in selected_rows if row < len(configs)]
-
-        # 过滤启用的配置
-        enabled_configs = [cfg for cfg in selected_configs if cfg.enabled]
-        if not enabled_configs:
-            QMessageBox.warning(self, "提示", "选中的配置项均未启用")
-            return
-
-        reply = QMessageBox.question(
-            self, "确认执行",
-            f"确定要执行选中的 {len(enabled_configs)} 个配置项吗？",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-        )
-
-        if reply != QMessageBox.StandardButton.Yes:
-            return
-
-        # 批量执行
-        self.execute_configs_batch(enabled_configs, host, username, password, env)
-
     def on_execute_all_enabled(self):
         """执行所有启用的配置"""
         is_valid, error_msg, host, username, password, env = self._validate_connection_params()
@@ -866,9 +819,8 @@ QTableWidget::item {
         self.modify_thread.progress_updated.connect(
             lambda percent: self.on_batch_progress_updated(current_index, percent)
         )
-        self.modify_thread.finished_updated.connect(
-            lambda success, msg: self.on_single_config_finished(success, msg, host, username, password, env)
-        )
+        # 修正信号连接，避免 lambda 捕获问题
+        self.modify_thread.finished_updated.connect(self.on_single_config_finished)
         self.modify_thread.start()
 
     def on_batch_progress_updated(self, config_index: int, percent: int):
@@ -879,8 +831,7 @@ QTableWidget::item {
             current_progress = base_progress + percent
             self.parent_window.progress_bar.setValue(current_progress)
 
-    def on_single_config_finished(self, success: bool, message: str,
-                                  host: str, username: str, password: str, env: str):
+    def on_single_config_finished(self, success: bool, message: str):
         """单个配置执行完成"""
         if success:
             self.batch_success_count += 1
@@ -891,7 +842,12 @@ QTableWidget::item {
 
         # 执行下一个配置
         self.current_batch_index += 1
-        self.execute_next_config_in_batch(host, username, password, env)
+        self.execute_next_config_in_batch(
+            self.host_ip.currentText().strip(),
+            self.username.text().strip(),
+            self.password.text().strip(),
+            self.get_selected_env(self.env_group)
+        )
 
     def on_batch_execute_finished(self):
         """批量执行完成"""

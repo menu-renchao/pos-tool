@@ -272,7 +272,6 @@ class WindowsFileConfigTabWidget(BaseTabWidget):
         button_layout = QHBoxLayout()
 
         self.add_btn = QPushButton("新增配置")
-        self.execute_btn = QPushButton("执行选中配置")
         self.execute_all_btn = QPushButton("执行所有启用配置")
         self.reload_btn = QPushButton("重载配置文件")
 
@@ -300,16 +299,6 @@ class WindowsFileConfigTabWidget(BaseTabWidget):
                    }
                """)
 
-        self.execute_btn.setStyleSheet(button_style + """
-                   QPushButton {
-                       background-color: #2196F3;
-                       color: white;
-                       border-color: #1976D2;
-                   }
-                   QPushButton:hover {
-                       background-color: #1976D2;
-                   }
-               """)
         self.execute_all_btn.setStyleSheet(button_style + """
                    QPushButton {
                        background-color: #FF9800;
@@ -332,12 +321,10 @@ class WindowsFileConfigTabWidget(BaseTabWidget):
                        """)
 
         self.add_btn.clicked.connect(self.on_add_config)
-        self.execute_btn.clicked.connect(self.on_execute_selected)
         self.execute_all_btn.clicked.connect(self.on_execute_all_enabled)
         self.reload_btn.clicked.connect(self.reload_config)
 
         button_layout.addWidget(self.add_btn)
-        button_layout.addWidget(self.execute_btn)
         button_layout.addWidget(self.execute_all_btn)
         button_layout.addWidget(self.reload_btn)
         button_layout.addStretch()
@@ -567,7 +554,7 @@ class WindowsFileConfigTabWidget(BaseTabWidget):
     def on_selection_changed(self):
         """选择变化时更新按钮状态"""
         has_selection = len(self.config_table.selectionModel().selectedRows()) > 0
-        self.execute_btn.setEnabled(has_selection)
+        # self.execute_btn.setEnabled(has_selection)
 
     def on_toggle_enabled(self, config: FileConfigItem, state: int):
         """切换配置启用状态"""
@@ -681,6 +668,9 @@ class WindowsFileConfigTabWidget(BaseTabWidget):
             self.parent_window.progress_bar.setFormat(f"正在执行配置: {config.name}")
 
         # 启动线程
+        # 启动线程前，先安全销毁旧线程
+        if hasattr(self, 'modify_thread') and self.modify_thread is not None and self.modify_thread.isRunning():
+            self.modify_thread.stop()
         self.modify_thread = WindowsFileModifyThread(
             self.service, connection_type, host, username, password, config, env, select_version, base_path
         )
@@ -697,46 +687,12 @@ class WindowsFileConfigTabWidget(BaseTabWidget):
         self.modify_thread.finished_updated.connect(self.on_execute_finished)
         self.modify_thread.start()
 
-    def on_execute_selected(self):
-        """执行选中的配置"""
-        selected_rows = set(index.row() for index in self.config_table.selectionModel().selectedRows())
-        if not selected_rows:
-            QMessageBox.warning(self, "提示", "请先选择要执行的配置项")
-            return
-
-        is_valid, error_msg, connection_type, host, username, password, env = self._validate_connection_params()
-        if not is_valid:
-            QMessageBox.warning(self, "参数错误", error_msg)
-            return
-
-        versions = self._get_versions()
-        select_version = self.select_version(versions)
-        if not select_version:
-            return
-
-        configs = self.service.get_all_configs()
-        selected_configs = [configs[row] for row in selected_rows if row < len(configs)]
-
-        enabled_configs = [cfg for cfg in selected_configs if cfg.enabled]
-        if not enabled_configs:
-            QMessageBox.warning(self, "提示", "选中的配置项均未启用")
-            return
-
-        reply = QMessageBox.question(
-            self, "确认执行",
-            f"确定要执行选中的 {len(enabled_configs)} 个配置项吗？",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-        )
-
-        if reply != QMessageBox.StandardButton.Yes:
-            return
-
-        base_path = self.base_path.text()
-        self.execute_configs_batch(enabled_configs, connection_type, host, username, password, env, select_version,
-                                   base_path)
-
     def on_execute_all_enabled(self):
         """执行所有启用的配置"""
+        # 禁用批量执行按钮，防止高频点击
+        self.execute_all_btn.setEnabled(False)
+        # self.execute_btn.setEnabled(False)
+
         is_valid, error_msg, connection_type, host, username, password, env = self._validate_connection_params()
         if not is_valid:
             QMessageBox.warning(self, "参数错误", error_msg)
@@ -771,19 +727,25 @@ class WindowsFileConfigTabWidget(BaseTabWidget):
                               host: str, username: str, password: str, env: str, select_version: str, base_path: str):
         """批量执行配置"""
         if not configs:
+            self.execute_all_btn.setEnabled(True)
             return
-
         self.batch_configs = configs.copy()
         self.current_batch_index = 0
         self.batch_success_count = 0
         self.batch_failed_count = 0
-
+        # 保存批量参数为成员变量，供后续方法调用
+        self.connection_type = connection_type
+        self.host = host
+        self.username = username
+        self.password = password
+        self.env = env
+        self.selected_version = select_version
+        self.base_path_value = base_path
         if self.parent_window:
             self.parent_window.progress_bar.setVisible(True)
             self.parent_window.progress_bar.setRange(0, len(configs) * 100)
             self.parent_window.progress_bar.setValue(0)
             self.parent_window.progress_bar.setFormat("批量执行配置中...")
-
         self.execute_next_config_in_batch(connection_type, host, username, password, env, select_version, base_path)
 
     def execute_next_config_in_batch(self, connection_type: str, host: str, username: str, password: str, env: str,
@@ -792,26 +754,19 @@ class WindowsFileConfigTabWidget(BaseTabWidget):
         if self.current_batch_index >= len(self.batch_configs):
             self.on_batch_execute_finished()
             return
-
-        current_config = self.batch_configs[self.current_batch_index]
-        current_index = self.current_batch_index
-
-        if self.parent_window:
-            self.parent_window.progress_bar.setFormat(
-                f"执行配置 ({current_index + 1}/{len(self.batch_configs)}): {current_config.name}"
-            )
-
+        # 新建线程前，严格 stop+wait 旧线程
+        if hasattr(self, 'modify_thread') and self.modify_thread is not None and self.modify_thread.isRunning():
+            self.modify_thread.stop()
         self.modify_thread = WindowsFileModifyThread(
-            self.service, connection_type, host, username, password, current_config, env, select_version, base_path
+            self.service, connection_type, host, username, password, self.batch_configs[self.current_batch_index], env,
+            select_version, base_path
         )
 
         self.modify_thread.progress_updated.connect(
-            lambda percent: self.on_batch_progress_updated(current_index, percent)
+            lambda percent: self.on_batch_progress_updated(self.current_batch_index, percent)
         )
-        self.modify_thread.finished_updated.connect(
-            lambda success, msg: self.on_single_config_finished(success, msg, connection_type, host, username, password,
-                                                                env, select_version, base_path)
-        )
+        # 修正信号连接，避免 lambda 捕获问题
+        self.modify_thread.finished_updated.connect(self.on_single_config_finished)
         self.modify_thread.start()
 
     def on_batch_progress_updated(self, config_index: int, percent: int):
@@ -821,9 +776,7 @@ class WindowsFileConfigTabWidget(BaseTabWidget):
             current_progress = base_progress + percent
             self.parent_window.progress_bar.setValue(current_progress)
 
-    def on_single_config_finished(self, success: bool, message: str,
-                                  connection_type: str, host: str, username: str, password: str, env: str,
-                                  select_version: str, base_path: str):
+    def on_single_config_finished(self, success: bool, message: str):
         """单个配置执行完成"""
         if success:
             self.batch_success_count += 1
@@ -831,12 +784,17 @@ class WindowsFileConfigTabWidget(BaseTabWidget):
             self.batch_failed_count += 1
 
         self.current_batch_index += 1
-        self.execute_next_config_in_batch(connection_type, host, username, password, env, select_version, base_path)
+        self.execute_next_config_in_batch(
+            self.connection_type, self.host, self.username, self.password, self.env, self.selected_version, self.base_path_value
+        )
 
     def on_batch_execute_finished(self):
         """批量执行完成"""
         if self.parent_window:
             self.parent_window.progress_bar.setVisible(False)
+        # 批量执行完成后恢复按钮
+        self.execute_all_btn.setEnabled(True)
+        # self.execute_btn.setEnabled(True)
 
         total = len(self.batch_configs)
         success = self.batch_success_count
@@ -880,8 +838,7 @@ class WindowsFileConfigTabWidget(BaseTabWidget):
         self.refresh_config_list()
 
     def closeEvent(self, event):
-        if hasattr(self, 'modify_thread') and self.modify_thread.isRunning():
-            self.modify_thread.quit()
-            self.modify_thread.wait()
-        super().closeEvent(event)
-
+        """窗口关闭时安全销毁线程"""
+        if hasattr(self, 'modify_thread') and self.modify_thread is not None and self.modify_thread.isRunning():
+            self.modify_thread.stop()
+        event.accept()

@@ -1026,3 +1026,10 @@ class LinuxTabWidget(BaseTabWidget):
             self.tail_log_window.show()
         except Exception as e:
             QMessageBox.critical(self, "错误", f"获取远程日志文件失败：{str(e)}")
+
+    def closeEvent(self, event):
+        """窗口关闭时安全销毁所有线程"""
+        for thread in [self.replace_thread, self.restart_thread, self.restart_tomcat_thread, self.upgrade_thread, self.upload_thread]:
+            if thread is not None and thread.isRunning():
+                thread.stop()
+        event.accept()

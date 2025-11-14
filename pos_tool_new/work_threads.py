@@ -21,6 +21,12 @@ class BaseWorkerThread(QThread):
         super().__init__()
         self._is_running = True
 
+    def stop(self):
+        """安全停止线程"""
+        self._is_running = False
+        self.quit()
+        self.wait()
+
     def run(self):
         try:
             self._run_impl()
@@ -571,6 +577,8 @@ class FileConfigModifyThread(BaseWorkerThread):
             self.status_updated.emit(message)
         else:
             self.error_occurred.emit(message)
+        # 补充：无论成功或失败都发射 finished_updated 信号，确保批量流程继续
+        self.finished_updated.emit(success, message)
 
 
 class WindowsFileModifyThread(BaseWorkerThread):
@@ -628,6 +636,16 @@ class WindowsFileModifyThread(BaseWorkerThread):
             new_content = self.service.modify_file_content(content, self.file_config, self.env, self.select_version)
 
             self.service.log(f"[修改后内容] {file_path}:\n{new_content}", "debug")
+            import os
+            if file_path.lower().endswith('.json'):
+                import json
+                try:
+                    if json.loads(content) == json.loads(new_content):
+                        msg = "文件内容无需修改"
+                        self.service.log(msg, "info")
+                        return True, msg
+                except Exception:
+                    pass  # 如果解析失败则回退到原始比较
             if content == new_content:
                 msg = "文件内容无需修改"
                 self.service.log(msg, "info")
@@ -686,6 +704,16 @@ class WindowsFileModifyThread(BaseWorkerThread):
             new_content = self.service.modify_file_content(content, self.file_config, self.env, self.select_version)
 
             self.service.log(f"[修改后内容] {file_path}:\n{new_content}", "debug")
+            if file_path.lower().endswith('.json'):
+                import json
+                try:
+                    if json.loads(content) == json.loads(new_content):
+                        ssh.close()
+                        msg = "文件内容无需修改"
+                        self.service.log(msg, "info")
+                        return True, msg
+                except Exception:
+                    pass  # 如果解析失败则回退到原始比较
             if content == new_content:
                 ssh.close()
                 msg = "文件内容无需修改"

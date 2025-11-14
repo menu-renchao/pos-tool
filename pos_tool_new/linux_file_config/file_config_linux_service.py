@@ -359,7 +359,15 @@ class FileConfigService(Backend):
 
             new_content = self.modify_remote_file_content(content, file_config, env)
             self.log(f"远程文件修改后内容摘要: {new_content[:500]}", level="debug")
-
+            if remote_path.lower().endswith('.json'):
+                import json
+                try:
+                    if json.loads(content) == json.loads(new_content):
+                        self.log(f"文件内容无需修改: {remote_path}", level="info")
+                        ssh.close()
+                        return True, "文件内容无需修改"
+                except Exception:
+                    pass  # 如果解析失败则回退到原始比较
             if content == new_content:
                 self.log(f"文件内容无需修改: {remote_path}", level="info")
                 ssh.close()

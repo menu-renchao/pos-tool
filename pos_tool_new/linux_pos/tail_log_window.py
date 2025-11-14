@@ -391,6 +391,7 @@ class TailLogWindow(QDialog):
         self.ssh_params = ssh_params
         self.remote = remote
         self.is_tailing = True
+        self.user_scrolled = False  # 标志：用户是否手动滚动
 
         self.setup_ui()
         self.setup_thread()
@@ -506,6 +507,9 @@ class TailLogWindow(QDialog):
         font = QFont("Consolas", 10)
         self.text_edit.setFont(font)
 
+        # 连接滚动条事件
+        self.text_edit.verticalScrollBar().valueChanged.connect(self.on_scrollbar_changed)
+
         # 控制按钮区域
         control_layout = QHBoxLayout()
 
@@ -611,11 +615,19 @@ class TailLogWindow(QDialog):
         # 更新统计信息
         self.update_stats()
 
-        # 自动滚动到底部（如果不是暂停状态）
-        if not self.is_paused:
+        # 自动滚动到底部（如果不是暂停状态且用户未手动滚动）
+        if not self.is_paused and not self.user_scrolled:
             cursor.movePosition(QTextCursor.MoveOperation.End)
             self.text_edit.setTextCursor(cursor)
             self.text_edit.ensureCursorVisible()
+
+    def on_scrollbar_changed(self, value):
+        scrollbar = self.text_edit.verticalScrollBar()
+        # 判断是否在底部
+        if value < scrollbar.maximum():
+            self.user_scrolled = True
+        else:
+            self.user_scrolled = False
 
     def update_connection_status(self, status, message):
         """更新连接状态"""
