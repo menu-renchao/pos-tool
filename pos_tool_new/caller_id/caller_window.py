@@ -39,18 +39,18 @@ class CallerIdTabWidget(BaseTabWidget):
         # 主机地址
         host_label = QLabel("主机地址:")
         host_label.setStyleSheet("font-weight: bold;")
-        self.host_combo = QComboBox()
-        self.host_combo.addItems([
+        self.host_ip = QComboBox()
+        self.host_ip.addItems([
             "192.168.0.", "192.168.1.", "10.24.1.",
             "10.1.10.", "10.0.10.", "192.168.252.", "192.168.253."
         ])
-        self.host_combo.setEditable(True)
-        self.host_combo.setCurrentText("192.168.0.")
-        self.host_combo.setFixedHeight(28)  # 固定高度
-        self.host_combo.setMaximumWidth(140)
+        self.host_ip.setEditable(True)
+        self.host_ip.setCurrentText("192.168.0.")
+        self.host_ip.setFixedHeight(28)  # 固定高度
+        self.host_ip.setMaximumWidth(140)
 
         grid_layout.addWidget(host_label, 0, 0)
-        grid_layout.addWidget(self.host_combo, 0, 1, 1, 2)
+        grid_layout.addWidget(self.host_ip, 0, 1, 1, 2)
 
         # 用户姓名
         name_label = QLabel("用户姓名:")
@@ -117,7 +117,7 @@ class CallerIdTabWidget(BaseTabWidget):
     def on_dial(self):
         """模拟拨号逻辑"""
         try:
-            host = self.host_combo.currentText()
+            host = self.host_ip.currentText()
             name = self.name_input.text()
             phone = self.phone_input.text()
             route = self.route_combo.currentText()
@@ -150,3 +150,8 @@ class CallerIdTabWidget(BaseTabWidget):
 
         except Exception as e:
             QMessageBox.warning(self, "错误", f"主机 POS 没开或端口被占用: {str(e)}")
+
+    def set_host_ip(self, ip: str):
+        """同步设置主机IP到host_ip输入框"""
+        if self.host_ip:
+            self.host_ip.setCurrentText(ip)

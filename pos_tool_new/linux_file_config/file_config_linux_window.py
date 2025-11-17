@@ -940,3 +940,7 @@ QTableWidget::item {
             self.modify_thread.wait()
         super().closeEvent(event)
 
+    def set_host_ip(self, ip: str):
+        """同步设置主机IP到host_ip输入框"""
+        if self.host_ip:
+            self.host_ip.setCurrentText(ip)

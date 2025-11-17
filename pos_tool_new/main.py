@@ -190,6 +190,7 @@ class AnimatedProgressBar(QProgressBar):
         self.animation.stop()
 
 
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()

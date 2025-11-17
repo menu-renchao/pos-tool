@@ -10,7 +10,8 @@ from PyQt6.QtGui import QFont, QPalette, QTextCharFormat, QTextCursor, QAction, 
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QTabWidget, QTextEdit, QPushButton, QHBoxLayout,
     QLabel, QRadioButton, QButtonGroup, QGroupBox, QProgressBar, QMainWindow,
-    QToolButton, QMenuBar, QMessageBox, QVBoxLayout, QSplitter
+    QToolButton, QMenuBar, QMessageBox, QVBoxLayout, QSplitter, QComboBox, QDialog,
+    QDialogButtonBox
 )
 
 from pos_tool_new.backend import Backend
@@ -237,7 +238,7 @@ class MainWindow(QMainWindow):
     def _setup_window_properties(self):
         """设置窗口属性"""
         self.setWindowIcon(QIcon(resource_path('UI/app.ico')))
-        self.setWindowTitle("POS测试工具 v1.5.0.8 by Mansuper")
+        self.setWindowTitle("POS测试工具 v1.5.0.9 by Mansuper")
         self.resize(900, 580)
 
     def _create_central_widget(self) -> QWidget:
@@ -301,44 +302,59 @@ class MainWindow(QMainWindow):
     def create_menubar(self):
         """创建菜单栏"""
         menubar = self.menuBar() or QMenuBar(self)
+        # 添加关于菜单
         about_menu = menubar.addMenu("关于(&A)")
-
         version_action = QAction("版本信息", self)
         version_action.triggered.connect(self.show_version_info)
         about_menu.addAction(version_action)
 
+        # 添加设置菜单
+        settings_menu = menubar.addMenu("设置(&S)")
+        global_ip_action = QAction("全局IP", self)
+        global_ip_action.triggered.connect(self.show_global_ip_dialog)
+        settings_menu.addAction(global_ip_action)
+
         self.setMenuBar(menubar)
 
-    def create_tab_contents(self):
-        """创建选项卡内容"""
-        tab_imports = [
-            ("pos_tool_new.linux_pos.linux_window", "LinuxTabWidget", "🐧 Linux POS"),
-            ("pos_tool_new.linux_file_config.file_config_linux_window", "FileConfigTabWidget", "⚙️ Linux配置文件"),
-            ("pos_tool_new.windows_pos.windows_window", "WindowsTabWidget", "🪟 Windows POS"),
-            ("pos_tool_new.windows_file_config.file_config_win_window", "WindowsFileConfigTabWidget",
-             "⚙️ Windows配置文件"),
-            ("pos_tool_new.db_config.db_config_window", "DbConfigWindow", "🗄️ 数据库配置"),
-            ("pos_tool_new.scan_pos.scan_pos_window", "ScanPosTabWidget", "🔍 扫描POS"),
-            ("pos_tool_new.caller_id.caller_window", "CallerIdTabWidget", "📞 Caller ID"),
-            ("pos_tool_new.license_backup.license_window", "LicenseToolTabWidget", "🔐 Device&&App License"),
-            ("pos_tool_new.download_war.download_war_window", "DownloadWarTabWidget", "📥 Download War"),
-            ("pos_tool_new.generate_img.generate_img_window", "GenerateImgTabWidget", "🖼️ 图片生成"),
-            ("pos_tool_new.random_mail.random_mail_window", "RandomMailTabWidget", "📧 随机邮箱")
-        ]
+    def show_global_ip_dialog(self):
+        """弹出全局IP配置窗口（QComboBox方式）"""
+        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QComboBox, QDialogButtonBox, QLabel
+        dialog = QDialog(self)
+        dialog.setWindowTitle("配置全局IP")
+        layout = QVBoxLayout(dialog)
+        layout.addWidget(QLabel("请输入全局IP:"))
+        combo = QComboBox()
+        combo.setEditable(True)
+        combo.addItems([
+            "192.168.0.", "192.168.1.", "10.24.1.",
+            "10.1.10.", "10.0.10.", "192.168.252.", "192.168.253."
+        ])
+        current_ip = self.get_global_ip()
+        if current_ip:
+            combo.setCurrentText(current_ip)
+        layout.addWidget(combo)
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        layout.addWidget(buttons)
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            ip = combo.currentText().strip()
+            if ip:
+                self.set_global_ip(ip)
+                # 同步所有FileConfigTabWidget的host_ip
+                for i in range(self.tabs.count()):
+                    tab = self.tabs.widget(i)
+                    if hasattr(tab, 'set_host_ip') and callable(tab.set_host_ip):
+                        tab.set_host_ip(ip)
+                QMessageBox.information(self, "提示", f"全局IP已设置为: {ip}。仅首次会同步到所有选项卡，之后各选项卡可单独修改IP。")
 
-        for module_path, class_name, tab_name in tab_imports:
-            try:
-                module = __import__(module_path, fromlist=[class_name])
-                tab_class = getattr(module, class_name)
+    def get_global_ip(self) -> str:
+        """读取全局IP（仅内存，不写文件）"""
+        return getattr(self, '_global_ip', '')
 
-                if class_name in ["ScanPosTabWidget", "CallerIdTabWidget"]:
-                    tab_instance = tab_class(self.backend, self)
-                else:
-                    tab_instance = tab_class(self)
-
-                self.tabs.addTab(tab_instance, tab_name)
-            except (ImportError, AttributeError) as e:
-                print(f"Failed to load tab {tab_name}: {e}")
+    def set_global_ip(self, ip: str):
+        """保存全局IP（仅内存，不写文件）"""
+        self._global_ip = ip
 
     def show_version_info(self):
         """显示版本信息"""
@@ -600,6 +616,37 @@ class MainWindow(QMainWindow):
         """添加日志"""
         global_log_manager.log(msg, level)
 
+    def create_tab_contents(self):
+        """创建选项卡内容"""
+        tab_imports = [
+            ("pos_tool_new.linux_pos.linux_window", "LinuxTabWidget", "🐧 Linux POS"),
+            ("pos_tool_new.linux_file_config.file_config_linux_window", "FileConfigTabWidget", "⚙️ Linux配置文件"),
+            ("pos_tool_new.windows_pos.windows_window", "WindowsTabWidget", "🪟 Windows POS"),
+            ("pos_tool_new.windows_file_config.file_config_win_window", "WindowsFileConfigTabWidget",
+             "⚙️ Windows配置文件"),
+            ("pos_tool_new.db_config.db_config_window", "DbConfigWindow", "🗄️ 数据库配置"),
+            ("pos_tool_new.scan_pos.scan_pos_window", "ScanPosTabWidget", "🔍 扫描POS"),
+            ("pos_tool_new.caller_id.caller_window", "CallerIdTabWidget", "📞 Caller ID"),
+            ("pos_tool_new.license_backup.license_window", "LicenseToolTabWidget", "🔐 Device&&App License"),
+            ("pos_tool_new.download_war.download_war_window", "DownloadWarTabWidget", "📥 Download War"),
+            ("pos_tool_new.generate_img.generate_img_window", "GenerateImgTabWidget", "🖼️ 图片生成"),
+            ("pos_tool_new.random_mail.random_mail_window", "RandomMailTabWidget", "📧 随机邮箱")
+        ]
+
+        for module_path, class_name, tab_name in tab_imports:
+            try:
+                module = __import__(module_path, fromlist=[class_name])
+                tab_class = getattr(module, class_name)
+
+                if class_name in ["ScanPosTabWidget", "CallerIdTabWidget"]:
+                    tab_instance = tab_class(self.backend, self)
+                else:
+                    tab_instance = tab_class(self)
+
+                self.tabs.addTab(tab_instance, tab_name)
+            except (ImportError, AttributeError) as e:
+                print(f"Failed to load tab {tab_name}: {e}")
+
 
 class ModernSplashScreen(QWidget):
     """现代化启动画面"""
@@ -642,7 +689,7 @@ class ModernSplashScreen(QWidget):
 
         # 标题和版本标签
         self.title_label = self._create_label("POS测试工具", "24px", "#cccccc")
-        self.version_label = self._create_label("v1.5.0.8 - 正在加载...", "12px", "#aaaaaa")
+        self.version_label = self._create_label("v1.5.0.9 - 正在加载...", "12px", "#aaaaaa")
 
         layout.addWidget(self.title_label)
         layout.addWidget(self.version_label)
@@ -777,4 +824,3 @@ if __name__ == "__main__":
     splash = ModernSplashScreen(resource_path('UI/loading.gif'), duration=1800)
     splash.start(create_main_window)
     sys.exit(app.exec())
-

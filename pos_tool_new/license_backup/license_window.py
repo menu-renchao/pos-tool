@@ -42,13 +42,13 @@ class LicenseToolTabWidget(BaseTabWidget):
         db_layout.setSpacing(8)
         db_layout.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
 
-        self.host_combo = QComboBox()
-        self.host_combo.addItems([
+        self.host_ip = QComboBox()
+        self.host_ip.addItems([
             "192.168.0.", "192.168.1.", "10.24.1.",
             "10.1.10.", "10.0.10.", "192.168.252.", "192.168.253."
         ])
-        self.host_combo.setEditable(True)
-        self.host_combo.setFixedWidth(180)
+        self.host_ip.setEditable(True)
+        self.host_ip.setFixedWidth(180)
 
         self.status_label = QLabel("未连接")
         self.status_label.setStyleSheet("color: gray; font-weight: normal;")
@@ -82,7 +82,7 @@ class LicenseToolTabWidget(BaseTabWidget):
         db_row_layout.setContentsMargins(0, 0, 0, 0)
         db_row_layout.setSpacing(12)
         db_row_layout.addWidget(QLabel("主机地址:"))
-        db_row_layout.addWidget(self.host_combo)
+        db_row_layout.addWidget(self.host_ip)
         db_row_layout.addWidget(QLabel("状态:"))
         db_row_layout.addWidget(self.status_label)
         db_row_layout.addWidget(self.connect_btn)
@@ -191,7 +191,7 @@ class LicenseToolTabWidget(BaseTabWidget):
 
     def connect_database(self):
         """连接数据库"""
-        host = self.host_combo.currentText().strip()
+        host = self.host_ip.currentText().strip()
         if not host:
             QMessageBox.warning(self, "警告", "请输入主机地址")
             return
@@ -242,7 +242,7 @@ class LicenseToolTabWidget(BaseTabWidget):
 
         try:
             success, message = self.service.backup_license(
-                self.host_combo.currentText()
+                self.host_ip.currentText()
             )
 
             if success:
@@ -283,7 +283,7 @@ class LicenseToolTabWidget(BaseTabWidget):
 
         try:
             success, message = self.service.restore_license(
-                self.host_combo.currentText(),
+                self.host_ip.currentText(),
                 file_path
             )
 
@@ -303,7 +303,7 @@ class LicenseToolTabWidget(BaseTabWidget):
 
     def expand_app_license(self):
         """扩充app license"""
-        host = self.host_combo.currentText().strip()
+        host = self.host_ip.currentText().strip()
         if not host:
             QMessageBox.warning(self, "警告", "请输入主机地址")
             return
@@ -325,3 +325,8 @@ class LicenseToolTabWidget(BaseTabWidget):
         finally:
             self.expand_btn.setEnabled(True)
             self.expand_btn.setText("扩充app license")
+
+    def set_host_ip(self, ip: str):
+        """同步设置主机IP到host_ip输入框"""
+        if self.host_ip:
+            self.host_ip.setCurrentText(ip)

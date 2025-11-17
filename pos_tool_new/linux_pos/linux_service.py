@@ -336,10 +336,26 @@ class LinuxService(Backend):
             return None
 
     def scan_remote_logs(self, ssh: paramiko.SSHClient) -> List[str]:
-        """扫描 /opt/tomcat7/logs 下所有 .log 文件"""
-        out, _, _ = self._execute_command(ssh, 'ls /opt/tomcat7/logs/*.log 2>/dev/null')
+        """递归扫描 /opt/tomcat7/logs 下所有 .log 文件，返回完整路径，按最新修改时间降序排序"""
+        out, _, _ = self._execute_command(ssh, 'find /opt/tomcat7/logs -type f -name "*.log" 2>/dev/null')
         files = [f for f in out.splitlines() if f]
-        return [os.path.basename(f) for f in files]
+        # 获取每个文件的修改时间
+        file_mtime = {}
+        try:
+            sftp = ssh.open_sftp()
+            for f in files:
+                try:
+                    stat = sftp.stat(f)
+                    file_mtime[f] = stat.st_mtime
+                except Exception:
+                    file_mtime[f] = 0
+            sftp.close()
+        except Exception:
+            # 如果SFTP失败，全部mtime为0
+            file_mtime = {f: 0 for f in files}
+        # 按mtime降序排序
+        sorted_files = sorted(files, key=lambda x: file_mtime.get(x, 0), reverse=True)
+        return sorted_files
 
     def download_remote_log(self, ssh: paramiko.SSHClient, remote_file: str, local_dir: str) -> str:
         """下载指定远程日志文件到本地目录"""
@@ -350,6 +366,22 @@ class LinuxService(Backend):
             local_file = os.path.join(local_dir, f"{name}_{timestamp}{ext}")
             sftp.get(remote_file, local_file)
         return local_file
+
+    def download_remote_logs(self, ssh: paramiko.SSHClient, remote_files: List[str], local_dir: str) -> List[str]:
+        """批量下载指定远程日志文件到本地目录，返回本地文件路径列表"""
+        downloaded_files = []
+        with ssh.open_sftp() as sftp:
+            for remote_file in remote_files:
+                try:
+                    base = os.path.basename(remote_file)
+                    timestamp = time.strftime('%Y%m%d_%H%M%S')
+                    name, ext = os.path.splitext(base)
+                    local_file = os.path.join(local_dir, f"{name}_{timestamp}{ext}")
+                    sftp.get(remote_file, local_file)
+                    downloaded_files.append(local_file)
+                except Exception as e:
+                    self.log(f"下载日志失败: {remote_file}, 错误: {str(e)}", level="error")
+        return downloaded_files
 
     def upload_and_extract_package(self, host: str, username: str, password: str, local_file: str,
                                    progress_callback: Optional[Callable] = None,

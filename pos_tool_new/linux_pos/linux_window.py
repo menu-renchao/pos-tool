@@ -2,9 +2,10 @@ import os
 from typing import Optional, Tuple, Callable
 
 from PyQt6.QtCore import QTimer, pyqtSlot
+from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import (
     QVBoxLayout, QPushButton, QHBoxLayout, QLabel, QLineEdit, QFileDialog, QGroupBox, QComboBox, QMessageBox,
-    QInputDialog, QSizePolicy
+    QInputDialog, QSizePolicy, QDialog, QListWidget, QListWidgetItem, QDialogButtonBox
 )
 
 from pos_tool_new.backend import Backend
@@ -648,8 +649,7 @@ class LinuxTabWidget(BaseTabWidget):
             self.upload_updater_btn.setEnabled(True)
 
     def on_download_log(self):
-        """日志下载主流程"""
-
+        """日志下载主流程（支持多选，使用完整路径）"""
         def download_log_callback(host, username, password):
             try:
                 backend = self.service if hasattr(self.service, '_connect_ssh') else Backend()
@@ -660,13 +660,16 @@ class LinuxTabWidget(BaseTabWidget):
                     ssh.close()
                     return
 
-                # 选择日志文件
-                file, ok = QInputDialog.getItem(self, "选择日志文件", "请选择要下载的日志文件：", log_files, 0, False)
-                if not ok or not file:
+                # 多选日志文件（展示文件名，返回完整路径）
+                dialog = MultiSelectLogDialog(self, log_files)
+                if dialog.exec() != QDialog.DialogCode.Accepted:
                     ssh.close()
                     return
-
-                remote_file = f"/opt/tomcat7/logs/{file}"
+                selected_logs = dialog.selected_logs()  # 现在为完整路径
+                if not selected_logs:
+                    ssh.close()
+                    return
+                remote_files = selected_logs
 
                 # 选择本地保存目录
                 local_dir = QFileDialog.getExistingDirectory(self, "选择本地保存目录")
@@ -674,17 +677,18 @@ class LinuxTabWidget(BaseTabWidget):
                     ssh.close()
                     return
 
-                # 下载文件
-                local_path = backend.download_remote_log(ssh, remote_file, local_dir)
+                # 批量下载
+                local_paths = backend.download_remote_logs(ssh, remote_files, local_dir)
                 ssh.close()
-                local_path = os.path.normpath(local_path)
-                self.service.log(f"日志文件已保存到：{local_path}", level="success")
-                QMessageBox.information(self, "下载完成", f"日志文件已保存到：\n{local_path}")
-
+                if local_paths:
+                    msg = "\n".join([os.path.normpath(p) for p in local_paths])
+                    self.service.log(f"日志文件已保存到：\n{msg}", level="success")
+                    QMessageBox.information(self, "下载完成", f"日志文件已保存到：\n{msg}")
+                else:
+                    QMessageBox.warning(self, "下载失败", "未能成功下载任何日志文件！")
             except Exception as e:
                 self.service.log(f"下载日志文件过程中出错: {str(e)}", level="error")
                 QMessageBox.critical(self, "下载失败", f"下载日志文件失败：{str(e)}")
-
         self._execute_with_connection_validation("日志下载", download_log_callback)
 
     def on_backup_data(self):
@@ -1013,12 +1017,18 @@ class LinuxTabWidget(BaseTabWidget):
                 QMessageBox.information(self, "无日志文件", "远程目录下未找到日志文件！")
                 ssh.close()
                 return
-            # 选择远程日志文件
-            file, ok = QInputDialog.getItem(self, "选择日志文件", "请选择要实时查看的日志文件：", log_files, 0, False)
-            if not ok or not file:
+            # 展示文件名，选中后映射回完整路径
+            file_names = [os.path.basename(f) for f in log_files]
+            selected_idx, ok = QInputDialog.getItem(self, "选择日志文件", "请选择要实时查看的日志文件：", file_names, 0, False)
+            if not ok or not selected_idx:
                 ssh.close()
                 return
-            remote_file = f"/opt/tomcat7/logs/{file}"
+            # 找到选中的完整路径
+            try:
+                idx = file_names.index(selected_idx)
+                remote_file = log_files[idx]
+            except Exception:
+                remote_file = selected_idx  # 兜底
             ssh.close()
             # 打开实时日志窗口（远程模式）
             from pos_tool_new.linux_pos.tail_log_window import TailLogWindow
@@ -1033,3 +1043,33 @@ class LinuxTabWidget(BaseTabWidget):
             if thread is not None and thread.isRunning():
                 thread.stop()
         event.accept()
+
+    def set_host_ip(self, ip: str):
+        """同步设置主机IP到host_ip输入框"""
+        if self.host_ip:
+            self.host_ip.setCurrentText(ip)
+
+class MultiSelectLogDialog(QDialog):
+    def __init__(self, parent, log_files):
+        super().__init__(parent)
+        self.setWindowTitle("选择要下载的日志文件（可多选）")
+        self.resize(500, 400)
+        layout = QVBoxLayout(self)
+        self.list_widget = QListWidget(self)
+        self.list_widget.setSelectionMode(QListWidget.SelectionMode.MultiSelection)
+        for log_path in log_files:
+            item = QListWidgetItem(os.path.basename(log_path))
+            item.setData(256, log_path)
+            item.setToolTip(log_path)
+            item.setFont(QFont("Consolas", 10))
+            self.list_widget.addItem(item)
+        # self.list_widget.setStyleSheet("QListWidget { background: #f8f8ff; } QListWidget::item { padding: 6px; } QListWidget::item:selected { background: #cce5ff; color: #003366; }")
+        layout.addWidget(self.list_widget)
+        self.button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        self.button_box.setStyleSheet("QDialogButtonBox { padding: 8px; }")
+        layout.addWidget(self.button_box)
+        self.button_box.accepted.connect(self.accept)
+        self.button_box.rejected.connect(self.reject)
+
+    def selected_logs(self):
+        return [item.data(256) for item in self.list_widget.selectedItems()]

@@ -146,15 +146,15 @@ class DbConfigWindow(BaseTabWidget):
         db_layout.setSpacing(4)  # 减少间距
         db_layout.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
 
-        self.host_combo = QComboBox()
-        self.host_combo.addItems([
+        self.host_ip = QComboBox()
+        self.host_ip.addItems([
             "192.168.0.", "192.168.1.", "10.24.1.",
             "10.1.10.", "10.0.10.", "192.168.252.", "192.168.253."
         ])
-        self.host_combo.setEditable(True)
-        self.host_combo.setMinimumWidth(180)  # 稍微减小宽度
-        self.host_combo.setStyleSheet("QComboBox { padding: 3px; font-size: 11px; }")  # 紧凑样式
-        self.host_combo.setToolTip("选择或输入数据库主机地址")
+        self.host_ip.setEditable(True)
+        self.host_ip.setMinimumWidth(180)  # 稍微减小宽度
+        self.host_ip.setStyleSheet("QComboBox { padding: 3px; font-size: 11px; }")  # 紧凑样式
+        self.host_ip.setToolTip("选择或输入数据库主机地址")
 
         self.status_label = QLabel("未连接")
         self.status_label.setStyleSheet("color: gray; font-weight: normal; font-size: 11px;")
@@ -207,7 +207,7 @@ class DbConfigWindow(BaseTabWidget):
         db_row_layout.setContentsMargins(0, 0, 0, 0)
         db_row_layout.setSpacing(6)  # 减少间距
         db_row_layout.addWidget(QLabel("主机地址:"))
-        db_row_layout.addWidget(self.host_combo)
+        db_row_layout.addWidget(self.host_ip)
         db_row_layout.addWidget(QLabel("状态:"))
         db_row_layout.addWidget(self.status_label)
         db_row_layout.addWidget(self.connect_btn)
@@ -636,7 +636,7 @@ class DbConfigWindow(BaseTabWidget):
 
     def get_db_params(self):
         return {
-            'host': self.host_combo.currentText(),
+            'host': self.host_ip.currentText(),
             'port': 22108,
             'user': 'shohoku',
             'password': 'N0mur@4$99!',
@@ -666,7 +666,7 @@ class DbConfigWindow(BaseTabWidget):
 
     def connect_database(self):
         """连接数据库"""
-        host = self.host_combo.currentText().strip()
+        host = self.host_ip.currentText().strip()
         if not host:
             QMessageBox.warning(self, "警告", "请输入主机地址")
             return
@@ -697,7 +697,7 @@ class DbConfigWindow(BaseTabWidget):
 
             # 先尝试连接SSH
             try:
-                ssh = service._connect_ssh(self.host_combo.currentText().strip(),'menu',"M2ei#a$19!")
+                ssh = service._connect_ssh(self.host_ip.currentText().strip(), 'menu', "M2ei#a$19!")
                 ssh.close()
             except Exception as e:
                 self.log_message("SSH连接失败，无法重启POS", level="error")
@@ -723,7 +723,7 @@ class DbConfigWindow(BaseTabWidget):
             self.restart_thread.finished_updated.connect(self.on_restart_finished)
             self.restart_thread.start()
 
-        restart_pos_callback(self.host_combo.currentText().strip(),'menu',"M2ei#a$19!")
+        restart_pos_callback(self.host_ip.currentText().strip(), 'menu', "M2ei#a$19!")
 
 
     def on_restart_finished(self):
@@ -743,3 +743,8 @@ class DbConfigWindow(BaseTabWidget):
         """隐藏事件处理"""
         super().hideEvent(event)
         self.show_main_log_area()
+
+    def set_host_ip(self, ip: str):
+        """同步设置主机IP到host_ip输入框"""
+        if self.host_ip:
+            self.host_ip.setCurrentText(ip)
