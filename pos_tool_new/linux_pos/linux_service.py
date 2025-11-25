@@ -303,10 +303,23 @@ class LinuxService(Backend):
             if progress_callback:
                 progress_callback(70)
 
-            # 执行 update.sh
+            # 执行 update.sh，兼容交互式询问自动输入 y
             self.log("执行 update.sh ...", level="info")
             update_script = posixpath.join(remote_target_path, "update.sh")
-            out, err, _ = self._execute_command(ssh, f"cd {remote_target_path} && sudo bash {update_script}")
+            cmd = f"cd {remote_target_path} && sudo bash {update_script}"
+            stdin, stdout, stderr = ssh.exec_command(cmd, get_pty=True)
+            out_lines = []
+            while not stdout.channel.exit_status_ready():
+                line = stdout.readline()
+                if line:
+                    out_lines.append(line)
+                    if "Are you sure you want to upgrade?" in line:
+                        stdin.write("y\n")
+                        stdin.flush()
+            # 读取剩余输出
+            out_lines.extend(stdout.readlines())
+            out = ''.join(out_lines)
+            err = stderr.read().decode()
 
             if out:
                 self.log(out, level="info")
@@ -333,6 +346,30 @@ class LinuxService(Backend):
             return out.split()[0]  # 返回 MD5 值
         except Exception as e:
             self.log(f"获取 MD5 值过程中出错: {str(e)}", level="error")
+            return None
+
+    def get_app_version(self, ssh: paramiko.SSHClient) -> Optional[str]:
+        """
+        获取远程 /opt/menusifu/resources/app/package.json 文件中的 version 字段
+        """
+        remote_path = "/opt/menusifu/resources/app/package.json"
+        try:
+            content = self._read_remote_file(ssh, remote_path)
+            # 提取 version 字段
+            import json
+            try:
+                data = json.loads(content)
+                return data.get("version")
+            except Exception:
+                # 如果不是标准json，尝试用正则
+                import re
+                match = re.search(r'"version"\s*:\s*"([^"]+)"', content)
+                if match:
+                    return match.group(1)
+                else:
+                    return None
+        except Exception as e:
+            self.log(f"获取版本号失败: {str(e)}", level="error")
             return None
 
     def scan_remote_logs(self, ssh: paramiko.SSHClient) -> List[str]:

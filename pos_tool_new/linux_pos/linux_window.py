@@ -177,23 +177,9 @@ class LinuxTabWidget(BaseTabWidget):
         self.status_label.setStyleSheet("color: red;")
         self.status_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         ssh_input_layout.addWidget(self.status_label)
-        # 查询远程包MD5按钮
-        self.remote_md5_btn = QPushButton("查询远程包MD5")
-        self.remote_md5_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-        self.remote_md5_btn.clicked.connect(self.on_check_remote_md5)
-        ssh_input_layout.addWidget(self.remote_md5_btn)
-        # 日志下载按钮
-        self.download_log_btn = QPushButton("日志下载")
-        self.download_log_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-        self.download_log_btn.clicked.connect(self.on_download_log)
-        ssh_input_layout.addWidget(self.download_log_btn)
-        # 添加实时日志按钮
-        self.tail_log_btn = QPushButton("实时日志")
-        self.tail_log_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-        ssh_input_layout.addWidget(self.tail_log_btn)
-        self.tail_log_btn.clicked.connect(self.on_tail_log_clicked)
         ssh_main_layout.addLayout(ssh_input_layout)
         self.layout.addWidget(self.ssh_group)
+
 
         # 环境选择组（1/4）
         env_group = QGroupBox("配置文件环境选择")
@@ -221,10 +207,7 @@ class LinuxTabWidget(BaseTabWidget):
         file_main_layout.addLayout(file_select_layout)
         file_btn_layout = QHBoxLayout()
         file_btn_layout.addStretch()
-        # 查询本地包MD5按钮
-        self.local_md5_btn = QPushButton("查询本地包MD5")
-        self.local_md5_btn.clicked.connect(self.on_check_local_md5)
-        file_btn_layout.addWidget(self.local_md5_btn)
+
         # 替换远程war包按钮
         self.replace_btn = QPushButton("替换远程war包")
         self.replace_btn.clicked.connect(self.on_replace_war_linux)
@@ -266,10 +249,10 @@ class LinuxTabWidget(BaseTabWidget):
         self.restore_btn.clicked.connect(self.on_restore_data)
         action_layout.addWidget(self.restore_btn)
 
-        # 新增流水线布局和一键升级按钮
+        # 流水线布局和一键升级按钮
         pipeline_group = QGroupBox("流水线")
         pipeline_layout = QHBoxLayout(pipeline_group)
-        pipeline_layout.addStretch()  # 左侧留白，按钮靠右
+        pipeline_layout.addStretch()
         self.pipeline_upgrade_btn = QPushButton("一键升级")
         self.pipeline_upgrade_btn.setToolTip("依次执行【替换远程war包】->【修改文件】->【重启pos】")
         self.pipeline_upgrade_btn.clicked.connect(self.on_pipeline_upgrade)
@@ -278,15 +261,52 @@ class LinuxTabWidget(BaseTabWidget):
         self.pipeline_upgrade_package_btn.setToolTip("依次执行【使用升级包升级】->【修改文件】->【重启pos】")
         self.pipeline_upgrade_package_btn.clicked.connect(self.on_pipeline_package_upgrade)
         pipeline_layout.addWidget(self.pipeline_upgrade_package_btn)
-        self.layout.addLayout(pipeline_layout)
 
-        # 新建一行布局，包含 action_group 和 pipeline_group，水平平分
-        action_pipeline_layout = QHBoxLayout()
-        action_pipeline_layout.addWidget(action_group)
-        action_pipeline_layout.addWidget(pipeline_group)
-        action_pipeline_layout.setStretch(0, 1)  # action_group 占一份
-        action_pipeline_layout.setStretch(1, 1)  # pipeline_group 占一份
-        self.layout.addLayout(action_pipeline_layout)
+        # 查询组
+        search_group = QGroupBox("查询")
+        search_layout = QHBoxLayout(search_group)
+        search_layout.addStretch()
+        # 查询本地包MD5按钮
+        self.local_md5_btn = QPushButton("查询本地包MD5")
+        self.local_md5_btn.clicked.connect(self.on_check_local_md5)
+        file_btn_layout.addWidget(self.local_md5_btn)
+        search_layout.addWidget(self.local_md5_btn)
+        self.remote_md5_btn = QPushButton("查询远程包MD5")
+        self.remote_md5_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        self.remote_md5_btn.clicked.connect(self.on_check_remote_md5)
+        search_layout.addWidget(self.remote_md5_btn)
+        self.remote_app_btn = QPushButton("查询壳子版本")
+        self.remote_app_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        self.remote_app_btn.clicked.connect(self.on_get_app_version)
+        search_layout.addWidget(self.remote_app_btn)
+
+        # 日志组
+        app_log_group = QGroupBox("日志")
+        app_log_layout = QHBoxLayout(app_log_group)
+        app_log_layout.addStretch()
+        self.download_log_btn = QPushButton("日志下载")
+        self.download_log_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        self.download_log_btn.clicked.connect(self.on_download_log)
+        app_log_layout.addWidget(self.download_log_btn)
+        self.tail_log_btn = QPushButton("实时日志")
+        self.tail_log_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        self.tail_log_btn.clicked.connect(self.on_tail_log_clicked)
+        app_log_layout.addWidget(self.tail_log_btn)
+
+        # 两行布局，每行两个组件
+        row1_layout = QHBoxLayout()
+        row1_layout.addWidget(action_group)
+        row1_layout.addWidget(pipeline_group)
+        row1_layout.setStretch(0, 1)
+        row1_layout.setStretch(1, 1)
+        self.layout.addLayout(row1_layout)
+
+        row2_layout = QHBoxLayout()
+        row2_layout.addWidget(search_group)
+        row2_layout.addWidget(app_log_group)
+        row2_layout.setStretch(0, 1)
+        row2_layout.setStretch(1, 1)
+        self.layout.addLayout(row2_layout)
 
         self.layout.addStretch()
         self.host_ip.currentTextChanged.connect(self.reset_connection_status)
@@ -1048,6 +1068,25 @@ class LinuxTabWidget(BaseTabWidget):
         """同步设置主机IP到host_ip输入框"""
         if self.host_ip:
             self.host_ip.setCurrentText(ip)
+
+    def on_get_app_version(self):
+        """
+        查询并打印远程POS应用的版本号
+        """
+        def get_app_version_callback(host, username, password):
+            remote_path = "/opt/menusifu/resources/app/package.json"
+            try:
+                ssh = self.service._connect_ssh(host, username, password)
+                version = self.service.get_app_version(ssh)
+                if version:
+                    self.service.log(f"POS应用版本: {version}", level="info")
+                else:
+                    self.service.log(f"未能获取版本号，或文件不存在: {remote_path}", level="warning")
+                ssh.close()
+            except Exception as e:
+                self.service.log(f"获取POS版本号失败: {str(e)}", level="error")
+
+        self._execute_with_connection_validation("查询远程POS版本号", get_app_version_callback)
 
 class MultiSelectLogDialog(QDialog):
     def __init__(self, parent, log_files):
