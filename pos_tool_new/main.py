@@ -1,16 +1,18 @@
 import os
 import sys
 import time
-from typing import Tuple
+from typing import Tuple, Optional
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from PyQt6.QtGui import QFont, QPalette, QTextCharFormat, QTextCursor, QAction
+
+from PyQt6.QtCore import QTimer, Qt, QSize, QPropertyAnimation, QEasingCurve
+from PyQt6.QtGui import QFont, QPalette, QTextCharFormat, QTextCursor, QAction, QIcon, QColor, QMovie
 from PyQt6.QtWidgets import (
-    QApplication, QWidget, QTabWidget, QTextEdit,
-    QPushButton, QHBoxLayout, QLabel, QRadioButton,
-    QButtonGroup, QGroupBox, QProgressBar,
-    QMainWindow, QToolButton, QMenuBar, QMessageBox
+    QApplication, QWidget, QTabWidget, QTextEdit, QPushButton, QHBoxLayout,
+    QLabel, QRadioButton, QButtonGroup, QGroupBox, QProgressBar, QMainWindow,
+    QToolButton, QMenuBar, QMessageBox, QVBoxLayout, QSplitter
 )
+
 from pos_tool_new.backend import Backend
 from pos_tool_new.version_info.version_info import VersionInfoDialog
 from pos_tool_new.utils.log_manager import global_log_manager
@@ -58,6 +60,7 @@ class BaseTabWidget(QWidget):
         layout = QHBoxLayout(frame)
         layout.setSpacing(1)
         layout.setContentsMargins(2, 2, 2, 2)
+
         for name in ["PROD", "QA", "DEV"]:
             btn = QRadioButton(name)
             btn.setStyleSheet("QRadioButton { font-size: 11px; }")
@@ -65,6 +68,7 @@ class BaseTabWidget(QWidget):
             layout.addWidget(btn)
             if name == default:
                 btn.setChecked(True)
+
         layout.addStretch()
         return frame, group
 
@@ -78,11 +82,10 @@ class BaseTabWidget(QWidget):
     def add_help_button(self, parent_button: QPushButton, info: str):
         """为按钮添加帮助按钮"""
         help_btn = QToolButton()
-        help_btn.setText("?")  # 使用文本"?"代替图片
+        help_btn.setText("?")
         help_btn.setToolTip("点击查看使用说明")
         help_btn.clicked.connect(lambda: self.show_upgrade_help(info))
 
-        # 优化样式 - 悬停时变为黄色背景
         help_btn.setStyleSheet("""
             QToolButton {
                 background: transparent;
@@ -94,15 +97,13 @@ class BaseTabWidget(QWidget):
                 padding: 0px;
             }
             QToolButton:hover {
-                background: #ffeb3b;  /* 黄色背景 */
+                background: #ffeb3b;
                 color: #333;
-                border: 1px solid #ffc107;  /* 更深的黄色边框 */
+                border: 1px solid #ffc107;
             }
         """)
-
         help_btn.setFixedSize(20, 20)
 
-        # 将帮助按钮添加到父按钮的布局中
         parent_button_layout = QHBoxLayout(parent_button)
         parent_button_layout.setContentsMargins(0, 0, 0, 0)
         parent_button_layout.addStretch()
@@ -110,39 +111,32 @@ class BaseTabWidget(QWidget):
 
     def show_upgrade_help(self, info: str):
         """显示升级帮助"""
-        QMessageBox.information(
-            self,
-            "使用说明",
-            info
-        )
+        QMessageBox.information(self, "使用说明", info)
 
-    def _find_mainwindow(self):
+    def _find_mainwindow(self) -> Optional[QMainWindow]:
+        """递归查找主窗口"""
         parent = self.parent()
-        from PyQt6.QtWidgets import QMainWindow
         while parent is not None and not isinstance(parent, QMainWindow):
             parent = parent.parent()
         return parent
 
     def hide_main_log_area(self):
-        """递归查找主窗口并隐藏日志区QGroupBox"""
+        """隐藏主窗口日志区域"""
         mainwin = self._find_mainwindow()
         if mainwin is not None:
-            # 查找QGroupBox("📝 操作日志")
-            from PyQt6.QtWidgets import QGroupBox
             for gb in mainwin.findChildren(QGroupBox):
-                if gb.title().strip() == "📝 操作日志":
+                if gb.title().strip() == "📝📝 操作日志":
                     gb.setVisible(False)
             if hasattr(mainwin, 'layout') and callable(mainwin.layout):
                 mainwin.layout().activate()
             mainwin.update()
 
     def show_main_log_area(self):
-        """递归查找主窗口并恢复日志区QGroupBox"""
+        """显示主窗口日志区域"""
         mainwin = self._find_mainwindow()
         if mainwin is not None:
-            from PyQt6.QtWidgets import QGroupBox
             for gb in mainwin.findChildren(QGroupBox):
-                if gb.title().strip() == "📝 操作日志":
+                if gb.title().strip() == "📝📝 操作日志":
                     gb.setVisible(True)
             if hasattr(mainwin, 'layout') and callable(mainwin.layout):
                 mainwin.layout().activate()
@@ -160,14 +154,14 @@ class EnhancedTextEdit(QTextEdit):
         """添加带颜色的文本"""
         cursor = self.textCursor()
         cursor.movePosition(QTextCursor.MoveOperation.End)
+
         format = QTextCharFormat()
         format.setForeground(QColor(color))
         cursor.setCharFormat(format)
         cursor.insertText(text + "\n")
+
         # 自动滚动到底部
-        self.verticalScrollBar().setValue(
-            self.verticalScrollBar().maximum()
-        )
+        self.verticalScrollBar().setValue(self.verticalScrollBar().maximum())
 
 
 class AnimatedProgressBar(QProgressBar):
@@ -190,19 +184,30 @@ class AnimatedProgressBar(QProgressBar):
         self.animation.stop()
 
 
-
 class MainWindow(QMainWindow):
+    """主窗口类"""
+
     def __init__(self):
         super().__init__()
-        self.log_layout = None
-        self.log_group = None
-        self.fake_progress = 0
+        self.finish_timer: Optional[QTimer] = None
+        self.log_text: Optional[EnhancedTextEdit] = None
+        self.log_group: Optional[QGroupBox] = None
+        self.fake_progress: int = 0
+
+        self._init_components()
+        self.setup_backend()
+        self.setup_ui()
+
+        global_log_manager.log_received.connect(self.log_text.append_colored_text)
+
+    def _init_components(self):
+        """初始化组件"""
         self.progress_timer = QTimer(self)
-        # Initialize progress bar and speed label early
         self.progress_bar = AnimatedProgressBar()
         self.progress_bar.setMaximumWidth(300)
         self.progress_bar.setVisible(False)
         self.progress_bar.setFormat("处理中... %p%")
+
         self.speed_label = QLabel()
         self.speed_label.setVisible(False)
         self.speed_label.setMinimumWidth(120)
@@ -217,121 +222,142 @@ class MainWindow(QMainWindow):
                 border: 1px solid #c3e6cb;
             }
         """)
-        self.setup_backend()
-        self.setup_ui()
-        global_log_manager.log_received.connect(self.log_text.append_colored_text)
 
     def setup_ui(self):
-        """设置UI"""
-        self.setWindowIcon(QIcon(resource_path('UI/app.ico')))
-        self.setWindowTitle("POS测试工具 v1.5.0.8 by Mansuper")
-        self.resize(900, 580)
-        # 设置样式
+        """设置UI界面"""
+        self._setup_window_properties()
         self.setup_styles()
-        # 创建菜单栏
         self.create_menubar()
-        # 创建中央部件和主布局
-        central_widget = QWidget()
+
+        central_widget = self._create_central_widget()
         self.setCentralWidget(central_widget)
+
+        self._setup_progress_timer()
+
+    def _setup_window_properties(self):
+        """设置窗口属性"""
+        self.setWindowIcon(QIcon(resource_path('UI/app.ico')))
+        self.setWindowTitle("POS测试工具 v1.5.1.0 by Mansuper")
+        self.resize(900, 580)
+
+    def _create_central_widget(self) -> QWidget:
+        """创建中央部件"""
+        central_widget = QWidget()
         main_layout = QVBoxLayout(central_widget)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
+
         # 创建选项卡
         self.tabs = QTabWidget()
         self.tabs.setDocumentMode(True)
         self.tabs.setTabPosition(QTabWidget.TabPosition.North)
         self.tabs.setMovable(True)
-        self.tabs.setTabsClosable(False)
-        # 创建日志区域（先不添加到布局）
-        self.log_group = None
-        # 创建选项卡内容
-        self.create_tab_contents()
-        # 创建日志区域（不再传 main_layout）
+
+        # 创建日志区域
         self.create_log_area()
-        # 用 QSplitter 垂直分割主内容和日志区
-        from PyQt6.QtWidgets import QSplitter
+
+        # 使用分割器
         splitter = QSplitter(Qt.Orientation.Vertical)
         splitter.addWidget(self.tabs)
         splitter.addWidget(self.log_group)
         self.log_group.setMinimumHeight(270)
-        splitter.setSizes([600, 180])  # 初始比例，可根据实际调整
+        splitter.setSizes([600, 180])
         main_layout.addWidget(splitter)
-        # 初始化进度条
-        self.fake_progress = 0
-        self.progress_timer.timeout.connect(self.update_fake_progress)
 
-        # 状态栏区域（已移除进度条和速率标签）
-        status_layout = QHBoxLayout()
-        status_layout.addStretch()
-        # log_layout.addLayout(status_layout)  # 移除进度条和速率标签的添加
+        # 添加底部部件
+        main_layout.addWidget(self._create_bottom_widget())
 
-        # 新建底部布局，放在主窗口底部，保持美观样式
+        # 创建选项卡内容
+        self.create_tab_contents()
+
+        return central_widget
+
+    def _create_bottom_widget(self) -> QWidget:
+        """创建底部部件"""
         bottom_widget = QWidget()
         bottom_layout = QHBoxLayout(bottom_widget)
-        bottom_layout.setContentsMargins(16, 8, 16, 8)  # 左右和上下留出空间
-        bottom_layout.setSpacing(16)  # 进度条和速率标签之间留间距
+        bottom_layout.setContentsMargins(16, 8, 16, 8)
+        bottom_layout.setSpacing(16)
+
         bottom_layout.addStretch()
         bottom_layout.addWidget(self.progress_bar)
         bottom_layout.addWidget(self.speed_label)
         bottom_layout.addStretch()
-        # 设置底部背景色和圆角
+
         bottom_widget.setStyleSheet("""
             background: #f8f9fa;
             border-top: 1px solid #dee2e6;
             border-bottom-left-radius: 8px;
             border-bottom-right-radius: 8px;
         """)
-        # 将底部布局添加到主窗口主布局
-        self.centralWidget().layout().addWidget(bottom_widget)
+
+        return bottom_widget
+
+    def _setup_progress_timer(self):
+        """设置进度条定时器"""
+        self.fake_progress = 0
+        self.progress_timer.timeout.connect(self.update_fake_progress)
 
     def create_menubar(self):
-        """创建菜单栏并添加关于菜单项"""
-        menubar = self.menuBar() if self.menuBar() else QMenuBar(self)
+        """创建菜单栏"""
+        menubar = self.menuBar() or QMenuBar(self)
+        # 添加关于菜单
         about_menu = menubar.addMenu("关于(&A)")
         version_action = QAction("版本信息", self)
         version_action.triggered.connect(self.show_version_info)
         about_menu.addAction(version_action)
+
+        # 添加设置菜单
+        settings_menu = menubar.addMenu("设置(&S)")
+        global_ip_action = QAction("全局IP", self)
+        global_ip_action.triggered.connect(self.show_global_ip_dialog)
+        settings_menu.addAction(global_ip_action)
+
         self.setMenuBar(menubar)
 
-    def create_tab_contents(self):
-        from pos_tool_new.linux_pos.linux_window import LinuxTabWidget
-        self.linux_tab = LinuxTabWidget(self)
-        self.tabs.addTab(self.linux_tab, "🐧 Linux POS")
-        from pos_tool_new.linux_file_config.file_config_linux_window import FileConfigTabWidget
-        file_config_tab = FileConfigTabWidget(self)
-        self.tabs.addTab(file_config_tab, "⚙️ Linux配置文件")
-        from pos_tool_new.windows_pos.windows_window import WindowsTabWidget
-        self.windows_tab = WindowsTabWidget(self)
-        self.tabs.addTab(self.windows_tab, "🪟 Windows POS")
-        from pos_tool_new.windows_file_config.file_config_win_window import WindowsFileConfigTabWidget
-        file_config_tab = WindowsFileConfigTabWidget(self)
-        self.tabs.addTab(file_config_tab, "⚙️ Windows配置文件")
-        from pos_tool_new.db_config.db_config_window import DbConfigWindow
-        self.db_config_tab = DbConfigWindow(self)
-        self.tabs.addTab(self.db_config_tab, "🗄️ 数据库配置")
-        from pos_tool_new.scan_pos.scan_pos_window import ScanPosTabWidget
-        self.scan_pos_tab = ScanPosTabWidget(self.backend, self)
-        self.tabs.addTab(self.scan_pos_tab, "🔍 扫描POS")
-        from pos_tool_new.caller_id.caller_window import CallerIdTabWidget
-        self.caller_tab = CallerIdTabWidget(self.backend, self)
-        self.tabs.addTab(self.caller_tab, "📞 Caller ID")
-        from pos_tool_new.license_backup.license_window import LicenseToolTabWidget
-        self.license_tab = LicenseToolTabWidget(self)
-        self.tabs.addTab(self.license_tab, "🔐 Device&&App License")
-        from pos_tool_new.download_war.download_war_window import DownloadWarTabWidget
-        self.download_war_tab = DownloadWarTabWidget(self)
-        self.tabs.addTab(self.download_war_tab, "📥 Download War")
-        from pos_tool_new.generate_img.generate_img_window import GenerateImgTabWidget
-        self.generate_img_tab = GenerateImgTabWidget(self)
-        self.tabs.addTab(self.generate_img_tab, "🖼️ 图片生成")
-        from pos_tool_new.random_mail.random_mail_window import RandomMailTabWidget
-        self.random_mail_tab = RandomMailTabWidget(self)
-        self.tabs.addTab(self.random_mail_tab, "📧 随机邮箱")
+    def show_global_ip_dialog(self):
+        """弹出全局IP配置窗口（QComboBox方式）"""
+        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QComboBox, QDialogButtonBox, QLabel
+        dialog = QDialog(self)
+        dialog.setWindowTitle("配置全局IP")
+        layout = QVBoxLayout(dialog)
+        layout.addWidget(QLabel("请输入全局IP:"))
+        combo = QComboBox()
+        combo.setEditable(True)
+        combo.addItems([
+            "192.168.0.", "192.168.1.", "10.24.1.",
+            "10.1.10.", "10.0.10.", "192.168.252.", "192.168.253."
+        ])
+        current_ip = self.get_global_ip()
+        if current_ip:
+            combo.setCurrentText(current_ip)
+        layout.addWidget(combo)
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        layout.addWidget(buttons)
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            ip = combo.currentText().strip()
+            if ip:
+                self.set_global_ip(ip)
+                # 同步所有FileConfigTabWidget的host_ip
+                for i in range(self.tabs.count()):
+                    tab = self.tabs.widget(i)
+                    if hasattr(tab, 'set_host_ip') and callable(tab.set_host_ip):
+                        tab.set_host_ip(ip)
+                QMessageBox.information(self, "提示",
+                                        f"全局IP已设置为: {ip}。仅首次会同步到所有选项卡，之后各选项卡可单独修改IP。")
 
+    def get_global_ip(self) -> str:
+        """读取全局IP（仅内存，不写文件）"""
+        return getattr(self, '_global_ip', '')
 
+    def set_global_ip(self, ip: str):
+        """保存全局IP（仅内存，不写文件）"""
+        self._global_ip = ip
 
     def show_version_info(self):
-        """显示版本信息对话框"""
+        """显示版本信息"""
         dialog = VersionInfoDialog(self)
         dialog.exec()
 
@@ -343,25 +369,35 @@ class MainWindow(QMainWindow):
     def setup_styles(self):
         """设置应用程序样式"""
         app.setStyle("Fusion")
-        # 创建现代调色板
+
+        # 创建调色板
         palette = QPalette()
-        palette.setColor(QPalette.ColorRole.Window, QColor(245, 245, 245))
-        palette.setColor(QPalette.ColorRole.WindowText, QColor(33, 37, 41))
-        palette.setColor(QPalette.ColorRole.Base, QColor(255, 255, 255))
-        palette.setColor(QPalette.ColorRole.AlternateBase, QColor(248, 249, 250))
-        palette.setColor(QPalette.ColorRole.ToolTipBase, QColor(255, 255, 220))
-        palette.setColor(QPalette.ColorRole.ToolTipText, QColor(33, 37, 41))
-        palette.setColor(QPalette.ColorRole.Text, QColor(33, 37, 41))
-        palette.setColor(QPalette.ColorRole.Button, QColor(248, 249, 250))
-        palette.setColor(QPalette.ColorRole.ButtonText, QColor(33, 37, 41))
-        palette.setColor(QPalette.ColorRole.BrightText, QColor(220, 53, 69))
-        palette.setColor(QPalette.ColorRole.Highlight, QColor(0, 123, 255))
-        palette.setColor(QPalette.ColorRole.HighlightedText, QColor(255, 255, 255))
+        palette_configs = [
+            (QPalette.ColorRole.Window, QColor(245, 245, 245)),
+            (QPalette.ColorRole.WindowText, QColor(33, 37, 41)),
+            (QPalette.ColorRole.Base, QColor(255, 255, 255)),
+            (QPalette.ColorRole.AlternateBase, QColor(248, 249, 250)),
+            (QPalette.ColorRole.ToolTipBase, QColor(255, 255, 220)),
+            (QPalette.ColorRole.ToolTipText, QColor(33, 37, 41)),
+            (QPalette.ColorRole.Text, QColor(33, 37, 41)),
+            (QPalette.ColorRole.Button, QColor(248, 249, 250)),
+            (QPalette.ColorRole.ButtonText, QColor(33, 37, 41)),
+            (QPalette.ColorRole.BrightText, QColor(220, 53, 69)),
+            (QPalette.ColorRole.Highlight, QColor(0, 123, 255)),
+            (QPalette.ColorRole.HighlightedText, QColor(255, 255, 255))
+        ]
+
+        for role, color in palette_configs:
+            palette.setColor(role, color)
+
         app.setPalette(palette)
-        # 设置字体
         app.setFont(QFont("Microsoft YaHei", 9))
-        # 设置现代化的样式表
-        self.setStyleSheet("""
+
+        self.setStyleSheet(self._get_stylesheet())
+
+    def _get_stylesheet(self) -> str:
+        """获取样式表"""
+        return """
             QMainWindow {
                 background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
                     stop: 0 #f8f9fa, stop: 1 #e9ecef);
@@ -381,34 +417,34 @@ class MainWindow(QMainWindow):
                 padding: 0 6px 0 6px;
                 color: #495057;
             }
-       QPushButton {
-    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-        stop: 0 #7fbfff, stop: 1 #4a90e2);
-    color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 6px 12px;
-    font-weight: 500;
-    font-size: 11px;
-}
-QPushButton:hover {
-    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-        stop: 0 #6bacff, stop: 1 #3a7bc8);
-}
-QPushButton:pressed {
-    background: #2c6aa8;
-}
-QPushButton:disabled {
-    background: #a0a0a0;
-    color: #d0d0d0;
-}
+            QPushButton {
+                background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                    stop: 0 #7fbfff, stop: 1 #4a90e2);
+                color: white;
+                border: none;
+                border-radius: 4px;
+                padding: 6px 12px;
+                font-weight: 500;
+                font-size: 11px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                    stop: 0 #6bacff, stop: 1 #3a7bc8);
+            }
+            QPushButton:pressed {
+                background: #2c6aa8;
+            }
+            QPushButton:disabled {
+                background: #a0a0a0;
+                color: #d0d0d0;
+            }
             QTabWidget::pane {
-                 border: 1px solid #dee2e6;
-    border-radius: 6px;
-    background: white;
-    margin-top: -1px;
-    padding: 4px; 
-    min-width: 0px;
+                border: 1px solid #dee2e6;
+                border-radius: 6px;
+                background: white;
+                margin-top: -1px;
+                padding: 4px; 
+                min-width: 0px;
             }
             QTabBar::tab {
                 background: #f8f9fa;
@@ -416,7 +452,7 @@ QPushButton:disabled {
                 border-bottom: none;
                 border-top-left-radius: 6px;
                 border-top-right-radius: 6px;
-                 padding: 4px 8px;
+                padding: 4px 8px;
                 margin-right: 2px;
                 font-size: 11px;
                 color: #495057;
@@ -443,7 +479,6 @@ QPushButton:disabled {
                 background: white;
                 selection-background-color: #007bff;
             }
-            /* 进度条样式优化 */
             QProgressBar {
                 border: 1px solid #ced4da;
                 border-radius: 4px;
@@ -454,15 +489,15 @@ QPushButton:disabled {
                 font-size: 10px;
                 font-weight: 500;
             }
-              QToolTip {
-        background-color: #ffffff;
-        color: #333333;
-        border: 1px solid #e0e0e0;
-        border-radius: 4px;
-        padding: 6px 10px;
-        font-size: 12px;
-        opacity: 240;
-    }
+            QToolTip {
+                background-color: #ffffff;
+                color: #333333;
+                border: 1px solid #e0e0e0;
+                border-radius: 4px;
+                padding: 6px 10px;
+                font-size: 12px;
+                opacity: 240;
+            }
             QProgressBar::chunk {
                 background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,
                     stop: 0 #00b09b, stop: 1 #96c93d);
@@ -481,20 +516,19 @@ QPushButton:disabled {
                 width: 1px;
                 margin: 0 4px;
             }
-        """)
+        """
 
     def create_log_area(self):
         """创建日志区域"""
-        log_group = QGroupBox("📝 操作日志")
-        self.log_group = log_group  # 关键：赋值为MainWindow属性，便于Tab控制隐藏
-        log_layout = QVBoxLayout(log_group)
-        self.log_layout = log_layout  # 可选：如需控制布局隐藏
+        self.log_group = QGroupBox("📝 操作日志")
+        log_layout = QVBoxLayout(self.log_group)
         log_layout.setSpacing(4)
         log_layout.setContentsMargins(6, 6, 6, 6)
+
         # 日志工具栏
         log_toolbar = QHBoxLayout()
         log_toolbar.addStretch()
-        # 清除日志按钮
+
         clear_btn = QPushButton("🗑️ 清除日志")
         clear_btn.setMaximumWidth(100)
         clear_btn.clicked.connect(self.clear_logs)
@@ -513,43 +547,17 @@ QPushButton:disabled {
         """)
         log_toolbar.addWidget(clear_btn)
         log_layout.addLayout(log_toolbar)
+
         # 日志文本区域
         self.log_text = EnhancedTextEdit()
-        self.log_text.setMinimumHeight(120)
+        if self.log_text is not None:
+            self.log_text.setMinimumHeight(120)
         log_layout.addWidget(self.log_text)
-        # 状态栏区域（已移除进度条和速率标签）
-        status_layout = QHBoxLayout()
-        status_layout.addStretch()
-        # log_layout.addLayout(status_layout)  # 移除进度条和速率标签的添加
-
-        # 新建底部布局，放在主窗口底部，保持美观样式
-        bottom_widget = QWidget()
-        bottom_layout = QHBoxLayout(bottom_widget)
-        bottom_layout.setContentsMargins(16, 8, 16, 8)  # 左右和上下留出空间
-        bottom_layout.setSpacing(16)  # 进度条和速率标签之间留间距
-        bottom_layout.addStretch()
-        bottom_layout.addWidget(self.progress_bar)
-        bottom_layout.addWidget(self.speed_label)
-        bottom_layout.addStretch()
-        # 设置底部背景色和圆角
-        bottom_widget.setStyleSheet("""
-            background: #f8f9fa;
-            border-top: 1px solid #dee2e6;
-            border-bottom-left-radius: 8px;
-            border-bottom-right-radius: 8px;
-        """)
-        # 将底部布局添加到主窗口主布局
-        self.centralWidget().layout().addWidget(bottom_widget)
-
-    def filter_logs(self, button):
-        """过滤日志显示"""
-        # 这里可以实现按级别过滤日志的功能
-        level = button.text()
-        self.append_log(f"已过滤显示: {level}级别日志", "info")
 
     def clear_logs(self):
         """清除日志"""
-        self.log_text.clear()
+        if self.log_text:
+            self.log_text.clear()
 
     def show_upload_speed(self, speed_text):
         """显示上传速度"""
@@ -561,10 +569,12 @@ QPushButton:disabled {
         self.speed_label.setVisible(False)
 
     def setup_progress_animation(self, interval: int):
+        """设置进度条动画"""
         self.fake_progress = 0
         self.progress_timer.start(interval)
 
     def update_fake_progress(self):
+        """更新模拟进度"""
         if self.fake_progress < 99:
             self.fake_progress += 1
             self.progress_bar.setValue(self.fake_progress)
@@ -573,21 +583,19 @@ QPushButton:disabled {
 
     def on_restart_finished(self):
         """重启完成处理"""
-        self.progress_timer.stop()
+        # 确保 finish_timer 已初始化且为 QTimer 实例
+        if not hasattr(self, 'finish_timer') or self.finish_timer is None:
+            self.finish_timer = QTimer(self)
+        else:
+            self.finish_timer.stop()
+            try:
+                self.finish_timer.timeout.disconnect()
+            except Exception:
+                pass
         self.progress_bar.setVisible(True)
         current_value = self.progress_bar.value()
         target_value = 100
-        step = max((target_value - current_value) / 30, 1)  # 30帧内完成，最小步长1
-
-        # 初始化 finish_timer（只需一次）
-        if not hasattr(self, 'finish_timer'):
-            from PyQt6.QtCore import QTimer
-            self.finish_timer = QTimer(self)
-        self.finish_timer.stop()
-        try:
-            self.finish_timer.timeout.disconnect()
-        except Exception:
-            pass
+        step = max((target_value - current_value) / 30, 1)
 
         def update_progress():
             nonlocal current_value
@@ -605,83 +613,116 @@ QPushButton:disabled {
         self.finish_timer.start(20)
 
     def append_log(self, msg, level="info"):
+        """添加日志"""
         global_log_manager.log(msg, level)
 
+    def create_tab_contents(self):
+        """创建选项卡内容"""
+        tab_imports = [
+            ("pos_tool_new.linux_pos.linux_window", "LinuxTabWidget", "🐧 Linux POS"),
+            ("pos_tool_new.linux_file_config.file_config_linux_window", "FileConfigTabWidget", "⚙️ Linux配置文件"),
+            ("pos_tool_new.windows_pos.windows_window", "WindowsTabWidget", "🪟 Windows POS"),
+            ("pos_tool_new.windows_file_config.file_config_win_window", "WindowsFileConfigTabWidget",
+             "⚙️ Windows配置文件"),
+            ("pos_tool_new.db_config.db_config_window", "DbConfigWindow", "🗄️ 数据库配置"),
+            ("pos_tool_new.scan_pos.scan_pos_window", "ScanPosTabWidget", "🔍 扫描POS"),
+            ("pos_tool_new.caller_id.caller_window", "CallerIdTabWidget", "📞 Caller ID"),
+            ("pos_tool_new.license_backup.license_window", "LicenseToolTabWidget", "🔐 Device&&App License"),
+            ("pos_tool_new.download_war.download_war_window", "DownloadWarTabWidget", "📥 Download War"),
+            ("pos_tool_new.generate_img.generate_img_window", "GenerateImgTabWidget", "🖼️ 图片生成"),
+            ("pos_tool_new.random_mail.random_mail_window", "RandomMailTabWidget", "📧 随机邮箱"),
+            ("pos_tool_new.sms.sms_window", "SmsWindow", "📱 短信验证码")
+        ]
 
-from PyQt6.QtCore import QTimer, Qt, QSize, QPropertyAnimation, QEasingCurve
-from PyQt6.QtGui import QIcon, QColor, QMovie
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QProgressBar
+        for module_path, class_name, tab_name in tab_imports:
+            try:
+                module = __import__(module_path, fromlist=[class_name])
+                tab_class = getattr(module, class_name)
+
+                if class_name in ["ScanPosTabWidget", "CallerIdTabWidget"]:
+                    tab_instance = tab_class(self.backend, self)
+                else:
+                    tab_instance = tab_class(self)
+
+                self.tabs.addTab(tab_instance, tab_name)
+            except (ImportError, AttributeError) as e:
+                print(f"Failed to load tab {tab_name}: {e}")
 
 
 class ModernSplashScreen(QWidget):
+    """现代化启动画面"""
+
     def __init__(self, gif_path, duration=1800, parent=None):
         super().__init__(parent)
+        self.duration = duration
+        self.main_window = None
+
+        self._setup_window()
+        self._setup_ui(gif_path)
+        self._setup_animation()
+
+    def _setup_window(self):
+        """设置窗口属性"""
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.SplashScreen)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setFixedSize(900, 580)
 
-        self._is_dark_mode = self.palette().window().color().lightness() < 128
-        self._setup_ui(gif_path)
-
-        self.duration = duration
-        self.main_window = None
-        self.progress_animation = QPropertyAnimation(self.splash_progress, b"value")
-        self.progress_animation.setDuration(duration)
-        self.progress_animation.setStartValue(0)
-        self.progress_animation.setEndValue(100)
-        self.progress_animation.setEasingCurve(QEasingCurve.Type.OutCubic)
-
     def _setup_ui(self, gif_path):
+        """设置UI界面"""
+        self._is_dark_mode = self.palette().window().color().lightness() < 128
+
         layout = QVBoxLayout(self)
-        # layout.setContentsMargins(20, 20, 20, 20)
+        layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(15)
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
+        # 图标标签
         self.icon_label = QLabel()
         self.icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.icon_label.setPixmap(self._get_icon())
         layout.addWidget(self.icon_label)
 
+        # 动画标签
         self.animation_label = QLabel()
         self.animation_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._setup_animation(gif_path)
+        self._setup_animation_gif(gif_path)
         layout.addWidget(self.animation_label)
 
-        # 应用标题
-        self.title_label = QLabel("POS测试工具")
-        self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.title_label.setStyleSheet("""
-            QLabel {
-                color: #cccccc;
-                font-size: 24px;
-                font-weight: bold;
-                background: transparent;
-            }
-        """)
-        layout.addWidget(self.title_label)
+        # 标题和版本标签
+        self.title_label = self._create_label("POS测试工具", "24px", "#cccccc")
+        self.version_label = self._create_label("v1.5.1.0 - 正在加载...", "12px", "#aaaaaa")
 
-        self.version_label = QLabel("v1.5.0.8 - 正在加载...")
-        self.version_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.version_label.setStyleSheet("""
-            QLabel {
-                color: #aaaaaa;
-                font-size: 12px;
-                background: transparent;
-            }
-        """)
+        layout.addWidget(self.title_label)
         layout.addWidget(self.version_label)
 
+        # 进度条
         self.splash_progress = QProgressBar()
         self.splash_progress.setMaximumWidth(300)
         self.splash_progress.setTextVisible(False)
         self._setup_progress_style()
         layout.addWidget(self.splash_progress)
 
+    def _create_label(self, text: str, font_size: str, color: str) -> QLabel:
+        """创建标签"""
+        label = QLabel(text)
+        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        label.setStyleSheet(f"""
+            QLabel {{
+                color: {color};
+                font-size: {font_size};
+                font-weight: bold;
+                background: transparent;
+            }}
+        """)
+        return label
+
     def _get_icon(self):
+        """获取图标"""
         icon = QIcon('UI/app.ico')
         return icon.pixmap(64, 64, QIcon.Mode.Normal if self._is_dark_mode else QIcon.Mode.Active)
 
-    def _setup_animation(self, gif_path):
+    def _setup_animation_gif(self, gif_path):
+        """设置动画GIF"""
         self.movie = QMovie(gif_path)
         if self.movie.isValid():
             self.movie.setScaledSize(QSize(280, 280))
@@ -692,7 +733,8 @@ class ModernSplashScreen(QWidget):
                 f"color: {'white' if self._is_dark_mode else '#333333'}; font-size: 14px;")
 
     def _setup_progress_style(self):
-        style = """
+        """设置进度条样式"""
+        style_template = """
             QProgressBar {{
                 border: 1px solid rgba({border_color});
                 border-radius: 4px;
@@ -700,58 +742,86 @@ class ModernSplashScreen(QWidget):
                 height: 6px;
             }}
             QProgressBar::chunk {{
-                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 {start_color}, stop: 1 {end_color});
+                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, 
+                    stop: 0 {start_color}, stop: 1 {end_color});
                 border-radius: 3px;
             }}
         """
+
         if self._is_dark_mode:
-            self.splash_progress.setStyleSheet(style.format(
-                border_color="255, 255, 255, 0.3", bg_color="255, 255, 255, 0.2",
-                start_color="#ffecd2", end_color="#fcb69f"))
+            style = style_template.format(
+                border_color="255, 255, 255, 0.3",
+                bg_color="255, 255, 255, 0.2",
+                start_color="#ffecd2",
+                end_color="#fcb69f"
+            )
         else:
-            self.splash_progress.setStyleSheet(style.format(
-                border_color="0, 0, 0, 0.2", bg_color="0, 0, 0, 0.1",
-                start_color="#4a6cf7", end_color="#2541b2"))
+            style = style_template.format(
+                border_color="0, 0, 0, 0.2",
+                bg_color="0, 0, 0, 0.1",
+                start_color="#4a6cf7",
+                end_color="#2541b2"
+            )
+
+        self.splash_progress.setStyleSheet(style)
+
+    def _setup_animation(self):
+        """设置动画"""
+        self.progress_animation = QPropertyAnimation(self.splash_progress, b"value")
+        self.progress_animation.setDuration(self.duration)
+        self.progress_animation.setStartValue(0)
+        self.progress_animation.setEndValue(100)
+        self.progress_animation.setEasingCurve(QEasingCurve.Type.OutCubic)
 
     def start(self, main_window_creator):
+        """启动启动画面"""
         if self.movie.isValid():
             self.movie.start()
+
         self.progress_animation.start()
         self.show()
+
         self.main_window = main_window_creator()
         QTimer.singleShot(self.duration, self.finish_loading)
 
     def finish_loading(self):
+        """完成加载"""
         self.progress_animation.stop()
         self.splash_progress.setValue(100)
+
         if self.main_window:
             self.main_window.setWindowFlags(Qt.WindowType.Window)
             self.main_window.showNormal()
             self.main_window.raise_()
             self.main_window.activateWindow()
+
         self.close()
 
     def closeEvent(self, event):
+        """关闭事件处理"""
         if self.movie.isValid():
             self.movie.stop()
+
         if self.main_window:
             self.main_window.show()
+
         event.accept()
 
 
-if __name__ == "__main__":
+def create_main_window():
+    """创建主窗口"""
     start_time = time.time()
+    win = MainWindow()
+    end_time = time.time()
+
+    cost_ms = int((end_time - start_time) * 1000)
+    global_log_manager.log(f"应用启动耗时: {cost_ms} ms", "info")
+
+    return win
+
+
+if __name__ == "__main__":
     app = QApplication(sys.argv)
     splash = ModernSplashScreen(resource_path('UI/loading.gif'), duration=1800)
-
-
-    def create_main_window():
-        win = MainWindow()
-        end_time = time.time()
-        cost_ms = int((end_time - start_time) * 1000)
-        global_log_manager.log(f"应用启动耗时: {cost_ms} ms", "info")
-        return win
-
-
     splash.start(create_main_window)
     sys.exit(app.exec())

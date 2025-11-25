@@ -1,6 +1,7 @@
 import time
 
 from PyQt6.QtCore import QThread, pyqtSignal
+from pos_tool_new.sms.sms_service import get_usable_phone_numbers_remote, get_latest_code_remote
 
 from pos_tool_new.download_war.download_war_service import DownloadWarService
 from pos_tool_new.linux_pos.linux_service import LinuxService
@@ -802,3 +803,63 @@ class ConfigRunThread(BaseWorkerThread):
             err_msg = f"执行配置项时发生错误: {str(e)}"
             self.error_occurred.emit(err_msg)
             self.finished_updated.emit(False, err_msg)
+
+
+class SmsWorkerThread(BaseWorkerThread):
+    phone_numbers_ready = pyqtSignal(list, str)
+    messages_ready = pyqtSignal(list, str)
+
+    def __init__(self):
+        super().__init__()
+        self.operation = None
+        self.phone_number = None
+        self.keyword = None
+        self.count = None
+
+    def set_refresh_operation(self):
+        self.operation = "refresh"
+
+    def set_query_operation(self, phone_number, keyword, count):
+        self.operation = "query"
+        self.phone_number = phone_number
+        self.keyword = keyword
+        self.count = count
+
+    def run(self):
+        if self.operation == "refresh":
+            self.refresh_phone_numbers()
+        elif self.operation == "query":
+            self.query_messages()
+
+    def refresh_phone_numbers(self):
+        try:
+            phone_numbers = get_usable_phone_numbers_remote()
+            if isinstance(phone_numbers, list):
+                self.phone_numbers_ready.emit(phone_numbers, "")
+            else:
+                self.phone_numbers_ready.emit([], phone_numbers)
+        except Exception as e:
+            self.phone_numbers_ready.emit([], str(e))
+
+    def query_messages(self):
+        import re
+        try:
+            phone_number = self.phone_number.replace('+', '').replace(' ', '')
+            result = get_latest_code_remote(phone_number, self.keyword, self.count)
+            if not result:
+                self.messages_ready.emit([], f"未找到包含 '{self.keyword}' 的短信")
+                return
+            messages = []
+            for msg in result.split("\n\n"):
+                from_match = re.search(r"From: (.+?),", msg)
+                time_match = re.search(r"Time: (.+?),", msg)
+                content_match = re.search(r"Content: (.+)", msg)
+                if from_match and time_match and content_match:
+                    messages.append({
+                        'sender': from_match.group(1),
+                        'time': time_match.group(1),
+                        'content': content_match.group(1)
+                    })
+            self.messages_ready.emit(messages, "")
+        except Exception as e:
+            self.messages_ready.emit([], str(e))

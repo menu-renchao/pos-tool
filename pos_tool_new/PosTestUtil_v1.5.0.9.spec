@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['main2.py'],
+    ['main.py'],
     pathex=['D:\menusifu\PythonProject\rc\pos_tool_new'],
     binaries=[],
     datas=[('UI/app.ico', 'UI'),('UI/loading.gif', 'UI'), ('version_info/version_info.html', 'version_info')],
