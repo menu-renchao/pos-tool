@@ -109,10 +109,19 @@ class SmsWindow(BaseTabWidget):
         self.clear_btn.clicked.connect(self.clear_messages)
 
     def copy_phone_number(self):
-        current_phone = self.phone_combo.currentText()
+        current_phone = self.phone_combo.currentText().strip()
         if current_phone and current_phone != "请选择手机号":
-            pyperclip.copy(current_phone)
-            self.status_label.setText(f"已复制手机号: {current_phone}")
+            # 如果是+1开头，去掉+1和空格，只复制后面的号码
+            if current_phone.startswith("+1 "):
+                phone_to_copy = current_phone[3:].strip()
+            elif current_phone.startswith("+1") and len(current_phone) > 2 and current_phone[2].isdigit():
+                phone_to_copy = current_phone[2:].strip()
+            else:
+                phone_to_copy = current_phone
+            pyperclip.copy(phone_to_copy)
+            self.status_label.setText(f"已复制手机号: {phone_to_copy}")
+        else:
+            self.status_label.setText("未复制，请选择有效手机号")
 
     def refresh_phone_numbers(self):
         if self.worker_thread.isRunning():
