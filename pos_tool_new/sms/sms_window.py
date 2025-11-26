@@ -1,7 +1,7 @@
+import pyperclip
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton, QTableWidget,
                              QTableWidgetItem, QHeaderView, QToolButton, QSizePolicy)
-from PyQt6.QtCore import Qt
-import pyperclip
 
 from pos_tool_new.main import BaseTabWidget
 from pos_tool_new.work_threads import SmsWorkerThread

@@ -785,7 +785,8 @@ class WindowsFileConfigTabWidget(BaseTabWidget):
 
         self.current_batch_index += 1
         self.execute_next_config_in_batch(
-            self.connection_type, self.host, self.username, self.password, self.env, self.selected_version, self.base_path_value
+            self.connection_type, self.host, self.username, self.password, self.env, self.selected_version,
+            self.base_path_value
         )
 
     def on_batch_execute_finished(self):

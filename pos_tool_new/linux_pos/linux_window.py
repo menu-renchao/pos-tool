@@ -180,7 +180,6 @@ class LinuxTabWidget(BaseTabWidget):
         ssh_main_layout.addLayout(ssh_input_layout)
         self.layout.addWidget(self.ssh_group)
 
-
         # 环境选择组（1/4）
         env_group = QGroupBox("配置文件环境选择")
         env_layout = QVBoxLayout(env_group)
@@ -670,6 +669,7 @@ class LinuxTabWidget(BaseTabWidget):
 
     def on_download_log(self):
         """日志下载主流程（支持多选，使用完整路径）"""
+
         def download_log_callback(host, username, password):
             try:
                 backend = self.service if hasattr(self.service, '_connect_ssh') else Backend()
@@ -709,6 +709,7 @@ class LinuxTabWidget(BaseTabWidget):
             except Exception as e:
                 self.service.log(f"下载日志文件过程中出错: {str(e)}", level="error")
                 QMessageBox.critical(self, "下载失败", f"下载日志文件失败：{str(e)}")
+
         self._execute_with_connection_validation("日志下载", download_log_callback)
 
     def on_backup_data(self):
@@ -1039,7 +1040,8 @@ class LinuxTabWidget(BaseTabWidget):
                 return
             # 展示文件名，选中后映射回完整路径
             file_names = [os.path.basename(f) for f in log_files]
-            selected_idx, ok = QInputDialog.getItem(self, "选择日志文件", "请选择要实时查看的日志文件：", file_names, 0, False)
+            selected_idx, ok = QInputDialog.getItem(self, "选择日志文件", "请选择要实时查看的日志文件：", file_names, 0,
+                                                    False)
             if not ok or not selected_idx:
                 ssh.close()
                 return
@@ -1052,14 +1054,16 @@ class LinuxTabWidget(BaseTabWidget):
             ssh.close()
             # 打开实时日志窗口（远程模式）
             from pos_tool_new.linux_pos.tail_log_window import TailLogWindow
-            self.tail_log_window = TailLogWindow(remote_file, ssh_params=(self.service, host, username, password), remote=True)
+            self.tail_log_window = TailLogWindow(remote_file, ssh_params=(self.service, host, username, password),
+                                                 remote=True)
             self.tail_log_window.show()
         except Exception as e:
             QMessageBox.critical(self, "错误", f"获取远程日志文件失败：{str(e)}")
 
     def closeEvent(self, event):
         """窗口关闭时安全销毁所有线程"""
-        for thread in [self.replace_thread, self.restart_thread, self.restart_tomcat_thread, self.upgrade_thread, self.upload_thread]:
+        for thread in [self.replace_thread, self.restart_thread, self.restart_tomcat_thread, self.upgrade_thread,
+                       self.upload_thread]:
             if thread is not None and thread.isRunning():
                 thread.stop()
         event.accept()
@@ -1073,6 +1077,7 @@ class LinuxTabWidget(BaseTabWidget):
         """
         查询并打印远程POS应用的版本号
         """
+
         def get_app_version_callback(host, username, password):
             remote_path = "/opt/menusifu/resources/app/package.json"
             try:
@@ -1087,6 +1092,7 @@ class LinuxTabWidget(BaseTabWidget):
                 self.service.log(f"获取POS版本号失败: {str(e)}", level="error")
 
         self._execute_with_connection_validation("查询远程POS版本号", get_app_version_callback)
+
 
 class MultiSelectLogDialog(QDialog):
     def __init__(self, parent, log_files):

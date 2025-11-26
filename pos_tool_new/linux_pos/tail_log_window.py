@@ -1,5 +1,4 @@
 from PyQt6.QtCore import Qt, pyqtSignal, QRegularExpression, QTimer
-from PyQt6.QtCore import Qt, pyqtSignal, QRegularExpression, QTimer
 from PyQt6.QtGui import QTextCursor, QSyntaxHighlighter, QTextCharFormat, QColor, QFont
 from PyQt6.QtGui import QTextDocument
 from PyQt6.QtWidgets import (QDialog, QHBoxLayout, QVBoxLayout, QLineEdit, QCheckBox,

@@ -759,7 +759,6 @@ class LinuxService(Backend):
         on_log: 回调函数，接收新日志内容
         stop_flag: 可调用的函数，返回True时停止
         """
-        import paramiko
         ssh = None
         channel = None
         try:

@@ -1,6 +1,3 @@
-from typing import Optional, List
-import copy
-
 import copy
 from typing import Optional, List
 
@@ -8,7 +5,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QWidget, QLabel, QLineEdit, QPushButton,
     QTableWidget, QTableWidgetItem, QCheckBox, QHeaderView, QMessageBox,
-    QDialog, QDialogButtonBox, QComboBox, QGroupBox, QFormLayout, QAbstractItemView, QSizePolicy
+    QDialog, QDialogButtonBox, QComboBox, QGroupBox, QAbstractItemView, QSizePolicy
 )
 
 from pos_tool_new.linux_file_config.file_config_linux_service import FileConfigService, FileConfigItem, KeyValueItem
@@ -376,7 +373,6 @@ class FileConfigTabWidget(BaseTabWidget):
         self.execute_all_btn = QPushButton("执行所有启用配置")
         self.reload_btn = QPushButton("重载配置文件")
 
-
         # 紧凑按钮样式
         button_style = """
             QPushButton {
@@ -623,7 +619,6 @@ QTableWidget::item {
         """选择变化时更新按钮状态"""
         has_selection = len(self.config_table.selectionModel().selectedRows()) > 0
         self.execute_all_btn.setEnabled(has_selection)
-
 
     def on_toggle_enabled(self, config: FileConfigItem, state: int):
         """切换配置启用状态"""
@@ -919,6 +914,7 @@ QTableWidget::item {
         if hasattr(self, 'parent_window') and self.parent_window:
             self.parent_window.on_restart_finished()
         self.restart_btn.setEnabled(True)
+
     def showEvent(self, event):
         """显示事件处理"""
         super().showEvent(event)

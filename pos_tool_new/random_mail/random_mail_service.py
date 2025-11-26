@@ -7,7 +7,7 @@ import string
 import requests
 
 from pos_tool_new.backend import Backend
-from pos_tool_new.utils.app_config_utils import get_app_config_value, set_app_config_value
+from pos_tool_new.utils.app_config_utils import set_app_config_value
 
 
 class RandomMailService(Backend):

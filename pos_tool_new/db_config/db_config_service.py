@@ -9,6 +9,7 @@ from pos_tool_new.utils.db_utils import get_mysql_connection
 APP_DIR = os.path.dirname(sys.argv[0])
 CONFIG_JSON_PATH = os.path.join(APP_DIR, 'db_config.json')
 
+
 class ConfigItem:
     def __init__(self, description: str, sqls: List[str], need_restart: bool):
         self.description = description
@@ -30,10 +31,12 @@ class ConfigItem:
             need_restart=data['need_restart']
         )
 
+
 class DbConfigService(Backend):
     """
     数据库配置项服务，负责根据配置项和开关状态生成 SQL 并执行。
     """
+
     def _load_config_items(self) -> List[ConfigItem]:
         if not os.path.exists(CONFIG_JSON_PATH):
             # 自动新建空配置文件
@@ -58,7 +61,6 @@ class DbConfigService(Backend):
         items.append(item)
         self._save_config_items(items)
         return True
-
 
     def update_config_item(self, new_item, original_description):
         """

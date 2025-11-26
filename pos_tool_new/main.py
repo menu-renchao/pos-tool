@@ -2,8 +2,6 @@ import os
 import sys
 import time
 from typing import Tuple, Optional
-import json
-from functools import partial
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -455,7 +453,8 @@ class MainWindow(QMainWindow):
         if not saved_order:
             return
         # tab_imports: [(module_path, class_name, tab_name), ...]
-        tab_dict = {tab_name: (module_path, class_name, tab_name) for module_path, class_name, tab_name in self.tab_imports}
+        tab_dict = {tab_name: (module_path, class_name, tab_name) for module_path, class_name, tab_name in
+                    self.tab_imports}
         new_imports = []
         for tab_name in saved_order:
             if tab_name in tab_dict:
@@ -816,7 +815,8 @@ class MainWindow(QMainWindow):
             ("linux_pos", "pos_tool_new.linux_pos.linux_window", "LinuxTabWidget"),
             ("linux_file_config", "pos_tool_new.linux_file_config.file_config_linux_window", "FileConfigTabWidget"),
             ("win_pos", "pos_tool_new.windows_pos.windows_window", "WindowsTabWidget"),
-            ("win_file_config", "pos_tool_new.windows_file_config.file_config_win_window", "WindowsFileConfigTabWidget"),
+            ("win_file_config", "pos_tool_new.windows_file_config.file_config_win_window",
+             "WindowsFileConfigTabWidget"),
             ("db_config", "pos_tool_new.db_config.db_config_window", "DbConfigWindow"),
             ("scan_pos", "pos_tool_new.scan_pos.scan_pos_window", "ScanPosTabWidget"),
             ("caller_id", "pos_tool_new.caller_id.caller_window", "CallerIdTabWidget"),
@@ -883,7 +883,8 @@ class MainWindow(QMainWindow):
             # 保存到app.config
             set_app_config_value('sms_default_ip', self._sms_service_ip)
             set_app_config_value('sms_default_port', self._sms_service_port)
-            QMessageBox.information(self, "提示", f"短信微服务配置已保存:\nIP: {self._sms_service_ip}\n端口: {self._sms_service_port}\nURL: {self._sms_service_url}")
+            QMessageBox.information(self, "提示",
+                                    f"短信微服务配置已保存:\nIP: {self._sms_service_ip}\n端口: {self._sms_service_port}\nURL: {self._sms_service_url}")
 
 
 class ModernSplashScreen(QWidget):

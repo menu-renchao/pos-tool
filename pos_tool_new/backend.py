@@ -41,4 +41,3 @@ class Backend(QObject):
             "PROD": "menusifucloud.com",
             "DEV": "menusifudev.com"
         }.get(env, "")
-

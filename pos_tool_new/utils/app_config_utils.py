@@ -1,9 +1,11 @@
-import sys
 import os
+import sys
+
 
 def get_app_config_path():
     """获取 app.config 的绝对路径"""
     return os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), "app.config")
+
 
 def read_config():
     """读取 app.config 内容为字典"""
@@ -18,12 +20,14 @@ def read_config():
                     config[k.strip()] = v.strip()
     return config
 
+
 def write_config(config):
     """将字典内容写入 app.config"""
     path = get_app_config_path()
     with open(path, "w", encoding="utf-8") as f:
         for k, v in config.items():
             f.write(f"{k}={v}\n")
+
 
 TAB_ID_MAP = {
     "linux_pos": "🐧 Linux POS",
@@ -41,6 +45,7 @@ TAB_ID_MAP = {
 }
 TAB_ID_LIST = list(TAB_ID_MAP.keys())
 
+
 def load_tab_config_from_app():
     """加载tab显示状态和顺序"""
     config = read_config()
@@ -52,6 +57,7 @@ def load_tab_config_from_app():
             tab_order.append(tid)
     return {"tabs": tabs, "tab_order": tab_order}
 
+
 def save_tab_config_to_app(tabs, tab_order):
     """保存tab显示状态和顺序到 app.config"""
     config = read_config()
@@ -59,9 +65,11 @@ def save_tab_config_to_app(tabs, tab_order):
     config['tab_order'] = ','.join(tab_order)
     write_config(config)
 
+
 def get_app_config_value(key, default=None):
     config = read_config()
     return config.get(key, default)
+
 
 def set_app_config_value(key, value):
     config = read_config()

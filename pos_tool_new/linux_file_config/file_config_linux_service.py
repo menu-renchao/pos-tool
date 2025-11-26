@@ -187,9 +187,11 @@ class FileConfigService(Backend):
                                     changes.append(f"{key} [{env}]: '{old_val}' -> '{new_val}'")
                     for key in new_keys:
                         if key not in old_keys:
-                            changes.append(f"新增键: {key}，值: QA='{new_keys[key].qa_value}', PROD='{new_keys[key].prod_value}', DEV='{new_keys[key].dev_value}'")
+                            changes.append(
+                                f"新增键: {key}，值: QA='{new_keys[key].qa_value}', PROD='{new_keys[key].prod_value}', DEV='{new_keys[key].dev_value}'")
                     if changes:
-                        self.log(f"更新文件配置项: {old_name} -> {new_config.name}，变更: " + "; ".join(changes), level="info")
+                        self.log(f"更新文件配置项: {old_name} -> {new_config.name}，变更: " + "; ".join(changes),
+                                 level="info")
                     else:
                         self.log(f"更新文件配置项: {old_name} -> {new_config.name}，无字段变更", level="info")
 

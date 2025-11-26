@@ -108,7 +108,6 @@ class ConfigEditDialog(QDialog):
         return ConfigItem(desc, sqls, need_restart)
 
 
-
 class DbConfigWindow(BaseTabWidget):
     """
     数据库配置项 UI，包含筛选框、单选框、执行按钮。
@@ -117,7 +116,7 @@ class DbConfigWindow(BaseTabWidget):
     def __init__(self, parent=None):
         super().__init__(title="数据库配置", parent=parent)
         self.service = DbConfigService()
-        self.parent_window :MainWindow= parent
+        self.parent_window: MainWindow = parent
         self.init_ui()
 
     def init_ui(self):
@@ -416,7 +415,7 @@ class DbConfigWindow(BaseTabWidget):
         try:
             items = self.service.get_config_items()
         except Exception as e:
-            self.service.log(f"获取配置项失败: {e}","error")
+            self.service.log(f"获取配置项失败: {e}", "error")
             return
         # 搜索过滤
         if keyword:
@@ -680,10 +679,10 @@ class DbConfigWindow(BaseTabWidget):
         self.db_thread.error_occurred.connect(self.on_connect_error)
         self.db_thread.start()
 
-
     def on_restart_pos_linux(self):
         """重启Linux POS"""
         service = LinuxService()
+
         def restart_pos_callback(host, username, password):
             # 显示确认弹窗
             reply = QMessageBox.warning(
@@ -724,7 +723,6 @@ class DbConfigWindow(BaseTabWidget):
             self.restart_thread.start()
 
         restart_pos_callback(self.host_ip.currentText().strip(), 'menu', "M2ei#a$19!")
-
 
     def on_restart_finished(self):
         """重启完成后处理"""

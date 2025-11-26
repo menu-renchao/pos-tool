@@ -225,7 +225,6 @@ class LicenseToolTabWidget(BaseTabWidget):
         self.log_message(f"连接异常: {error_message}", "error")
         QMessageBox.critical(self, "错误", f"连接异常: {error_message}")
 
-
     def backup_license(self):
         """备份License"""
         save_path = QFileDialog.getExistingDirectory(
