@@ -18,7 +18,11 @@ from PyQt6.QtWidgets import (
 from pos_tool_new.backend import Backend
 from pos_tool_new.version_info.version_info import VersionInfoDialog
 from pos_tool_new.utils.log_manager import global_log_manager
-from pos_tool_new.utils.app_config_utils import get_app_config_value, set_app_config_value
+from pos_tool_new.utils.app_config_utils import (
+    get_app_config_value, set_app_config_value,
+    load_tab_config_from_app, save_tab_config_to_app,
+    TAB_ID_MAP, TAB_ID_LIST
+)
 
 
 def resource_path(relative_path: str) -> str:
@@ -264,6 +268,7 @@ class MainWindow(QMainWindow):
         self.tabs.setDocumentMode(True)
         self.tabs.setTabPosition(QTabWidget.TabPosition.North)
         self.tabs.setMovable(True)
+        self.tabs.tabBar().tabMoved.connect(self.on_tab_moved)
 
         # 创建日志区域
         self.create_log_area()
@@ -339,7 +344,8 @@ class MainWindow(QMainWindow):
         dialog = QDialog(self)
         dialog.setWindowTitle("布局 - 选择常用Tab")
         layout = QVBoxLayout(dialog)
-        layout_config = self.load_layout_config()
+        config = load_tab_config_from_app()
+        tabs_enabled = config.get("tabs", {tid: True for tid in TAB_ID_LIST})
         checkboxes = {}
 
         # 全选复选框
@@ -401,13 +407,12 @@ class MainWindow(QMainWindow):
         select_all_cb.stateChanged.connect(on_select_all_changed)
 
         # 创建tab复选框
-        for _, _, tab_name in self.tab_imports:
-            cb = QCheckBox(tab_name)
-            # 使用get方法，如果不存在则默认True
-            cb.setChecked(layout_config.get(tab_name, True))
+        for tid in TAB_ID_LIST:
+            cb = QCheckBox(TAB_ID_MAP.get(tid, tid))
+            cb.setChecked(tabs_enabled.get(tid, True))
             cb.stateChanged.connect(on_tab_changed)
             layout.addWidget(cb)
-            checkboxes[tab_name] = cb
+            checkboxes[tid] = cb
 
         # 初始化全选状态
         update_select_all_state()
@@ -420,18 +425,58 @@ class MainWindow(QMainWindow):
 
         # 显示对话框并处理结果
         if dialog.exec() == QDialog.DialogCode.Accepted:
-            new_config = {tab: cb.isChecked() for tab, cb in checkboxes.items()}
-            self.save_layout_config(new_config)
-            self.refresh_tabs(new_config)
+            new_tabs_enabled = {tid: cb.isChecked() for tid, cb in checkboxes.items()}
+            config = load_tab_config_from_app()
+            tab_order = config.get("tab_order", TAB_ID_LIST)
+            save_tab_config_to_app(new_tabs_enabled, tab_order)
+            self.refresh_tabs()
+
+    def on_tab_moved(self, from_index, to_index):
+        """tab拖拽顺序变化时，保存顺序到tab_config.json"""
+        tab_ids = []
+        for i in range(self.tabs.count()):
+            tab_text = self.tabs.tabText(i)
+            for tid, cname in TAB_ID_MAP.items():
+                if tab_text == cname:
+                    tab_ids.append(tid)
+        config = load_tab_config_from_app()
+        tabs_enabled = config.get("tabs", {tid: True for tid in TAB_ID_LIST})
+        save_tab_config_to_app(tabs_enabled, tab_ids)
+
+    def get_saved_tab_order(self):
+        from pos_tool_new.utils.app_config_utils import get_app_config_value
+        order = get_app_config_value('tab_order', None)
+        if order:
+            return order.split(',')
+        return None
+
+    def reorder_tab_imports(self):
+        saved_order = self.get_saved_tab_order()
+        if not saved_order:
+            return
+        # tab_imports: [(module_path, class_name, tab_name), ...]
+        tab_dict = {tab_name: (module_path, class_name, tab_name) for module_path, class_name, tab_name in self.tab_imports}
+        new_imports = []
+        for tab_name in saved_order:
+            if tab_name in tab_dict:
+                new_imports.append(tab_dict[tab_name])
+        # 补充未在order中的tab
+        for item in self.tab_imports:
+            if item[2] not in saved_order:
+                new_imports.append(item)
+        self.tab_imports = new_imports
 
     def refresh_tabs(self, layout_config=None):
         # 移除所有tab并重新加载
         while self.tabs.count():
             self.tabs.removeTab(0)
-        if layout_config is None:
-            layout_config = self.load_layout_config()
-        for module_path, class_name, tab_name in self.tab_imports:
-            if not layout_config.get(tab_name, True):
+        config = load_tab_config_from_app()
+        tab_order = config.get("tab_order", TAB_ID_LIST)
+        tabs_enabled = config.get("tabs", {tid: True for tid in TAB_ID_LIST})
+        id_to_import = {tid: imp for tid, *imp in self.tab_imports}
+        self.tab_imports = [(tid, *id_to_import[tid]) for tid in tab_order if tid in id_to_import]
+        for tid, module_path, class_name in self.tab_imports:
+            if not tabs_enabled.get(tid, True):
                 continue
             try:
                 module = __import__(module_path, fromlist=[class_name])
@@ -440,9 +485,10 @@ class MainWindow(QMainWindow):
                     tab_instance = tab_class(self.backend, self)
                 else:
                     tab_instance = tab_class(self)
-                self.tabs.addTab(tab_instance, tab_name)
+                tab_text = TAB_ID_MAP.get(tid, tid)
+                self.tabs.addTab(tab_instance, tab_text)
             except (ImportError, AttributeError) as e:
-                global_log_manager.log(f"Failed to load tab {tab_name}: {e}", "error")
+                global_log_manager.log(f"Failed to load tab {tid}: {e}", "error")
 
     def show_global_ip_dialog(self):
         """弹出全局IP配置窗口（QComboBox方式）"""
@@ -763,36 +809,39 @@ class MainWindow(QMainWindow):
             set_app_config_value(tab_name, value)
 
     def create_tab_contents(self):
+        config = load_tab_config_from_app()
+        tab_order = config.get("tab_order", TAB_ID_LIST)
+        tabs_enabled = config.get("tabs", {tid: True for tid in TAB_ID_LIST})
         self.tab_imports = [
-            ("pos_tool_new.linux_pos.linux_window", "LinuxTabWidget", "🐧 Linux POS"),
-            ("pos_tool_new.linux_file_config.file_config_linux_window", "FileConfigTabWidget", "⚙️ Linux配置文件"),
-            ("pos_tool_new.windows_pos.windows_window", "WindowsTabWidget", "🪟 Windows POS"),
-            ("pos_tool_new.windows_file_config.file_config_win_window", "WindowsFileConfigTabWidget", "⚙️ Windows配置文件"),
-            ("pos_tool_new.db_config.db_config_window", "DbConfigWindow", "🗄️ 数据库配置"),
-            ("pos_tool_new.scan_pos.scan_pos_window", "ScanPosTabWidget", "🔍 扫描POS"),
-            ("pos_tool_new.caller_id.caller_window", "CallerIdTabWidget", "📞 Caller ID"),
-            ("pos_tool_new.license_backup.license_window", "LicenseToolTabWidget", "🔐 Device&&App License"),
-            ("pos_tool_new.download_war.download_war_window", "DownloadWarTabWidget", "📥 Download War"),
-            ("pos_tool_new.generate_img.generate_img_window", "GenerateImgTabWidget", "🖼️ 图片生成"),
-            ("pos_tool_new.random_mail.random_mail_window", "RandomMailTabWidget", "📧 随机邮箱"),
-            ("pos_tool_new.sms.sms_window", "SmsWindow", "📱 短信验证码")
+            ("linux_pos", "pos_tool_new.linux_pos.linux_window", "LinuxTabWidget"),
+            ("linux_file_config", "pos_tool_new.linux_file_config.file_config_linux_window", "FileConfigTabWidget"),
+            ("win_pos", "pos_tool_new.windows_pos.windows_window", "WindowsTabWidget"),
+            ("win_file_config", "pos_tool_new.windows_file_config.file_config_win_window", "WindowsFileConfigTabWidget"),
+            ("db_config", "pos_tool_new.db_config.db_config_window", "DbConfigWindow"),
+            ("scan_pos", "pos_tool_new.scan_pos.scan_pos_window", "ScanPosTabWidget"),
+            ("caller_id", "pos_tool_new.caller_id.caller_window", "CallerIdTabWidget"),
+            ("license", "pos_tool_new.license_backup.license_window", "LicenseToolTabWidget"),
+            ("download_war", "pos_tool_new.download_war.download_war_window", "DownloadWarTabWidget"),
+            ("generate_img", "pos_tool_new.generate_img.generate_img_window", "GenerateImgTabWidget"),
+            ("random_mail", "pos_tool_new.random_mail.random_mail_window", "RandomMailTabWidget"),
+            ("sms", "pos_tool_new.sms.sms_window", "SmsWindow")
         ]
-        layout_config = self.load_layout_config()
-        for module_path, class_name, tab_name in self.tab_imports:
-            if not layout_config.get(tab_name, True):
+        id_to_import = {tid: imp for tid, *imp in self.tab_imports}
+        self.tab_imports = [(tid, *id_to_import[tid]) for tid in tab_order if tid in id_to_import]
+        for tid, module_path, class_name in self.tab_imports:
+            if not tabs_enabled.get(tid, True):
                 continue
             try:
                 module = __import__(module_path, fromlist=[class_name])
                 tab_class = getattr(module, class_name)
-
                 if class_name in ["ScanPosTabWidget", "CallerIdTabWidget"]:
                     tab_instance = tab_class(self.backend, self)
                 else:
                     tab_instance = tab_class(self)
-
-                self.tabs.addTab(tab_instance, tab_name)
+                tab_text = TAB_ID_MAP.get(tid, tid)
+                self.tabs.addTab(tab_instance, tab_text)
             except (ImportError, AttributeError) as e:
-                global_log_manager.log(f"Failed to load tab {tab_name}: {e}", "error")
+                global_log_manager.log(f"Failed to load tab {tid}: {e}", "error")
 
     def show_sms_service_config_dialog(self):
         from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QDialogButtonBox, QMessageBox
