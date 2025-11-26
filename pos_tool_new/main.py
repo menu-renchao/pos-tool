@@ -2,6 +2,8 @@ import os
 import sys
 import time
 from typing import Tuple, Optional
+import json
+from functools import partial
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -10,12 +12,13 @@ from PyQt6.QtGui import QFont, QPalette, QTextCharFormat, QTextCursor, QAction, 
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QTabWidget, QTextEdit, QPushButton, QHBoxLayout,
     QLabel, QRadioButton, QButtonGroup, QGroupBox, QProgressBar, QMainWindow,
-    QToolButton, QMenuBar, QMessageBox, QVBoxLayout, QSplitter
+    QToolButton, QMenuBar, QMessageBox, QVBoxLayout, QSplitter, QCheckBox, QDialog, QDialogButtonBox
 )
 
 from pos_tool_new.backend import Backend
 from pos_tool_new.version_info.version_info import VersionInfoDialog
 from pos_tool_new.utils.log_manager import global_log_manager
+from pos_tool_new.utils.app_config_utils import get_app_config_value, set_app_config_value
 
 
 def resource_path(relative_path: str) -> str:
@@ -188,17 +191,20 @@ class MainWindow(QMainWindow):
     """主窗口类"""
 
     def __init__(self):
+        from pos_tool_new.utils.app_config_utils import get_app_config_value
+        self._sms_service_ip = get_app_config_value('sms_default_ip', None)
+        self._sms_service_port = get_app_config_value('sms_default_port', None)
         super().__init__()
         self.finish_timer: Optional[QTimer] = None
         self.log_text: Optional[EnhancedTextEdit] = None
         self.log_group: Optional[QGroupBox] = None
         self.fake_progress: int = 0
-
         # 初始化短信微服务环境变量，首次启动即生效
-        default_ip = getattr(self, '_sms_service_ip', '192.168.0.50')
-        default_port = getattr(self, '_sms_service_port', '8000')
-        default_url = f"http://{default_ip}:{default_port}"
-        os.environ['PLAYWRIGHT_SERVER_URL'] = default_url
+        if self._sms_service_ip and self._sms_service_port:
+            default_url = f"http://{self._sms_service_ip}:{self._sms_service_port}"
+            os.environ['PLAYWRIGHT_SERVER_URL'] = default_url
+        else:
+            os.environ['PLAYWRIGHT_SERVER_URL'] = ''
 
         self._init_components()
         self.setup_backend()
@@ -323,7 +329,120 @@ class MainWindow(QMainWindow):
         sms_service_action.triggered.connect(self.show_sms_service_config_dialog)
         settings_menu.addAction(sms_service_action)
 
+        layout_action = QAction("布局", self)
+        layout_action.triggered.connect(self.show_layout_config_dialog)
+        settings_menu.addAction(layout_action)
+
         self.setMenuBar(menubar)
+
+    def show_layout_config_dialog(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("布局 - 选择常用Tab")
+        layout = QVBoxLayout(dialog)
+        layout_config = self.load_layout_config()
+        checkboxes = {}
+
+        # 全选复选框
+        select_all_cb = QCheckBox("全选")
+        layout.addWidget(select_all_cb)
+
+        # 防止递归更新的标志
+        self._updating_checkboxes = False
+
+        def update_select_all_state():
+            """更新全选复选框的状态"""
+            if self._updating_checkboxes:
+                return
+
+            self._updating_checkboxes = True
+
+            # 计算选中的数量
+            checked_count = sum(1 for cb in checkboxes.values() if cb.isChecked())
+            total_count = len(checkboxes)
+
+            if checked_count == total_count:
+                # 全部选中
+                select_all_cb.setCheckState(Qt.CheckState.Checked)
+            elif checked_count == 0:
+                # 全部未选中
+                select_all_cb.setCheckState(Qt.CheckState.Unchecked)
+            else:
+                # 部分选中
+                select_all_cb.setCheckState(Qt.CheckState.PartiallyChecked)
+
+            self._updating_checkboxes = False
+
+        def on_select_all_changed(state):
+            """全选复选框状态改变时的处理"""
+            if self._updating_checkboxes:
+                return
+
+            self._updating_checkboxes = True
+
+            # PyQt6 QCheckBox.stateChanged 信号传递的是 int 类型
+            # 2: Checked, 0: Unchecked
+            if state == 2:  # Checked
+                for cb in checkboxes.values():
+                    cb.setChecked(True)
+            elif state == 0:  # Unchecked
+                for cb in checkboxes.values():
+                    cb.setChecked(False)
+            # 部分选中状态不需要处理，因为用户不能直接设置部分选中
+
+            self._updating_checkboxes = False
+            # 批量设置后，刷新全选复选框状态，确保同步
+            update_select_all_state()
+
+        def on_tab_changed():
+            """单个tab复选框状态改变时的处理"""
+            update_select_all_state()
+
+        # 连接信号
+        select_all_cb.stateChanged.connect(on_select_all_changed)
+
+        # 创建tab复选框
+        for _, _, tab_name in self.tab_imports:
+            cb = QCheckBox(tab_name)
+            # 使用get方法，如果不存在则默认True
+            cb.setChecked(layout_config.get(tab_name, True))
+            cb.stateChanged.connect(on_tab_changed)
+            layout.addWidget(cb)
+            checkboxes[tab_name] = cb
+
+        # 初始化全选状态
+        update_select_all_state()
+
+        # 按钮
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        layout.addWidget(buttons)
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+
+        # 显示对话框并处理结果
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            new_config = {tab: cb.isChecked() for tab, cb in checkboxes.items()}
+            self.save_layout_config(new_config)
+            self.refresh_tabs(new_config)
+
+    def refresh_tabs(self, layout_config=None):
+        # 移除所有tab并重新加载
+        while self.tabs.count():
+            self.tabs.removeTab(0)
+        if layout_config is None:
+            layout_config = self.load_layout_config()
+        for module_path, class_name, tab_name in self.tab_imports:
+            if not layout_config.get(tab_name, True):
+                continue
+            try:
+                module = __import__(module_path, fromlist=[class_name])
+                tab_class = getattr(module, class_name)
+                if class_name in ["ScanPosTabWidget", "CallerIdTabWidget"]:
+                    tab_instance = tab_class(self.backend, self)
+                else:
+                    tab_instance = tab_class(self)
+                self.tabs.addTab(tab_instance, tab_name)
+            except (ImportError, AttributeError) as e:
+                global_log_manager.log(f"Failed to load tab {tab_name}: {e}", "error")
 
     def show_global_ip_dialog(self):
         """弹出全局IP配置窗口（QComboBox方式）"""
@@ -626,14 +745,29 @@ class MainWindow(QMainWindow):
         """添加日志"""
         global_log_manager.log(msg, level)
 
+    def load_layout_config(self):
+        from pos_tool_new.utils.app_config_utils import get_app_config_value
+        layout_config = {}
+        tab_names = [tab_name for _, _, tab_name in self.tab_imports]
+        for tab_name in tab_names:
+            value = get_app_config_value(tab_name, None)
+            if value is not None:
+                layout_config[tab_name] = (value.lower() == 'true')
+            else:
+                layout_config[tab_name] = True
+        return layout_config
+
+    def save_layout_config(self, config):
+        from pos_tool_new.utils.app_config_utils import set_app_config_value
+        for tab_name, value in config.items():
+            set_app_config_value(tab_name, value)
+
     def create_tab_contents(self):
-        """创建选项卡内容"""
-        tab_imports = [
+        self.tab_imports = [
             ("pos_tool_new.linux_pos.linux_window", "LinuxTabWidget", "🐧 Linux POS"),
             ("pos_tool_new.linux_file_config.file_config_linux_window", "FileConfigTabWidget", "⚙️ Linux配置文件"),
             ("pos_tool_new.windows_pos.windows_window", "WindowsTabWidget", "🪟 Windows POS"),
-            ("pos_tool_new.windows_file_config.file_config_win_window", "WindowsFileConfigTabWidget",
-             "⚙️ Windows配置文件"),
+            ("pos_tool_new.windows_file_config.file_config_win_window", "WindowsFileConfigTabWidget", "⚙️ Windows配置文件"),
             ("pos_tool_new.db_config.db_config_window", "DbConfigWindow", "🗄️ 数据库配置"),
             ("pos_tool_new.scan_pos.scan_pos_window", "ScanPosTabWidget", "🔍 扫描POS"),
             ("pos_tool_new.caller_id.caller_window", "CallerIdTabWidget", "📞 Caller ID"),
@@ -643,8 +777,10 @@ class MainWindow(QMainWindow):
             ("pos_tool_new.random_mail.random_mail_window", "RandomMailTabWidget", "📧 随机邮箱"),
             ("pos_tool_new.sms.sms_window", "SmsWindow", "📱 短信验证码")
         ]
-
-        for module_path, class_name, tab_name in tab_imports:
+        layout_config = self.load_layout_config()
+        for module_path, class_name, tab_name in self.tab_imports:
+            if not layout_config.get(tab_name, True):
+                continue
             try:
                 module = __import__(module_path, fromlist=[class_name])
                 tab_class = getattr(module, class_name)
@@ -656,7 +792,7 @@ class MainWindow(QMainWindow):
 
                 self.tabs.addTab(tab_instance, tab_name)
             except (ImportError, AttributeError) as e:
-                print(f"Failed to load tab {tab_name}: {e}")
+                global_log_manager.log(f"Failed to load tab {tab_name}: {e}", "error")
 
     def show_sms_service_config_dialog(self):
         from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QDialogButtonBox, QMessageBox
@@ -667,16 +803,18 @@ class MainWindow(QMainWindow):
         # IP输入
         ip_layout = QHBoxLayout()
         ip_label = QLabel("服务IP:")
+        sms_default_ip = get_app_config_value('sms_default_ip', None)
         ip_edit = QLineEdit()
-        ip_edit.setText(getattr(self, '_sms_service_ip', '192.168.0.50'))
+        ip_edit.setText(self._sms_service_ip or '')
         ip_layout.addWidget(ip_label)
         ip_layout.addWidget(ip_edit)
         layout.addLayout(ip_layout)
         # 端口输入
         port_layout = QHBoxLayout()
         port_label = QLabel("端口号:")
+        sms_default_port = get_app_config_value('sms_default_port', None)
         port_edit = QLineEdit()
-        port_edit.setText(str(getattr(self, '_sms_service_port', '8000')))
+        port_edit.setText(str(self._sms_service_port or ''))
         port_layout.addWidget(port_label)
         port_layout.addWidget(port_edit)
         layout.addLayout(port_layout)
@@ -688,8 +826,14 @@ class MainWindow(QMainWindow):
         if dialog.exec() == QDialog.DialogCode.Accepted:
             self._sms_service_ip = ip_edit.text().strip()
             self._sms_service_port = port_edit.text().strip()
+            if not self._sms_service_ip or not self._sms_service_port:
+                QMessageBox.warning(self, "提示", "请填写短信微服务的IP和端口后再保存！")
+                return
             self._sms_service_url = f"http://{self._sms_service_ip}:{self._sms_service_port}"
             os.environ['PLAYWRIGHT_SERVER_URL'] = self._sms_service_url
+            # 保存到app.config
+            set_app_config_value('sms_default_ip', self._sms_service_ip)
+            set_app_config_value('sms_default_port', self._sms_service_port)
             QMessageBox.information(self, "提示", f"短信微服务配置已保存:\nIP: {self._sms_service_ip}\n端口: {self._sms_service_port}\nURL: {self._sms_service_url}")
 
 

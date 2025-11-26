@@ -7,6 +7,7 @@ import string
 import requests
 
 from pos_tool_new.backend import Backend
+from pos_tool_new.utils.app_config_utils import get_app_config_value, set_app_config_value
 
 
 class RandomMailService(Backend):
@@ -17,7 +18,7 @@ class RandomMailService(Backend):
         self.current_account = None
         self.accounts = []
         self.data_file = "email_accounts.json"
-        self.counter_file = "email_counter.count"  # 使用更专业的后缀
+        self.config_file = "app.config"  # 统一配置文件
         self._load_accounts()
         self.counter = 0
         self._init_counter()
@@ -36,25 +37,37 @@ class RandomMailService(Backend):
         with open(self.data_file, 'w', encoding='utf-8') as f:
             json.dump(self.accounts, f, ensure_ascii=False, indent=2)
 
+    def _read_config_property(self):
+        config = {}
+        if os.path.exists(self.config_file):
+            with open(self.config_file, 'r', encoding='utf-8') as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith('#'):
+                        continue
+                    if '=' in line:
+                        k, v = line.split('=', 1)
+                        config[k.strip()] = v.strip()
+        return config
+
+    def _write_config_property(self, config):
+        for k, v in config.items():
+            set_app_config_value(k, v)
+
     def _init_counter(self):
-        # 持久化计数器，保证自增
-        if os.path.exists(self.counter_file):
-            try:
-                with open(self.counter_file, 'r', encoding='utf-8') as f:
-                    self.counter = int(f.read().strip() or '0')
-            except Exception:
-                self.counter = 0
-        else:
+        # 从 app.config 读取计数器
+        config = self._read_config_property()
+        try:
+            self.counter = int(config.get('email_counter', '0'))
+        except Exception:
             self.counter = 0
 
     def _generate_username(self):
-        # 生成唯一用户名，持久化自增
+        # 生成唯一用户名，持久化自增到 app.config
         self.counter += 1
-        try:
-            with open(self.counter_file, 'w', encoding='utf-8') as f:
-                f.write(str(self.counter))
-        except Exception:
-            pass
+        config = self._read_config_property()
+        config['email_counter'] = str(self.counter)
+        self._write_config_property(config)
         rand_str = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
         return f"user{self.counter}_{rand_str}"
 
