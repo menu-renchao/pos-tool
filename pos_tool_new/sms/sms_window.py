@@ -39,8 +39,8 @@ class SmsWindow(BaseTabWidget):
         self.copy_phone_btn = QPushButton("复制手机号")
         self.copy_phone_btn.setFixedWidth(80)
         condition_layout.addWidget(self.copy_phone_btn)
-        self.refresh_btn = QPushButton("刷新")
-        self.refresh_btn.setFixedWidth(60)
+        self.refresh_btn = QPushButton("更新手机列表")
+        self.refresh_btn.setFixedWidth(100)
         condition_layout.addWidget(self.refresh_btn)
         keyword_label = QLabel("关键词:")
         keyword_label.setFixedWidth(40)
@@ -74,7 +74,7 @@ class SmsWindow(BaseTabWidget):
 
         # 短信表格
         self.message_table = QTableWidget(0, 4)
-        self.message_table.setHorizontalHeaderLabels(["发送人", "时间", "内容", "操作"])
+        self.message_table.setHorizontalHeaderLabels(["发送人", "时间", "内容（点击单元格展开详情）", "操作"])
         header = self.message_table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Interactive)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.Interactive)
@@ -101,6 +101,8 @@ class SmsWindow(BaseTabWidget):
 
         # 设置主布局
         self.layout.addLayout(main_layout)
+
+        self.message_table.cellClicked.connect(self.handle_table_cell_clicked)
 
     def connect_signals(self):
         self.copy_phone_btn.clicked.connect(self.copy_phone_number)
@@ -154,10 +156,8 @@ class SmsWindow(BaseTabWidget):
             self.status_label.setText("请选择手机号")
             return
         # 如果没选择关键词（即为“输入关键词”且内容为空），则不做匹配
-        if (self.keyword_combo.currentIndex() == 0 and not keyword.strip()):
-            keyword = " "
-        elif keyword == "输入关键词" or not keyword:
-            keyword = " "
+        if self.keyword_combo.currentIndex() == 0 or keyword in ["输入关键词", ""]:
+            keyword = ""
         if self.worker_thread.isRunning():
             self.worker_thread.terminate()
         self.status_label.setText(f"正在查询 {phone_number} 的短信...")
@@ -183,10 +183,12 @@ class SmsWindow(BaseTabWidget):
             content_item = QTableWidgetItem(msg['content'])
             content_item.setFlags(content_item.flags() | Qt.ItemFlag.ItemIsEditable)
             self.message_table.setItem(row_position, 2, content_item)
+            # 操作按钮区
             btn_copy = QPushButton("复制")
             btn_copy.setFixedSize(60, 25)
             btn_copy.setStyleSheet("font-size: 12px;")
             btn_copy.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+            btn_copy.clicked.connect(lambda _, r=row_position: self.copy_row_data(r))
             cell_widget = QWidget()
             cell_layout = QHBoxLayout(cell_widget)
             cell_layout.setContentsMargins(0, 0, 0, 0)
@@ -194,9 +196,31 @@ class SmsWindow(BaseTabWidget):
             cell_layout.addWidget(btn_copy)
             cell_layout.addStretch(1)
             self.message_table.setCellWidget(row_position, 3, cell_widget)
-            btn_copy.clicked.connect(lambda _, r=row_position: self.copy_row_data(r))
         self.status_label.setText(f"找到 {len(messages)} 条匹配短信")
         self.message_table.scrollToBottom()
+
+    def handle_table_cell_clicked(self, row, col):
+        # 只处理内容列
+        if col == 2:
+            content = self.message_table.item(row, col).text()
+            if len(content) > 50:
+                from PyQt6.QtWidgets import QDialog, QVBoxLayout, QTextEdit, QPushButton, QHBoxLayout
+                dialog = QDialog(self)
+                dialog.setWindowTitle("短信详情")
+                layout = QVBoxLayout(dialog)
+                text_edit = QTextEdit()
+                text_edit.setReadOnly(True)
+                text_edit.setText(content)
+                layout.addWidget(text_edit)
+                btn_layout = QHBoxLayout()
+                btn_copy = QPushButton("复制内容")
+                btn_copy.clicked.connect(lambda: pyperclip.copy(content))
+                btn_layout.addStretch(1)
+                btn_layout.addWidget(btn_copy)
+                btn_layout.addStretch(1)
+                layout.addLayout(btn_layout)
+                dialog.resize(480, 320)
+                dialog.exec()
 
     def clear_messages(self):
         self.message_table.setRowCount(0)

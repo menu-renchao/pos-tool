@@ -125,7 +125,7 @@ class BaseTabWidget(QWidget):
         mainwin = self._find_mainwindow()
         if mainwin is not None:
             for gb in mainwin.findChildren(QGroupBox):
-                if gb.title().strip() == "📝📝 操作日志":
+                if gb.title().strip() == "📝 操作日志":
                     gb.setVisible(False)
             if hasattr(mainwin, 'layout') and callable(mainwin.layout):
                 mainwin.layout().activate()
@@ -136,7 +136,7 @@ class BaseTabWidget(QWidget):
         mainwin = self._find_mainwindow()
         if mainwin is not None:
             for gb in mainwin.findChildren(QGroupBox):
-                if gb.title().strip() == "📝📝 操作日志":
+                if gb.title().strip() == "📝 操作日志":
                     gb.setVisible(True)
             if hasattr(mainwin, 'layout') and callable(mainwin.layout):
                 mainwin.layout().activate()
@@ -193,6 +193,12 @@ class MainWindow(QMainWindow):
         self.log_text: Optional[EnhancedTextEdit] = None
         self.log_group: Optional[QGroupBox] = None
         self.fake_progress: int = 0
+
+        # 初始化短信微服务环境变量，首次启动即生效
+        default_ip = getattr(self, '_sms_service_ip', '192.168.0.50')
+        default_port = getattr(self, '_sms_service_port', '8000')
+        default_url = f"http://{default_ip}:{default_port}"
+        os.environ['PLAYWRIGHT_SERVER_URL'] = default_url
 
         self._init_components()
         self.setup_backend()
@@ -312,6 +318,10 @@ class MainWindow(QMainWindow):
         global_ip_action = QAction("全局IP", self)
         global_ip_action.triggered.connect(self.show_global_ip_dialog)
         settings_menu.addAction(global_ip_action)
+
+        sms_service_action = QAction("短信微服务", self)
+        sms_service_action.triggered.connect(self.show_sms_service_config_dialog)
+        settings_menu.addAction(sms_service_action)
 
         self.setMenuBar(menubar)
 
@@ -647,6 +657,40 @@ class MainWindow(QMainWindow):
                 self.tabs.addTab(tab_instance, tab_name)
             except (ImportError, AttributeError) as e:
                 print(f"Failed to load tab {tab_name}: {e}")
+
+    def show_sms_service_config_dialog(self):
+        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QDialogButtonBox, QMessageBox
+        import os
+        dialog = QDialog(self)
+        dialog.setWindowTitle("短信微服务配置")
+        layout = QVBoxLayout(dialog)
+        # IP输入
+        ip_layout = QHBoxLayout()
+        ip_label = QLabel("服务IP:")
+        ip_edit = QLineEdit()
+        ip_edit.setText(getattr(self, '_sms_service_ip', '192.168.0.50'))
+        ip_layout.addWidget(ip_label)
+        ip_layout.addWidget(ip_edit)
+        layout.addLayout(ip_layout)
+        # 端口输入
+        port_layout = QHBoxLayout()
+        port_label = QLabel("端口号:")
+        port_edit = QLineEdit()
+        port_edit.setText(str(getattr(self, '_sms_service_port', '8000')))
+        port_layout.addWidget(port_label)
+        port_layout.addWidget(port_edit)
+        layout.addLayout(port_layout)
+        # 按钮
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        layout.addWidget(buttons)
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            self._sms_service_ip = ip_edit.text().strip()
+            self._sms_service_port = port_edit.text().strip()
+            self._sms_service_url = f"http://{self._sms_service_ip}:{self._sms_service_port}"
+            os.environ['PLAYWRIGHT_SERVER_URL'] = self._sms_service_url
+            QMessageBox.information(self, "提示", f"短信微服务配置已保存:\nIP: {self._sms_service_ip}\n端口: {self._sms_service_port}\nURL: {self._sms_service_url}")
 
 
 class ModernSplashScreen(QWidget):
