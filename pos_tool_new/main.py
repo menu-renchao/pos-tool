@@ -480,7 +480,7 @@ class MainWindow(QMainWindow):
             try:
                 module = __import__(module_path, fromlist=[class_name])
                 tab_class = getattr(module, class_name)
-                if class_name in ["ScanPosTabWidget", "CallerIdTabWidget"]:
+                if class_name in ["ScanPosTabWidget", "ScanPrinterTabWidget", "CallerIdTabWidget"]:
                     tab_instance = tab_class(self.backend, self)
                 else:
                     tab_instance = tab_class(self)
@@ -815,10 +815,10 @@ class MainWindow(QMainWindow):
             ("linux_pos", "pos_tool_new.linux_pos.linux_window", "LinuxTabWidget"),
             ("linux_file_config", "pos_tool_new.linux_file_config.file_config_linux_window", "FileConfigTabWidget"),
             ("win_pos", "pos_tool_new.windows_pos.windows_window", "WindowsTabWidget"),
-            ("win_file_config", "pos_tool_new.windows_file_config.file_config_win_window",
-             "WindowsFileConfigTabWidget"),
+            ("win_file_config", "pos_tool_new.windows_file_config.file_config_win_window", "WindowsFileConfigTabWidget"),
             ("db_config", "pos_tool_new.db_config.db_config_window", "DbConfigWindow"),
             ("scan_pos", "pos_tool_new.scan_pos.scan_pos_window", "ScanPosTabWidget"),
+            ("scan_printer", "pos_tool_new.scan_printer.scan_printer_window", "ScanPrinterTabWidget"),
             ("caller_id", "pos_tool_new.caller_id.caller_window", "CallerIdTabWidget"),
             ("license", "pos_tool_new.license_backup.license_window", "LicenseToolTabWidget"),
             ("download_war", "pos_tool_new.download_war.download_war_window", "DownloadWarTabWidget"),
@@ -834,7 +834,7 @@ class MainWindow(QMainWindow):
             try:
                 module = __import__(module_path, fromlist=[class_name])
                 tab_class = getattr(module, class_name)
-                if class_name in ["ScanPosTabWidget", "CallerIdTabWidget"]:
+                if class_name in ["ScanPosTabWidget", "ScanPrinterTabWidget", "CallerIdTabWidget"]:
                     tab_instance = tab_class(self.backend, self)
                 else:
                     tab_instance = tab_class(self)

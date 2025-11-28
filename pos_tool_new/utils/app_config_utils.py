@@ -36,6 +36,7 @@ TAB_ID_MAP = {
     "win_file_config": "⚙️ Windows配置文件",
     "db_config": "🗄️ 数据库配置",
     "scan_pos": "🔍 扫描POS",
+    "scan_printer": "🖨️ 扫描打印机/刷卡机",
     "caller_id": "📞 Caller ID",
     "license": "🔐 Device&&App License",
     "download_war": "📥 Download War",

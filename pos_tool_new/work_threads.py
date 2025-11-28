@@ -485,6 +485,21 @@ class ScanPosWorkerThread(BaseWorkerThread):
         self.service.scan_network(self, self.port)
 
 
+class ScanPrinterWorkerThread(BaseWorkerThread):
+    scan_progress: pyqtSignal = pyqtSignal(int, str)  # 扫描进度百分比和当前IP
+    scan_result: pyqtSignal = pyqtSignal(dict)  # 单个扫描结果（可选，暂未用）
+    scan_finished: pyqtSignal = pyqtSignal(list)  # 扫描完成后的结果列表
+
+    def __init__(self, service, ports=(9100, 10009)):
+        super().__init__()
+        self.service = service
+        self.ports = ports
+        self._results = []
+
+    def _run_impl(self):
+        self.service.scan_network(self, self.ports)
+
+
 class RandomMailLoadThread(BaseWorkerThread):
     mails_loaded = pyqtSignal(list)
 
