@@ -7,9 +7,8 @@ from pos_tool_new.main import BaseTabWidget
 from .scan_printer_service import ScanPrinterService
 
 class ScanPrinterTabWidget(BaseTabWidget):
-    def __init__(self, backend, parent=None):
+    def __init__(self, parent=None):
         super().__init__('扫描打印机/刷卡机', parent)
-        self.backend = backend
         self.local_ip = None
         self.service = None
         self._results = []
@@ -122,14 +121,15 @@ class ScanPrinterTabWidget(BaseTabWidget):
         op_layout = QHBoxLayout(op_widget)
         op_layout.setContentsMargins(0, 0, 0, 0)
         op_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        op_widget.setStyleSheet(f'background-color: rgb({bg_color.red()}, {bg_color.green()}, {bg_color.blue()});')
         has_button = False
         if result.get('type', '') == '打印机':
             btn_print = QPushButton('测试打印')
             btn_print.setFixedWidth(80)
+            btn_print.setStyleSheet('background-color: #0078d7; color: white; font-weight: bold; border-radius: 4px;')
             btn_print.clicked.connect(lambda _, ip=result['ip']: self.on_test_print(ip))
             op_layout.addWidget(btn_print)
             has_button = True
-        # 如果没有任何按钮，则显示占位符
         if not has_button:
             op_layout.addWidget(QLabel('——'))
         self.table.setCellWidget(row, 3, op_widget)
@@ -153,6 +153,10 @@ class ScanPrinterTabWidget(BaseTabWidget):
                 item = self.table.item(row, col)
                 if item:
                     item.setBackground(QBrush(bg_color))
+            # 同步操作列 cellWidget 背景色
+            op_widget = self.table.cellWidget(row, 3)
+            if op_widget:
+                op_widget.setStyleSheet(f'background-color: rgb({bg_color.red()}, {bg_color.green()}, {bg_color.blue()});')
 
     def on_section_clicked(self, _):
         QTimer.singleShot(0, self.update_row_colors)

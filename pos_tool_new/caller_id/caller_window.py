@@ -11,7 +11,7 @@ from pos_tool_new.main import BaseTabWidget
 class CallerIdTabWidget(BaseTabWidget):
     """Caller ID 模拟拨号选项卡 - 紧凑优化版"""
 
-    def __init__(self, backend, parent=None):
+    def __init__(self, parent=None):
         super().__init__("Caller ID 模拟拨号", parent)
         self.parent_window = parent
         self.setup_ui()

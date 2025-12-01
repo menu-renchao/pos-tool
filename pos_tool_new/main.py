@@ -251,7 +251,7 @@ class MainWindow(QMainWindow):
     def _setup_window_properties(self):
         """设置窗口属性"""
         self.setWindowIcon(QIcon(resource_path('UI/app.ico')))
-        self.setWindowTitle("POS测试工具 v1.5.1.0 by Mansuper")
+        self.setWindowTitle("POS测试工具 v1.5.1.1 by Mansuper")
         self.resize(900, 580)
 
     def _create_central_widget(self) -> QWidget:
@@ -480,10 +480,7 @@ class MainWindow(QMainWindow):
             try:
                 module = __import__(module_path, fromlist=[class_name])
                 tab_class = getattr(module, class_name)
-                if class_name in ["ScanPosTabWidget", "ScanPrinterTabWidget", "CallerIdTabWidget"]:
-                    tab_instance = tab_class(self.backend, self)
-                else:
-                    tab_instance = tab_class(self)
+                tab_instance = tab_class(self)
                 tab_text = TAB_ID_MAP.get(tid, tid)
                 self.tabs.addTab(tab_instance, tab_text)
             except (ImportError, AttributeError) as e:
@@ -834,10 +831,7 @@ class MainWindow(QMainWindow):
             try:
                 module = __import__(module_path, fromlist=[class_name])
                 tab_class = getattr(module, class_name)
-                if class_name in ["ScanPosTabWidget", "ScanPrinterTabWidget", "CallerIdTabWidget"]:
-                    tab_instance = tab_class(self.backend, self)
-                else:
-                    tab_instance = tab_class(self)
+                tab_instance = tab_class(self)
                 tab_text = TAB_ID_MAP.get(tid, tid)
                 self.tabs.addTab(tab_instance, tab_text)
             except (ImportError, AttributeError) as e:
@@ -928,7 +922,7 @@ class ModernSplashScreen(QWidget):
 
         # 标题和版本标签
         self.title_label = self._create_label("POS测试工具", "24px", "#cccccc")
-        self.version_label = self._create_label("v1.5.1.0 - 正在加载...", "12px", "#aaaaaa")
+        self.version_label = self._create_label("v1.5.1.1 - 正在加载...", "12px", "#aaaaaa")
 
         layout.addWidget(self.title_label)
         layout.addWidget(self.version_label)
