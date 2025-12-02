@@ -74,8 +74,30 @@ class ScanPrinterService(Backend, QObject):
 
     def test_print(self, ip, port=9100):
         try:
-            data = b'\x1b@' + f'test:{ip}\n\n\n\n\n\n\n\n\n\n'.encode('gb18030') + b'\x1dV\x00'
+            device_type = self._get_device_type([port], ip)
+            if device_type == "标签打印机":
+                # 标签打印机发送ZPL，去除样式，字体小一点，IP换行显示
+                data = f'^XA^FO50,50^A0N,20,20^FDTest Print:^FS^FO50,80^A0N,20,20^FD{ip}^FS^XZ'.encode('utf-8')
+            else:
+                data = b'\x1b@' + f'test:{ip}\n\n\n\n\n\n\n\n\n\n'.encode('gb18030') + b'\x1dV\x00'
             with socket.create_connection((ip, port), timeout=3) as s:
                 s.sendall(data)
         except Exception as e:
             print(f"打印机测试打印失败: {ip}:{port} {e}")
+
+    def print_label(self, ip, text, port=9100):
+        try:
+            zpl = '^XA'
+            zpl += '^CW1,E:SIMSUN.TTF'  # 选择SimSun字体
+            zpl += '^SEE:GB18030.DAT'  # 选择GB18030编码表
+            zpl += '^CI26'  # 选择GB18030字符集
+            y = 50
+            for line in text.splitlines():
+                zpl += f'^FO50,{y}^A1N,30,30^FD{line}^FS'
+                y += 40
+            zpl += '^XZ'
+            data = zpl.encode('gb18030')  # 用GB18030编码
+            with socket.create_connection((ip, port), timeout=3) as s:
+                s.sendall(data)
+        except Exception as e:
+            print(f"标签打印失败: {ip}:{port} {e}")

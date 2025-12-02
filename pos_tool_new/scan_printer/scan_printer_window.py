@@ -1,10 +1,14 @@
 import socket
+
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QColor, QBrush
 from PyQt6.QtWidgets import (QTableWidget, QTableWidgetItem, QPushButton, QVBoxLayout,
-                             QLabel, QProgressBar, QLineEdit, QHBoxLayout, QHeaderView, QWidget, QInputDialog, QMessageBox)
+                             QLabel, QProgressBar, QHBoxLayout, QHeaderView, QWidget, QInputDialog,
+                             QMessageBox)
+
 from pos_tool_new.main import BaseTabWidget
 from .scan_printer_service import ScanPrinterService
+
 
 class ScanPrinterTabWidget(BaseTabWidget):
     def __init__(self, parent=None):
@@ -123,12 +127,19 @@ class ScanPrinterTabWidget(BaseTabWidget):
         op_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         op_widget.setStyleSheet(f'background-color: rgb({bg_color.red()}, {bg_color.green()}, {bg_color.blue()});')
         has_button = False
-        if result.get('type', '') == '打印机':
+        if '打印机' in result.get('type', ''):
             btn_print = QPushButton('测试打印')
             btn_print.setFixedWidth(80)
             btn_print.setStyleSheet('background-color: #0078d7; color: white; font-weight: bold; border-radius: 4px;')
             btn_print.clicked.connect(lambda _, ip=result['ip']: self.on_test_print(ip))
             op_layout.addWidget(btn_print)
+            has_button = True
+        if '标签打印机' == result.get('type', ''):
+            btn_label = QPushButton('标签制作')
+            btn_label.setFixedWidth(80)
+            btn_label.setStyleSheet('background-color: #43b02a; color: white; font-weight: bold; border-radius: 4px;')
+            btn_label.clicked.connect(lambda _, ip=result['ip']: self.on_make_label(ip))
+            op_layout.addWidget(btn_label)
             has_button = True
         if not has_button:
             op_layout.addWidget(QLabel('——'))
@@ -137,6 +148,12 @@ class ScanPrinterTabWidget(BaseTabWidget):
     def on_test_print(self, ip):
         self.service.test_print(ip)
         QMessageBox.information(self, '测试打印', f'已向 {ip}:9100 发送测试打印指令。')
+
+    def on_make_label(self, ip):
+        text, ok = QInputDialog.getMultiLineText(self, '标签制作', f'请输入要打印的标签内容（支持换行）:', '')
+        if ok and text.strip():
+            self.service.print_label(ip, text)
+            QMessageBox.information(self, '标签制作', f'已向 {ip}:9100 发送标签打印指令。')
 
     def _refresh_table(self, results):
         self.table.setSortingEnabled(False)
@@ -156,7 +173,8 @@ class ScanPrinterTabWidget(BaseTabWidget):
             # 同步操作列 cellWidget 背景色
             op_widget = self.table.cellWidget(row, 3)
             if op_widget:
-                op_widget.setStyleSheet(f'background-color: rgb({bg_color.red()}, {bg_color.green()}, {bg_color.blue()});')
+                op_widget.setStyleSheet(
+                    f'background-color: rgb({bg_color.red()}, {bg_color.green()}, {bg_color.blue()});')
 
     def on_section_clicked(self, _):
         QTimer.singleShot(0, self.update_row_colors)
