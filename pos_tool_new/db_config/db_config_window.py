@@ -380,7 +380,7 @@ class DbConfigWindow(BaseTabWidget):
     def on_table_cell_clicked(self, row, column):
         """处理表格单元格点击事件"""
         if column == 2:  # SQL预览列
-            item = self.service.get_config_items()[row]
+            item = self._current_table_items[row]  # 修正：用当前表格显示的数据
             sql_text = '\n'.join(item.sqls)
             dlg = SqlDetailDialog(sql_text, self)
             dlg.exec()

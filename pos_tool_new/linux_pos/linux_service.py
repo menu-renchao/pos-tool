@@ -682,9 +682,9 @@ class LinuxService(Backend):
         一键升级包升级主流程：上传war包、执行升级脚本、修改配置、重启POS。
         """
         try:
-            def log_and_emit(msg):
+            def log_and_emit(msg,level="info"):
                 if log_callback:
-                    log_callback(msg)
+                    log_callback(msg,level)
                 if progress_text_callback:
                     progress_text_callback(msg)
 
@@ -746,7 +746,7 @@ class LinuxService(Backend):
             if progress_callback:
                 progress_callback(100)
 
-            log_and_emit("一键升级包升级已完成！")
+            log_and_emit("一键升级包升级已完成！","success")
 
         except Exception as e:
             if log_callback:

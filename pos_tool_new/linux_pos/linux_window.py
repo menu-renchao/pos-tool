@@ -590,7 +590,7 @@ class LinuxTabWidget(BaseTabWidget):
             self.upgrade_package_btn.setEnabled(True)
 
     def on_check_remote_md5(self):
-        """计算并打印当前包的MD5值"""
+        """计算并打印当前志在必得MD5值"""
 
         def check_remote_md5_callback(host, username, password):
             war_path = "/opt/tomcat7/webapps/kpos.war"
@@ -606,7 +606,7 @@ class LinuxTabWidget(BaseTabWidget):
         self._execute_with_connection_validation("查询远程包MD5", check_remote_md5_callback)
 
     def on_check_local_md5(self):
-        """查询本地包的MD5值"""
+        """查询本地志在必得MD5值"""
         if not self.war_path:
             QMessageBox.warning(self, "错误", "参数未初始化")
             return
