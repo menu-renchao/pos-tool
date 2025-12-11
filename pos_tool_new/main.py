@@ -385,7 +385,7 @@ class MainWindow(QMainWindow):
 
             # PyQt6 QCheckBox.stateChanged 信号传递的是 int 类型
             # 2: Checked, 0: Unchecked
-            if state == 2:  # Checked
+            if state in [1,2]:  # Checked
                 for cb in checkboxes.values():
                     cb.setChecked(True)
             elif state == 0:  # Unchecked
