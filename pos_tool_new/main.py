@@ -251,7 +251,7 @@ class MainWindow(QMainWindow):
     def _setup_window_properties(self):
         """设置窗口属性"""
         self.setWindowIcon(QIcon(resource_path('UI/app.ico')))
-        self.setWindowTitle("POS测试工具 v1.5.1.1 by Mansuper")
+        self.setWindowTitle("POS测试工具 v1.5.1.2 by Mansuper")
         self.resize(900, 580)
 
     def _create_central_widget(self) -> QWidget:
@@ -918,7 +918,7 @@ class ModernSplashScreen(QWidget):
 
         # 标题和版本标签
         self.title_label = self._create_label("POS测试工具", "24px", "#cccccc")
-        self.version_label = self._create_label("v1.5.1.1 - 正在加载...", "12px", "#aaaaaa")
+        self.version_label = self._create_label("v1.5.1.2 - 正在加载...", "12px", "#aaaaaa")
 
         layout.addWidget(self.title_label)
         layout.addWidget(self.version_label)

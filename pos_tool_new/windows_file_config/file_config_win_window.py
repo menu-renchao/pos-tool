@@ -563,8 +563,11 @@ class WindowsFileConfigTabWidget(BaseTabWidget):
 
     def _get_versions(self):
         try:
-            return [d for d in os.listdir(self.base_path.text()) if
-                    os.path.isdir(os.path.join(self.base_path.text(), d))]
+            # 获取目录并按名称倒序排列
+            return sorted(
+                [d for d in os.listdir(self.base_path.text()) if os.path.isdir(os.path.join(self.base_path.text(), d))],
+                reverse=True
+            )
         except Exception as e:
             QMessageBox.warning(self, "提示", f"读取目录失败：{str(e)}")
             return []
