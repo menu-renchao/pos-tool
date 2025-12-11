@@ -320,6 +320,11 @@ class MainWindow(QMainWindow):
         menubar = self.menuBar() or QMenuBar(self)
         # 添加关于菜单
         about_menu = menubar.addMenu("关于(&A)")
+        # 添加“检查更新”菜单项
+        check_update_action = QAction("检查更新", self)
+        check_update_action.triggered.connect(lambda: check_and_update_exe(self))
+        about_menu.addAction(check_update_action)
+
         version_action = QAction("版本信息", self)
         version_action.triggered.connect(self.show_version_info)
         about_menu.addAction(version_action)
@@ -1068,6 +1073,7 @@ def get_api_url():
     return f"http://{ip}:{port}/api"
 
 API_URL = get_api_url()
+print(API_URL)
 EXE_NAME_PREFIX = "PosTestUtil_v"
 EXE_SUFFIX = ".exe"
 # 获取exe运行目录
@@ -1083,47 +1089,100 @@ def get_local_exe_path():
     return None
 
 
+class UpdateDialog(QDialog):
+    def __init__(self, parent, local_version, latest_version=None, update_info=None, error=None):
+        super().__init__(parent)
+        self.setWindowTitle("检查更新")
+        self.setMinimumWidth(380)
+        self.result = None
+        layout = QVBoxLayout(self)
+        if error:
+            layout.addWidget(QLabel(f"<b>检查更新失败：</b><br>{error}"))
+            btn = QPushButton("关闭")
+            btn.clicked.connect(self.reject)
+            layout.addWidget(btn)
+            return
+        layout.addWidget(QLabel(f"当前版本：<b>{local_version}</b>"))
+        if latest_version is None:
+            layout.addWidget(QLabel("未能获取最新版本信息。"))
+            btn = QPushButton("关闭")
+            btn.clicked.connect(self.reject)
+            layout.addWidget(btn)
+            return
+        layout.addWidget(QLabel(f"最新版本：<b>{latest_version}</b>"))
+        if latest_version == local_version:
+            layout.addWidget(QLabel("当前已是最新版本。"))
+            btn = QPushButton("关闭")
+            btn.clicked.connect(self.reject)
+            layout.addWidget(btn)
+            return
+        if update_info:
+            layout.addWidget(QLabel(f"<b>更新说明：</b><br>{update_info}"))
+        self.progress = QProgressBar()
+        self.progress.setVisible(False)
+        layout.addWidget(self.progress)
+        btn_update = QPushButton("立即更新")
+        btn_update.clicked.connect(self.start_update)
+        btn_close = QPushButton("关闭")
+        btn_close.clicked.connect(self.reject)
+        btns = QHBoxLayout()
+        btns.addWidget(btn_update)
+        btns.addWidget(btn_close)
+        layout.addLayout(btns)
+        self.latest_version = latest_version
+        self.local_version = local_version
+        self.parent = parent
+        self.update_info = update_info
+        self.setModal(True)
+    def start_update(self):
+        self.progress.setVisible(True)
+        self.progress.setValue(0)
+        QApplication.processEvents()
+        exe_name = f"PosTestUtil_v{self.latest_version}.exe"
+        exe_path = os.path.join(EXE_RUN_DIR, exe_name)
+        if os.path.exists(exe_path):
+            QMessageBox.warning(self, "下载失败", f"新版本文件已存在：{exe_path}\n请先删除该文件后再重试更新。")
+            self.progress.setVisible(False)
+            return
+        try:
+            url = f"{API_URL}/download"
+            r = requests.get(url, stream=True, timeout=10)
+            r.raise_for_status()
+            total = int(r.headers.get('content-length', 0))
+            with open(exe_path, 'wb') as f:
+                downloaded = 0
+                for chunk in r.iter_content(chunk_size=8192):
+                    if chunk:
+                        f.write(chunk)
+                        downloaded += len(chunk)
+                        if total:
+                            self.progress.setValue(int(downloaded * 100 / total))
+                        QApplication.processEvents()
+            self.progress.setValue(100)
+            QMessageBox.information(self, "更新完成", f"新版本 {self.latest_version} 已下载。请手动关闭旧程序并运行新版本。")
+            self.accept()
+            sys.exit(0)
+        except Exception as e:
+            QMessageBox.warning(self, "下载失败", f"下载新版本失败：{e}")
+            self.progress.setVisible(False)
+
+
 def check_and_update_exe(parent=None):
     try:
         r = requests.get(f"{API_URL}/version", timeout=2)
         r.raise_for_status()
         latest_version = r.json().get("version")
+        update_info = r.json().get("info", "")
     except Exception as e:
+        dlg = UpdateDialog(parent, LOCAL_VERSION, error=str(e))
+        dlg.exec()
         return
-
-    if latest_version is None or latest_version == LOCAL_VERSION:
-        return
-
-    reply = QMessageBox.question(
-        parent, "发现新版本",
-        f"检测到新版本 {latest_version}，是否立即更新？",
-        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-    )
-    if reply != QMessageBox.StandardButton.Yes:
-        return
-
-    # 下载新exe
-    new_exe_path = os.path.join(EXE_RUN_DIR, f"{EXE_NAME_PREFIX}{latest_version}{EXE_SUFFIX}")
-    if os.path.exists(new_exe_path):
-        QMessageBox.warning(parent, "下载失败", f"新版本文件已存在：{new_exe_path}\n请先删除该文件后再重试更新。")
-        sys.exit(0)
-    try:
-        r = requests.get(f"{API_URL}/download", stream=True, timeout=10)
-        r.raise_for_status()
-        with open(new_exe_path, 'wb') as f:
-            import shutil
-            shutil.copyfileobj(r.raw, f)
-    except Exception as e:
-        QMessageBox.warning(parent, "下载失败", f"下载新版本失败：{e}")
-        return
-
-    QMessageBox.information(parent, "更新完成", f"新版本 {latest_version} 已下载。请手动关闭旧程序并运行新版本。")
-    sys.exit(0)
+    dlg = UpdateDialog(parent, LOCAL_VERSION, latest_version, update_info)
+    dlg.exec()
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    check_and_update_exe()  # 启动前自检
     splash = ModernSplashScreen(resource_path('UI/loading.gif'), duration=1800)
     splash.start(create_main_window)
     sys.exit(app.exec())
