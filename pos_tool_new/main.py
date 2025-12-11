@@ -380,11 +380,7 @@ class MainWindow(QMainWindow):
             """全选复选框状态改变时的处理"""
             if self._updating_checkboxes:
                 return
-
             self._updating_checkboxes = True
-
-            # PyQt6 QCheckBox.stateChanged 信号传递的是 int 类型
-            # 2: Checked, 0: Unchecked
             if state in [1,2]:  # Checked
                 for cb in checkboxes.values():
                     cb.setChecked(True)
