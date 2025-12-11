@@ -1073,7 +1073,6 @@ def get_api_url():
     return f"http://{ip}:{port}/api"
 
 API_URL = get_api_url()
-print(API_URL)
 EXE_NAME_PREFIX = "PosTestUtil_v"
 EXE_SUFFIX = ".exe"
 # 获取exe运行目录
