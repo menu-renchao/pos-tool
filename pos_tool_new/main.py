@@ -3,6 +3,8 @@ import sys
 import time
 from typing import Tuple, Optional
 
+import requests
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from PyQt6.QtCore import QTimer, Qt, QSize, QPropertyAnimation, QEasingCurve
@@ -10,7 +12,7 @@ from PyQt6.QtGui import QFont, QPalette, QTextCharFormat, QTextCursor, QAction, 
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QTabWidget, QTextEdit, QPushButton, QHBoxLayout,
     QLabel, QRadioButton, QButtonGroup, QGroupBox, QProgressBar, QMainWindow,
-    QToolButton, QMenuBar, QMessageBox, QVBoxLayout, QSplitter, QCheckBox, QDialog, QDialogButtonBox
+    QToolButton, QMenuBar, QMessageBox, QVBoxLayout, QSplitter, QCheckBox, QDialog, QDialogButtonBox, QLineEdit
 )
 
 from pos_tool_new.backend import Backend
@@ -194,8 +196,8 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         from pos_tool_new.utils.app_config_utils import get_app_config_value
-        self._sms_service_ip = get_app_config_value('sms_default_ip', None)
-        self._sms_service_port = get_app_config_value('sms_default_port', None)
+        self._sms_service_ip = get_app_config_value('micro_default_ip', None)
+        self._sms_service_port = get_app_config_value('micro_default_sms_port', None)
         super().__init__()
         self.finish_timer: Optional[QTimer] = None
         self.log_text: Optional[EnhancedTextEdit] = None
@@ -328,9 +330,9 @@ class MainWindow(QMainWindow):
         global_ip_action.triggered.connect(self.show_global_ip_dialog)
         settings_menu.addAction(global_ip_action)
 
-        sms_service_action = QAction("短信微服务", self)
-        sms_service_action.triggered.connect(self.show_sms_service_config_dialog)
-        settings_menu.addAction(sms_service_action)
+        micro_service_action = QAction("微服务", self)
+        micro_service_action.triggered.connect(self.show_micro_service_config_dialog)
+        settings_menu.addAction(micro_service_action)
 
         layout_action = QAction("布局", self)
         layout_action.triggered.connect(self.show_layout_config_dialog)
@@ -833,48 +835,57 @@ class MainWindow(QMainWindow):
             except (ImportError, AttributeError) as e:
                 global_log_manager.log(f"Failed to load tab {tid}: {e}", "error")
 
-    def show_sms_service_config_dialog(self):
-        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QDialogButtonBox, QMessageBox
-        import os
+    def show_micro_service_config_dialog(self):
         dialog = QDialog(self)
-        dialog.setWindowTitle("短信微服务配置")
+        dialog.setWindowTitle("微服务配置")
         layout = QVBoxLayout(dialog)
         # IP输入
         ip_layout = QHBoxLayout()
         ip_label = QLabel("服务IP:")
-        sms_default_ip = get_app_config_value('sms_default_ip', None)
+        micro_default_ip = get_app_config_value('micro_default_ip', None)
         ip_edit = QLineEdit()
-        ip_edit.setText(self._sms_service_ip or '')
+        ip_edit.setText(self._micro_service_ip if hasattr(self, '_micro_service_ip') else micro_default_ip or '')
         ip_layout.addWidget(ip_label)
         ip_layout.addWidget(ip_edit)
         layout.addLayout(ip_layout)
-        # 端口输入
-        port_layout = QHBoxLayout()
-        port_label = QLabel("端口号:")
-        sms_default_port = get_app_config_value('sms_default_port', None)
-        port_edit = QLineEdit()
-        port_edit.setText(str(self._sms_service_port or ''))
-        port_layout.addWidget(port_label)
-        port_layout.addWidget(port_edit)
-        layout.addLayout(port_layout)
+        # 短信服务端口输入
+        sms_port_layout = QHBoxLayout()
+        sms_port_label = QLabel("短信服务端口:")
+        micro_default_sms_port = get_app_config_value('micro_default_sms_port', None)
+        sms_port_edit = QLineEdit()
+        sms_port_edit.setText(str(self._micro_service_sms_port) if hasattr(self, '_micro_service_sms_port') else micro_default_sms_port or '')
+        sms_port_layout.addWidget(sms_port_label)
+        sms_port_layout.addWidget(sms_port_edit)
+        layout.addLayout(sms_port_layout)
+        # 升级服务端口输入
+        upgrade_port_layout = QHBoxLayout()
+        upgrade_port_label = QLabel("升级服务端口:")
+        micro_default_upgrade_port = get_app_config_value('micro_default_upgrade_port', None)
+        upgrade_port_edit = QLineEdit()
+        upgrade_port_edit.setText(str(self._micro_service_upgrade_port) if hasattr(self, '_micro_service_upgrade_port') else micro_default_upgrade_port or '')
+        upgrade_port_layout.addWidget(upgrade_port_label)
+        upgrade_port_layout.addWidget(upgrade_port_edit)
+        layout.addLayout(upgrade_port_layout)
         # 按钮
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         layout.addWidget(buttons)
         buttons.accepted.connect(dialog.accept)
         buttons.rejected.connect(dialog.reject)
         if dialog.exec() == QDialog.DialogCode.Accepted:
-            self._sms_service_ip = ip_edit.text().strip()
-            self._sms_service_port = port_edit.text().strip()
-            if not self._sms_service_ip or not self._sms_service_port:
-                QMessageBox.warning(self, "提示", "请填写短信微服务的IP和端口后再保存！")
+            self._micro_service_ip = ip_edit.text().strip()
+            self._micro_service_sms_port = sms_port_edit.text().strip()
+            self._micro_service_upgrade_port = upgrade_port_edit.text().strip()
+            if not self._micro_service_ip or not self._micro_service_sms_port or not self._micro_service_upgrade_port:
+                QMessageBox.warning(self, "提示", "请填写微服务的IP、短信服务端口和升级服务端口后再保存！")
                 return
-            self._sms_service_url = f"http://{self._sms_service_ip}:{self._sms_service_port}"
-            os.environ['PLAYWRIGHT_SERVER_URL'] = self._sms_service_url
+            self._micro_service_api_url = f"http://{self._micro_service_ip}:{self._micro_service_sms_port}/api"
+            os.environ['PLAYWRIGHT_SERVER_URL'] = self._micro_service_api_url
             # 保存到app.config
-            set_app_config_value('sms_default_ip', self._sms_service_ip)
-            set_app_config_value('sms_default_port', self._sms_service_port)
+            set_app_config_value('micro_default_ip', self._micro_service_ip)
+            set_app_config_value('micro_default_sms_port', self._micro_service_sms_port)
+            set_app_config_value('micro_default_upgrade_port', self._micro_service_upgrade_port)
             QMessageBox.information(self, "提示",
-                                    f"短信微服务配置已保存:\nIP: {self._sms_service_ip}\n端口: {self._sms_service_port}\nURL: {self._sms_service_url}")
+                                    f"微服务配置已保存:\nIP: {self._micro_service_ip}\n短信服务端口: {self._micro_service_sms_port}\n升级服务端口: {self._micro_service_upgrade_port}\nAPI_URL: {self._micro_service_api_url}")
 
 
 class ModernSplashScreen(QWidget):
@@ -1048,8 +1059,71 @@ def create_main_window():
     return win
 
 
+LOCAL_VERSION = "1.5.1.2"  # 当前本地版本号，建议后续自动生成
+
+def get_api_url():
+    """根据配置文件动态获取API_URL"""
+    ip = get_app_config_value('micro_default_ip')
+    port = get_app_config_value('micro_default_upgrade_port')
+    return f"http://{ip}:{port}/api"
+
+API_URL = get_api_url()
+EXE_NAME_PREFIX = "PosTestUtil_v"
+EXE_SUFFIX = ".exe"
+# 获取exe运行目录
+EXE_RUN_DIR = os.path.dirname(sys.executable)
+
+# 下载前检查 dist 目录是否存在，不自动创建
+
+def get_local_exe_path():
+    """获取本地exe路径（运行目录）"""
+    for file in os.listdir(EXE_RUN_DIR):
+        if file.startswith(EXE_NAME_PREFIX) and file.endswith(EXE_SUFFIX):
+            return os.path.join(EXE_RUN_DIR, file)
+    return None
+
+
+def check_and_update_exe(parent=None):
+    try:
+        r = requests.get(f"{API_URL}/version", timeout=2)
+        r.raise_for_status()
+        latest_version = r.json().get("version")
+    except Exception as e:
+        return
+
+    if latest_version is None or latest_version == LOCAL_VERSION:
+        return
+
+    reply = QMessageBox.question(
+        parent, "发现新版本",
+        f"检测到新版本 {latest_version}，是否立即更新？",
+        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+    )
+    if reply != QMessageBox.StandardButton.Yes:
+        return
+
+    # 下载新exe
+    new_exe_path = os.path.join(EXE_RUN_DIR, f"{EXE_NAME_PREFIX}{latest_version}{EXE_SUFFIX}")
+    if os.path.exists(new_exe_path):
+        QMessageBox.warning(parent, "下载失败", f"新版本文件已存在：{new_exe_path}\n请先删除该文件后再重试更新。")
+        sys.exit(0)
+    try:
+        r = requests.get(f"{API_URL}/download", stream=True, timeout=10)
+        r.raise_for_status()
+        with open(new_exe_path, 'wb') as f:
+            import shutil
+            shutil.copyfileobj(r.raw, f)
+    except Exception as e:
+        QMessageBox.warning(parent, "下载失败", f"下载新版本失败：{e}")
+        return
+
+    QMessageBox.information(parent, "更新完成", f"新版本 {latest_version} 已下载。请手动关闭旧程序并运行新版本。")
+    sys.exit(0)
+
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    check_and_update_exe()  # 启动前自检
     splash = ModernSplashScreen(resource_path('UI/loading.gif'), duration=1800)
     splash.start(create_main_window)
     sys.exit(app.exec())
