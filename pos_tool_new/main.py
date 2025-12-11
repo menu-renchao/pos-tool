@@ -1072,7 +1072,7 @@ def get_api_url():
     port = get_app_config_value('micro_default_upgrade_port')
     return f"http://{ip}:{port}/api"
 
-API_URL = get_api_url()
+
 EXE_NAME_PREFIX = "PosTestUtil_v"
 EXE_SUFFIX = ".exe"
 # 获取exe运行目录
@@ -1144,7 +1144,8 @@ class UpdateDialog(QDialog):
             self.progress.setVisible(False)
             return
         try:
-            url = f"{API_URL}/download"
+            api_url = get_api_url()  # 每次动态获取
+            url = f"{api_url}/download"
             r = requests.get(url, stream=True, timeout=10)
             r.raise_for_status()
             total = int(r.headers.get('content-length', 0))
@@ -1167,8 +1168,9 @@ class UpdateDialog(QDialog):
 
 
 def check_and_update_exe(parent=None):
+    api_url = get_api_url()  # 每次动态获取
     try:
-        r = requests.get(f"{API_URL}/version", timeout=2)
+        r = requests.get(f"{api_url}/version", timeout=2)
         r.raise_for_status()
         latest_version = r.json().get("version")
         update_info = r.json().get("info", "")
