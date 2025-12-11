@@ -883,14 +883,14 @@ class MainWindow(QMainWindow):
             if not self._micro_service_ip or not self._micro_service_sms_port or not self._micro_service_upgrade_port:
                 QMessageBox.warning(self, "提示", "请填写微服务的IP、短信服务端口和升级服务端口后再保存！")
                 return
-            self._micro_service_api_url = f"http://{self._micro_service_ip}:{self._micro_service_sms_port}/api"
+            self._micro_service_api_url = f"http://{self._micro_service_ip}:{self._micro_service_sms_port}"
             os.environ['PLAYWRIGHT_SERVER_URL'] = self._micro_service_api_url
             # 保存到app.config
             set_app_config_value('micro_default_ip', self._micro_service_ip)
             set_app_config_value('micro_default_sms_port', self._micro_service_sms_port)
             set_app_config_value('micro_default_upgrade_port', self._micro_service_upgrade_port)
             QMessageBox.information(self, "提示",
-                                    f"微服务配置已保存:\nIP: {self._micro_service_ip}\n短信服务端口: {self._micro_service_sms_port}\n升级服务端口: {self._micro_service_upgrade_port}\nAPI_URL: {self._micro_service_api_url}")
+                                    f"微服务配置已保存:\nIP: {self._micro_service_ip}\n短信服务端口: {self._micro_service_sms_port}\n升级服务端口: {self._micro_service_upgrade_port}")
 
 
 class ModernSplashScreen(QWidget):
@@ -1096,7 +1096,7 @@ class UpdateDialog(QDialog):
         self.result = None
         layout = QVBoxLayout(self)
         if error:
-            layout.addWidget(QLabel(f"<b>检查更新失败：</b><br>{error}"))
+            layout.addWidget(QLabel("<b>检查更新失败：移步【设置】->【微服务】检査ip和升级服务端口是否正确</b>"))
             btn = QPushButton("关闭")
             btn.clicked.connect(self.reject)
             layout.addWidget(btn)
