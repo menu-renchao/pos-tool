@@ -667,8 +667,8 @@ QTableWidget::item {
         dialog.setWindowTitle(f"配置详情 - {config.name}")
 
         # 隐藏编辑控件
-        dialog.name_edit.setVisible(False)
-        dialog.path_edit.setVisible(False)
+        dialog.name_edit.setReadOnly(True)
+        dialog.path_edit.setReadOnly(True)
         dialog.add_btn.setVisible(False)
         dialog.edit_btn.setVisible(False)
         dialog.delete_btn.setVisible(False)

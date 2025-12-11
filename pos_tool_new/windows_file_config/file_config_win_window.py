@@ -617,6 +617,19 @@ class WindowsFileConfigTabWidget(BaseTabWidget):
         dialog = FileConfigEditDialog(config)
         dialog.setMinimumSize(1000, 600)
         dialog.setWindowTitle(f"配置详情 - {config.name}")
+        # 隐藏编辑控件
+        dialog.name_edit.setReadOnly(True)
+        dialog.path_edit.setReadOnly(True)
+        dialog.add_btn.setVisible(False)
+        dialog.edit_btn.setVisible(False)
+        dialog.delete_btn.setVisible(False)
+
+        # 隐藏操作列的按钮
+        for i in range(dialog.key_value_table.rowCount()):
+            widget = dialog.key_value_table.cellWidget(i, 5)
+            if widget:
+                widget.setVisible(False)
+
         dialog.exec()
 
     def _validate_connection_params(self) -> tuple:
