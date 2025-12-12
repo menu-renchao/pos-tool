@@ -12,7 +12,6 @@ def get_usable_phone_numbers_remote():
     """通过远程API获取可用手机号列表"""
     try:
         url = get_playwright_server_url()
-        print(url)
         resp = requests.get(f"{url}/api/usable_phone_numbers", timeout=10)
         resp.raise_for_status()
         data = resp.json()

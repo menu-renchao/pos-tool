@@ -1116,7 +1116,9 @@ class UpdateDialog(QDialog):
             layout.addWidget(btn)
             return
         if update_info:
-            layout.addWidget(QLabel(f"<b>更新说明：</b><br>{update_info}"))
+            # 兼容换行，将\n替换为<br>，并安全显示
+            update_info_html = '<br>'.join(update_info.split('\n'))
+            layout.addWidget(QLabel(f"<b>更新说明：</b><br>{update_info_html}"))
         self.progress = QProgressBar()
         self.progress.setVisible(False)
         layout.addWidget(self.progress)

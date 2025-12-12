@@ -31,11 +31,38 @@ def get_latest_exe_info():
     return latest_exe, latest_version
 
 
+def get_latest_version_info():
+    """
+    解析 version_info.html，返回最新版本的升级说明内容，每个<li>换行显示
+    """
+    html_path = "E:\service\\version_info.html"
+    if not os.path.exists(html_path):
+        return ''
+    import re
+    with open(html_path, encoding='utf-8') as f:
+        html = f.read()
+    # 先找 <h3>vX.X.X.X(最新版本)</h3> 的位置
+    h3_match = re.search(r'<h3>\s*v([\d.]+)[(（]最新版本[)）]\s*</h3>', html, re.I)
+    if not h3_match:
+        return ''
+    h3_end = h3_match.end()
+    # 从 h3 结束后找第一个 <ul>...</ul> html_path = "E:\service\\version_info.html"
+    ul_match = re.search(r'<ul>(.*?)</ul>', html[h3_end:], re.I|re.S)
+    if not ul_match:
+        return ''
+    ul_content = ul_match.group(1)
+    items = re.findall(r'<li>(.*?)</li>', ul_content, re.I|re.S)
+    # 每个<li>内容单独一行
+    info = '\n'.join(item.strip() for item in items)
+    return info
+
+
 @app.route('/api/version', methods=['GET'])
 def get_version():
     _, version = get_latest_exe_info()
+    info = get_latest_version_info()
     if version:
-        return jsonify({'version': version})
+        return jsonify({'version': version, 'info': info})
     else:
         return jsonify({'error': 'No exe found'}), 404
 
