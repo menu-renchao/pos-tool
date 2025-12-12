@@ -534,9 +534,9 @@ class LinuxTabWidget(BaseTabWidget):
 
             # 建立 SSH 连接
             ssh = self.service._connect_ssh(
-                self.host_ip.currentText(),
-                self.username.text(),
-                self.password.text()
+                self.host_ip.currentText().strip(),
+                self.username.text().strip(),
+                self.password.text().strip()
             )
 
             # 扫描远程升级包
@@ -816,9 +816,9 @@ class LinuxTabWidget(BaseTabWidget):
         if reply != QMessageBox.StandardButton.Yes:
             return
 
-        host = self.host_ip.currentText()
-        username = self.username.text()
-        password = self.password.text()
+        host = self.host_ip.currentText().strip()
+        username = self.username.text().strip()
+        password = self.password.text().strip()
         local_war_path = self.war_path.text() if hasattr(self, 'war_path') else ''
         env = self.get_selected_env(self.env_group)
         from pos_tool_new.work_threads import PipelineUpgradeThread
@@ -844,9 +844,9 @@ class LinuxTabWidget(BaseTabWidget):
 
     def on_pipeline_package_upgrade(self):
         """一键升级包升级：选择远程升级包目录，将self.war_path指定的war包上传到该目录，执行升级、修改配置、重启POS（全部在子线程完成）"""
-        host = self.host_ip.currentText()
-        username = self.username.text()
-        password = self.password.text()
+        host = self.host_ip.currentText().strip()
+        username = self.username.text().strip()
+        password = self.password.text().strip()
         env = self.get_selected_env(self.env_group)
         service = self.service
         try:

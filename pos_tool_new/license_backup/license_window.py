@@ -241,7 +241,7 @@ class LicenseToolTabWidget(BaseTabWidget):
 
         try:
             success, message = self.service.backup_license(
-                self.host_ip.currentText()
+                self.host_ip.currentText().strip()
             )
 
             if success:
@@ -282,7 +282,7 @@ class LicenseToolTabWidget(BaseTabWidget):
 
         try:
             success, message = self.service.restore_license(
-                self.host_ip.currentText(),
+                self.host_ip.currentText().strip(),
                 file_path
             )
 

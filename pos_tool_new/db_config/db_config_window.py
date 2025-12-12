@@ -635,7 +635,7 @@ class DbConfigWindow(BaseTabWidget):
 
     def get_db_params(self):
         return {
-            'host': self.host_ip.currentText(),
+            'host': self.host_ip.currentText().strip(),
             'port': 22108,
             'user': 'shohoku',
             'password': 'N0mur@4$99!',

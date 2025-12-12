@@ -117,7 +117,7 @@ class CallerIdTabWidget(BaseTabWidget):
     def on_dial(self):
         """模拟拨号逻辑"""
         try:
-            host = self.host_ip.currentText()
+            host = self.host_ip.currentText().strip()
             name = self.name_input.text()
             phone = self.phone_input.text()
             route = self.route_combo.currentText()
