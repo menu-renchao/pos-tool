@@ -1064,7 +1064,7 @@ def create_main_window():
     return win
 
 
-LOCAL_VERSION = "1.5.1.2"  # 当前本地版本号，建议后续自动生成
+LOCAL_VERSION = "1.5.1.1"  # 当前本地版本号，建议后续自动生成
 
 def get_api_url():
     """根据配置文件动态获取API_URL"""
