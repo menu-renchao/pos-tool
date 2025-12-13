@@ -403,7 +403,7 @@ class MainWindow(QMainWindow):
             save_tab_config_to_app(new_tabs_enabled, tab_order)
             self.refresh_tabs()
 
-    def on_tab_moved(self, from_index, to_index):
+    def on_tab_moved(self):
         """tab拖拽顺序变化时，保存顺序到tab_config.json"""
         tab_ids = []
         for i in range(self.tabs.count()):
@@ -415,32 +415,8 @@ class MainWindow(QMainWindow):
         tabs_enabled = config.get("tabs", {tid: True for tid in TAB_ID_LIST})
         save_tab_config_to_app(tabs_enabled, tab_ids)
 
-    def get_saved_tab_order(self):
-        from pos_tool_new.utils.app_config_utils import get_app_config_value
-        order = get_app_config_value('tab_order', None)
-        if order:
-            return order.split(',')
-        return None
-
-    def reorder_tab_imports(self):
-        saved_order = self.get_saved_tab_order()
-        if not saved_order:
-            return
-        # tab_imports: [(module_path, class_name, tab_name), ...]
-        tab_dict = {tab_name: (module_path, class_name, tab_name) for module_path, class_name, tab_name in
-                    self.tab_imports}
-        new_imports = []
-        for tab_name in saved_order:
-            if tab_name in tab_dict:
-                new_imports.append(tab_dict[tab_name])
-        # 补充未在order中的tab
-        for item in self.tab_imports:
-            if item[2] not in saved_order:
-                new_imports.append(item)
-        self.tab_imports = new_imports
-
-    def refresh_tabs(self, layout_config=None):
-        # 移除所有tab并重新加载
+    def refresh_tabs(self):
+        """移除所有tab并重新加载"""
         while self.tabs.count():
             self.tabs.removeTab(0)
         config = load_tab_config_from_app()
@@ -772,11 +748,6 @@ class MainWindow(QMainWindow):
             else:
                 layout_config[tab_name] = True
         return layout_config
-
-    def save_layout_config(self, config):
-        from pos_tool_new.utils.app_config_utils import set_app_config_value
-        for tab_name, value in config.items():
-            set_app_config_value(tab_name, value)
 
     def create_tab_contents(self):
         config = load_tab_config_from_app()
