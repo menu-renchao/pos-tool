@@ -7,8 +7,8 @@ from PyQt6.QtWidgets import (QVBoxLayout, QGroupBox, QFormLayout, QComboBox,
                              QLabel, QPushButton, QMessageBox, QFileDialog,
                              QHBoxLayout)
 
+from pos_tool_new.base_tab import BaseTabWidget
 from pos_tool_new.license_backup.license_service import LicenseService
-from pos_tool_new.main import BaseTabWidget
 from pos_tool_new.work_threads import DatabaseConnectThread
 
 

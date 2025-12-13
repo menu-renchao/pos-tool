@@ -3,7 +3,7 @@ from PyQt6.QtWidgets import (QLabel, QPushButton, QVBoxLayout, QHBoxLayout,
                              QLineEdit, QRadioButton, QButtonGroup, QComboBox,
                              QWidget, QGroupBox)
 
-from pos_tool_new.main import BaseTabWidget
+from pos_tool_new.base_tab import BaseTabWidget
 from .generate_img_service import GenerateImgService
 from ..work_threads import GenerateImgThread
 

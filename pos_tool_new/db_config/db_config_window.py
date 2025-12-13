@@ -3,7 +3,8 @@ from PyQt6.QtWidgets import QComboBox, QPushButton, QVBoxLayout, QHBoxLayout, QL
     QFormLayout, QMessageBox, QDialog, QLineEdit, QTextEdit, QCheckBox, QDialogButtonBox, \
     QTableWidget, QTableWidgetItem, QAbstractItemView, QWidget, QHeaderView, QSizePolicy
 
-from pos_tool_new.main import BaseTabWidget, MainWindow
+from pos_tool_new.base_tab import BaseTabWidget
+from pos_tool_new.main import MainWindow
 from pos_tool_new.work_threads import DatabaseConnectThread, RestartPosThreadLinux
 from .db_config_service import DbConfigService, ConfigItem
 from ..linux_pos.linux_service import LinuxService

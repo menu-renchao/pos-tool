@@ -10,7 +10,8 @@ from PyQt6.QtWidgets import (
     QWidget, QFileDialog, QInputDialog, QAbstractItemView, QSizePolicy
 )
 
-from pos_tool_new.main import BaseTabWidget, MainWindow
+from pos_tool_new.base_tab import BaseTabWidget
+from pos_tool_new.main import MainWindow
 from pos_tool_new.windows_file_config.file_config_win_service import FileConfigItem, KeyValueItem, \
     WindowsFileConfigService
 from pos_tool_new.work_threads import WindowsFileModifyThread

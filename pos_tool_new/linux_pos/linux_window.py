@@ -9,8 +9,9 @@ from PyQt6.QtWidgets import (
 )
 
 from pos_tool_new.backend import Backend
+from pos_tool_new.base_tab import BaseTabWidget
 from pos_tool_new.linux_pos.linux_service import LinuxService
-from pos_tool_new.main import BaseTabWidget, MainWindow
+from pos_tool_new.main import MainWindow
 from pos_tool_new.work_threads import ReplaceWarThreadLinux, RestartPosThreadLinux, RestartTomcatThread, UpgradeThread, \
     UploadUpgradePackageThread, SshTestThread
 

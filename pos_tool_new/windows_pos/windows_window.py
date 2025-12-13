@@ -5,8 +5,8 @@ from PyQt6.QtWidgets import (
     QPushButton, QHBoxLayout, QLineEdit, QFileDialog, QGroupBox, QMessageBox, QInputDialog, QSizePolicy
 )
 
+from pos_tool_new.base_tab import BaseTabWidget
 from pos_tool_new.download_war.download_war_service import DownloadWarService
-from pos_tool_new.main import BaseTabWidget
 from pos_tool_new.windows_pos.windows_service import WindowsService
 from pos_tool_new.work_threads import RestartPosThreadWindows, ReplaceWarThreadWindows, DownloadWarWorker
 

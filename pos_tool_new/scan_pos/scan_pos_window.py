@@ -5,7 +5,7 @@ from PyQt6.QtGui import QColor, QBrush, QDesktopServices
 from PyQt6.QtWidgets import (QTableWidget, QTableWidgetItem, QPushButton, QVBoxLayout,
                              QLabel, QProgressBar, QLineEdit, QHBoxLayout, QHeaderView, QWidget, QInputDialog)
 
-from pos_tool_new.main import BaseTabWidget
+from pos_tool_new.base_tab import BaseTabWidget
 from .scan_pos_service import ScanPosService
 
 

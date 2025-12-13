@@ -8,8 +8,9 @@ from PyQt6.QtWidgets import (
     QDialog, QDialogButtonBox, QComboBox, QGroupBox, QAbstractItemView, QSizePolicy
 )
 
+from pos_tool_new.base_tab import BaseTabWidget
 from pos_tool_new.linux_file_config.file_config_linux_service import FileConfigService, FileConfigItem, KeyValueItem
-from pos_tool_new.main import BaseTabWidget, MainWindow
+from pos_tool_new.main import MainWindow
 from pos_tool_new.work_threads import FileConfigModifyThread
 
 

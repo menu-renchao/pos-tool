@@ -4,8 +4,8 @@ from PyQt6.QtWidgets import (QLabel, QComboBox, QLineEdit, QCheckBox,
                              QPushButton, QMessageBox,
                              QHBoxLayout, QVBoxLayout, QGroupBox, QGridLayout)
 
+from pos_tool_new.base_tab import BaseTabWidget
 from pos_tool_new.caller_id.caller_service import CallerService
-from pos_tool_new.main import BaseTabWidget
 
 
 class CallerIdTabWidget(BaseTabWidget):

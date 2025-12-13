@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import (QTableWidget, QTableWidgetItem, QPushButton, QVBoxL
                              QLabel, QProgressBar, QHBoxLayout, QHeaderView, QWidget, QInputDialog,
                              QMessageBox)
 
-from pos_tool_new.main import BaseTabWidget
+from pos_tool_new.base_tab import BaseTabWidget
 from .scan_printer_service import ScanPrinterService
 
 

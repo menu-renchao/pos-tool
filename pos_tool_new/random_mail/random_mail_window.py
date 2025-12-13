@@ -7,17 +7,9 @@ from PyQt6.QtWidgets import (QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QCom
                              QListWidget, QCheckBox, QListWidgetItem, QSplitter,
                              QWidget, QSizePolicy, QApplication, QMessageBox)
 
-# 动态导入，确保兼容性
-try:
-    from pos_tool_new.main import BaseTabWidget
-    from .random_mail_service import RandomMailService
-    from pos_tool_new.work_threads import RandomMailLoadThread, ReusableMailContentThread
-except ImportError:
-    # 备用导入方案，防止模块找不到
-    BaseTabWidget = object
-    RandomMailService = object
-    RandomMailLoadThread = object
-    ReusableMailContentThread = object
+from pos_tool_new.base_tab import BaseTabWidget
+from pos_tool_new.random_mail.random_mail_service import RandomMailService
+from pos_tool_new.work_threads import ReusableMailContentThread, RandomMailLoadThread
 
 NO_EMAIL_PLACEHOLDER = "暂无可用邮箱"
 

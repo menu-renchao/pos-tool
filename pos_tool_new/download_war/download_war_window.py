@@ -2,7 +2,8 @@ import os
 
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox
 
-from pos_tool_new.main import BaseTabWidget, MainWindow
+from pos_tool_new.base_tab import BaseTabWidget
+from pos_tool_new.main import MainWindow
 from .download_war_service import DownloadWarService
 
 
