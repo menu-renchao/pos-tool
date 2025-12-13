@@ -37,7 +37,7 @@ def get_latest_version_info():
     """
     解析 version_info.html，返回最新版本的升级说明内容，每个<li>换行显示
     """
-    html_path = "E:\service\\version_info.html"
+    html_path = r"E:\service\version_info.html"
     if not os.path.exists(html_path):
         return ''
     import re
