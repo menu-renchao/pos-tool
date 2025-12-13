@@ -839,16 +839,6 @@ class WindowsFileConfigTabWidget(BaseTabWidget):
         else:
             QMessageBox.warning(self, "执行失败", message)
 
-    def showEvent(self, event):
-        """显示事件处理"""
-        super().showEvent(event)
-        self.hide_main_log_area()
-
-    def hideEvent(self, event):
-        """隐藏事件处理"""
-        super().hideEvent(event)
-        self.show_main_log_area()
-
     def reload_config(self):
         """重新加载配置文件并刷新所有tab"""
         self.service._load_config()

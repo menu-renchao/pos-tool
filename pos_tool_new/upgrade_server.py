@@ -1,6 +1,7 @@
-from flask import Flask, jsonify, send_file, abort
 import os
 import re
+
+from flask import Flask, jsonify, send_file, abort
 
 app = Flask(__name__)
 
@@ -25,7 +26,8 @@ def get_latest_exe_info():
             match = version_pattern.match(file)
             if match:
                 version = match.group(1)
-                if (latest_version is None) or (tuple(map(int, version.split('.'))) > tuple(map(int, latest_version.split('.')))):
+                if (latest_version is None) or (
+                        tuple(map(int, version.split('.'))) > tuple(map(int, latest_version.split('.')))):
                     latest_version = version
                     latest_exe = os.path.join(root, file)
     return latest_exe, latest_version
@@ -47,11 +49,11 @@ def get_latest_version_info():
         return ''
     h3_end = h3_match.end()
     # 从 h3 结束后找第一个 <ul>...</ul> html_path = "E:\service\\version_info.html"
-    ul_match = re.search(r'<ul>(.*?)</ul>', html[h3_end:], re.I|re.S)
+    ul_match = re.search(r'<ul>(.*?)</ul>', html[h3_end:], re.I | re.S)
     if not ul_match:
         return ''
     ul_content = ul_match.group(1)
-    items = re.findall(r'<li>(.*?)</li>', ul_content, re.I|re.S)
+    items = re.findall(r'<li>(.*?)</li>', ul_content, re.I | re.S)
     # 每个<li>内容单独一行
     info = '\n'.join(item.strip() for item in items)
     return info

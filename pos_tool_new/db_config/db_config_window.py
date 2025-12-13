@@ -732,16 +732,6 @@ class DbConfigWindow(BaseTabWidget):
         if self.restart_btn:
             self.restart_btn.setEnabled(True)
 
-    def showEvent(self, event):
-        """显示事件处理"""
-        super().showEvent(event)
-        self.hide_main_log_area()
-
-    def hideEvent(self, event):
-        """隐藏事件处理"""
-        super().hideEvent(event)
-        self.show_main_log_area()
-
     def set_host_ip(self, ip: str):
         """同步设置主机IP到host_ip输入框"""
         if self.host_ip:

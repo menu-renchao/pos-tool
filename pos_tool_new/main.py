@@ -14,6 +14,8 @@ from PyQt6.QtWidgets import (
     QLabel, QRadioButton, QButtonGroup, QGroupBox, QProgressBar, QMainWindow,
     QToolButton, QMenuBar, QMessageBox, QVBoxLayout, QSplitter, QCheckBox, QDialog, QDialogButtonBox, QLineEdit
 )
+from PyQt6.QtWidgets import QSplitterHandle
+from PyQt6.QtGui import QPainter
 
 from pos_tool_new.backend import Backend
 from pos_tool_new.version_info.version_info import VersionInfoDialog
@@ -191,6 +193,47 @@ class AnimatedProgressBar(QProgressBar):
         self.animation.stop()
 
 
+class CustomSplitterHandle(QSplitterHandle):
+    def __init__(self, orientation, parent):
+        super().__init__(orientation, parent)
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._hover = False
+
+    def enterEvent(self, event):
+        self._hover = True
+        self.update()
+        super().enterEvent(event)
+
+    def leaveEvent(self, event):
+        self._hover = False
+        self.update()
+        super().leaveEvent(event)
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+        painter = QPainter(self)
+        w = self.width()
+        h = self.height()
+        # 画三个点
+        color = QColor('#555' if self._hover else '#888')
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(color)
+        dot_d = 4  # 直径
+        spacing = 6
+        total_w = dot_d * 3 + spacing * 2
+        start_x = (w - total_w) // 2
+        cy = h // 2
+        for i in range(3):
+            cx = start_x + i * (dot_d + spacing) + dot_d // 2
+            painter.drawEllipse(cx, cy - dot_d // 2, dot_d, dot_d)
+
+
+class CustomSplitter(QSplitter):
+    def createHandle(self):
+        return CustomSplitterHandle(self.orientation(), self)
+
+
 class MainWindow(QMainWindow):
     """主窗口类"""
 
@@ -248,7 +291,52 @@ class MainWindow(QMainWindow):
         central_widget = self._create_central_widget()
         self.setCentralWidget(central_widget)
 
+        # 安装分割条handle事件过滤器
+        handle = self.splitter.handle(1)  # 1为日志区分割条
+        handle.installEventFilter(self)
+        self._log_collapsed = False
+        self._log_last_size = 180  # 默认展开高度
+
+        # 分割条样式：低高度，透明背景，hover略变色
+        self.splitter.setStyleSheet('''
+            QSplitter::handle:vertical {
+                height: 12px;
+                background: transparent;
+            }
+            QSplitter::handle:vertical:hover {
+                background: #f0f0f0;
+            }
+            QSplitter::handle:vertical:pressed {
+                background: #e0e0e0;
+            }
+        ''')
+
         self._setup_progress_timer()
+
+    def eventFilter(self, obj, event):
+        # 分割条handle收起/展开日志区
+        if hasattr(self, 'splitter') and obj == self.splitter.handle(1):
+            from PyQt6.QtCore import QEvent
+            if event.type() == QEvent.Type.MouseButtonDblClick or event.type() == QEvent.Type.MouseButtonPress:
+                self.toggle_log_area()
+                return True
+        return super().eventFilter(obj, event)
+
+    def toggle_log_area(self):
+        """切换日志区收起/展开"""
+        sizes = self.splitter.sizes()
+        if not self._log_collapsed:
+            # 收起日志区，记录原高度
+            self._log_last_size = sizes[1] if sizes[1] > 0 else self._log_last_size
+            self.splitter.setSizes([sizes[0] + sizes[1], 0])
+            self._log_collapsed = True
+        else:
+            # 展开日志区，恢复原高度
+            total = sum(sizes)
+            log_size = self._log_last_size
+            main_size = max(0, total - log_size)
+            self.splitter.setSizes([main_size, log_size])
+            self._log_collapsed = False
 
     def _setup_window_properties(self):
         """设置窗口属性"""
@@ -273,13 +361,13 @@ class MainWindow(QMainWindow):
         # 创建日志区域
         self.create_log_area()
 
-        # 使用分割器
-        splitter = QSplitter(Qt.Orientation.Vertical)
-        splitter.addWidget(self.tabs)
-        splitter.addWidget(self.log_group)
+        # 使用自定义分割器
+        self.splitter = CustomSplitter(Qt.Orientation.Vertical)
+        self.splitter.addWidget(self.tabs)
+        self.splitter.addWidget(self.log_group)
         self.log_group.setMinimumHeight(270)
-        splitter.setSizes([600, 180])
-        main_layout.addWidget(splitter)
+        self.splitter.setSizes([600, 180])
+        main_layout.addWidget(self.splitter)
 
         # 添加底部部件
         main_layout.addWidget(self._create_bottom_widget())
@@ -388,7 +476,7 @@ class MainWindow(QMainWindow):
             if self._updating_checkboxes:
                 return
             self._updating_checkboxes = True
-            if state in [1,2]:  # Checked
+            if state in [1, 2]:  # Checked
                 for cb in checkboxes.values():
                     cb.setChecked(True)
             elif state == 0:  # Unchecked
@@ -815,7 +903,8 @@ class MainWindow(QMainWindow):
             ("linux_pos", "pos_tool_new.linux_pos.linux_window", "LinuxTabWidget"),
             ("linux_file_config", "pos_tool_new.linux_file_config.file_config_linux_window", "FileConfigTabWidget"),
             ("win_pos", "pos_tool_new.windows_pos.windows_window", "WindowsTabWidget"),
-            ("win_file_config", "pos_tool_new.windows_file_config.file_config_win_window", "WindowsFileConfigTabWidget"),
+            ("win_file_config", "pos_tool_new.windows_file_config.file_config_win_window",
+             "WindowsFileConfigTabWidget"),
             ("db_config", "pos_tool_new.db_config.db_config_window", "DbConfigWindow"),
             ("scan_pos", "pos_tool_new.scan_pos.scan_pos_window", "ScanPosTabWidget"),
             ("scan_printer", "pos_tool_new.scan_printer.scan_printer_window", "ScanPrinterTabWidget"),
@@ -858,7 +947,8 @@ class MainWindow(QMainWindow):
         sms_port_label = QLabel("短信服务端口:")
         micro_default_sms_port = get_app_config_value('micro_default_sms_port', None)
         sms_port_edit = QLineEdit()
-        sms_port_edit.setText(str(self._micro_service_sms_port) if hasattr(self, '_micro_service_sms_port') else micro_default_sms_port or '')
+        sms_port_edit.setText(str(self._micro_service_sms_port) if hasattr(self,
+                                                                           '_micro_service_sms_port') else micro_default_sms_port or '')
         sms_port_layout.addWidget(sms_port_label)
         sms_port_layout.addWidget(sms_port_edit)
         layout.addLayout(sms_port_layout)
@@ -867,7 +957,8 @@ class MainWindow(QMainWindow):
         upgrade_port_label = QLabel("升级服务端口:")
         micro_default_upgrade_port = get_app_config_value('micro_default_upgrade_port', None)
         upgrade_port_edit = QLineEdit()
-        upgrade_port_edit.setText(str(self._micro_service_upgrade_port) if hasattr(self, '_micro_service_upgrade_port') else micro_default_upgrade_port or '')
+        upgrade_port_edit.setText(str(self._micro_service_upgrade_port) if hasattr(self,
+                                                                                   '_micro_service_upgrade_port') else micro_default_upgrade_port or '')
         upgrade_port_layout.addWidget(upgrade_port_label)
         upgrade_port_layout.addWidget(upgrade_port_edit)
         layout.addLayout(upgrade_port_layout)
@@ -1066,6 +1157,7 @@ def create_main_window():
 
 LOCAL_VERSION = "1.5.1.2"  # 当前本地版本号，建议后续自动生成
 
+
 def get_api_url():
     """根据配置文件动态获取API_URL"""
     ip = get_app_config_value('micro_default_ip')
@@ -1077,6 +1169,7 @@ EXE_NAME_PREFIX = "PosTestUtil_v"
 EXE_SUFFIX = ".exe"
 # 获取exe运行目录
 EXE_RUN_DIR = os.path.dirname(sys.executable)
+
 
 # 下载前检查 dist 目录是否存在，不自动创建
 
@@ -1135,6 +1228,7 @@ class UpdateDialog(QDialog):
         self.parent = parent
         self.update_info = update_info
         self.setModal(True)
+
     def start_update(self):
         self.progress.setVisible(True)
         self.progress.setValue(0)
@@ -1161,7 +1255,8 @@ class UpdateDialog(QDialog):
                             self.progress.setValue(int(downloaded * 100 / total))
                         QApplication.processEvents()
             self.progress.setValue(100)
-            QMessageBox.information(self, "更新完成", f"新版本 {self.latest_version} 已下载。请手动关闭旧程序并运行新版本。")
+            QMessageBox.information(self, "更新完成",
+                                    f"新版本 {self.latest_version} 已下载。请手动关闭旧程序并运行新版本。")
             self.accept()
             sys.exit(0)
         except Exception as e:

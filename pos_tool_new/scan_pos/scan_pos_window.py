@@ -10,7 +10,7 @@ from .scan_pos_service import ScanPosService
 
 
 class ScanPosTabWidget(BaseTabWidget):
-    def __init__(self,parent=None):
+    def __init__(self, parent=None):
         super().__init__('扫描POS', parent)
         self.local_ip = None
         self.service = None

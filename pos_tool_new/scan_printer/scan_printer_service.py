@@ -1,9 +1,12 @@
-import socket
-import ipaddress
 import concurrent.futures
+import ipaddress
+import socket
+
 from PyQt6.QtCore import QObject
+
 from pos_tool_new.backend import Backend
 from pos_tool_new.work_threads import ScanPrinterWorkerThread
+
 
 class ScanPrinterService(Backend, QObject):
     def __init__(self, local_ip=None):
