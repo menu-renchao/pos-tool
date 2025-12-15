@@ -406,6 +406,22 @@ class LinuxTabWidget(BaseTabWidget):
         self.status_label.setText("连接状态未检测")
         self.status_label.setStyleSheet("color: red;")
 
+    def _check_md5_and_confirm(self, host, username, password, local_war_path, remote_war_path="/opt/tomcat7/webapps/kpos.war"):
+        """
+        检查本地和远程war包MD5是否一致，如一致弹窗提示用户是否继续。
+        返回True表示可以继续，False表示用户取消。
+        """
+        remote_md5 = self._get_remote_md5(host, username, password, remote_war_path)
+        local_md5 = self._get_local_md5(local_war_path)
+        if remote_md5 and local_md5 and remote_md5 == local_md5:
+            reply = QMessageBox.question(
+                self, "疑似相同版本", f"远程包和本地包MD5一致:{remote_md5}，是否继续操作？",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+            )
+            if reply != QMessageBox.StandardButton.Yes:
+                return False
+        return True
+
     def on_replace_war_linux(self):
         """替换远程WAR包"""
 
@@ -416,6 +432,10 @@ class LinuxTabWidget(BaseTabWidget):
             is_valid, error_msg = self._validate_file_path(war_path, "kpos.war包")
             if not is_valid:
                 QMessageBox.warning(self, "提示", error_msg)
+                return
+
+            # 新增MD5一致性校验
+            if not self._check_md5_and_confirm(host, username, password, war_path):
                 return
 
             # 禁用替换按钮
@@ -559,7 +579,6 @@ class LinuxTabWidget(BaseTabWidget):
         if not self.parent_window or not self.war_path:
             QMessageBox.warning(self, "错误", "参数未初始化")
             return
-
         remote_base_path = "/home/menu"
         try:
             # 检查是否已选择本地升级包路径
@@ -567,6 +586,15 @@ class LinuxTabWidget(BaseTabWidget):
             is_valid, error_msg = self._validate_file_path(local_package_path, "升级包")
             if not is_valid:
                 QMessageBox.warning(self, "提示", error_msg)
+                return
+
+            # 新增MD5一致性校验（升级包一般是war包，路径同war_path）
+            if not self._check_md5_and_confirm(
+                self.host_ip.currentText().strip(),
+                self.username.text().strip(),
+                self.password.text().strip(),
+                local_package_path
+            ):
                 return
 
             # 禁用按钮
@@ -847,19 +875,46 @@ class LinuxTabWidget(BaseTabWidget):
             self.parent_window.speed_label.setText(text)
             self.parent_window.speed_label.setVisible(bool(text))
 
+    def _get_remote_md5(self, host, username, password, war_path="/opt/tomcat7/webapps/kpos.war"):
+        """获取远程war包MD5值，失败返回None"""
+        try:
+            ssh = self.service._connect_ssh(host, username, password)
+            md5_value = self.service.get_file_md5(ssh, war_path)
+            ssh.close()
+            return md5_value
+        except Exception as e:
+            self.service.log(f"远程MD5获取失败: {str(e)}", level="error")
+            return None
+
+    def _get_local_md5(self, war_path):
+        """获取本地war包MD5值，失败返回None"""
+        import hashlib
+        try:
+            md5_hash = hashlib.md5()
+            with open(war_path, "rb") as f:
+                for chunk in iter(lambda: f.read(4096), b""):
+                    md5_hash.update(chunk)
+            return md5_hash.hexdigest()
+        except Exception as e:
+            self.service.log(f"本地MD5获取失败: {str(e)}", level="error")
+            return None
+
     def on_pipeline_upgrade(self):
         """一键升级流水线：多线程执行替换war包->修改文件->重启pos"""
+        # 先比对远程和本地MD5
+        host = self.host_ip.currentText().strip()
+        username = self.username.text().strip()
+        password = self.password.text().strip()
+        local_war_path = self.war_path.text() if hasattr(self, 'war_path') else ''
+        # 新增MD5一致性校验
+        if not self._check_md5_and_confirm(host, username, password, local_war_path):
+            return
         reply = QMessageBox.question(
             self, "确认操作", "确定要执行一键升级吗？\n此操作将依次替换远程war包、修改配置并重启POS！",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
         )
         if reply != QMessageBox.StandardButton.Yes:
             return
-
-        host = self.host_ip.currentText().strip()
-        username = self.username.text().strip()
-        password = self.password.text().strip()
-        local_war_path = self.war_path.text() if hasattr(self, 'war_path') else ''
         env = self.get_selected_env(self.env_group)
         from pos_tool_new.work_threads import PipelineUpgradeThread
         self.pipeline_upgrade_btn.setEnabled(False)
@@ -890,7 +945,16 @@ class LinuxTabWidget(BaseTabWidget):
         env = self.get_selected_env(self.env_group)
         service = self.service
         try:
-            # 1. 扫描远程升级包目录，弹窗选择
+            # 1. 使用界面指定的war包路径
+            war_file = self.war_path.text()
+            is_valid, error_msg = self._validate_file_path(war_file, "war包")
+            if not is_valid:
+                QMessageBox.warning(self, "提示", error_msg)
+                return
+            # 2.新增MD5一致性校验
+            if not self._check_md5_and_confirm(host, username, password, war_file):
+                return
+            # 3. 扫描远程升级包目录，弹窗选择
             with service._connect_ssh(host, username, password) as ssh:
                 remote_dir = "/home/menu"
                 upgrade_dirs = service.scan_upgrade_packages(ssh, remote_dir)
@@ -901,12 +965,7 @@ class LinuxTabWidget(BaseTabWidget):
                                                     False)
             if not ok or not selected_dir:
                 return
-            # 2. 使用界面指定的war包路径
-            war_file = self.war_path.text()
-            is_valid, error_msg = self._validate_file_path(war_file, "war包")
-            if not is_valid:
-                QMessageBox.warning(self, "提示", error_msg)
-                return
+
 
             # 确认操作
             reply = QMessageBox.question(
