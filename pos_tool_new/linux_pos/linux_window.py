@@ -284,7 +284,7 @@ class LinuxTabWidget(BaseTabWidget):
         row3_layout.addWidget(ops_group, 2)
 
         # 重启操作
-        restart_group = QGroupBox("重启操作")
+        restart_group = QGroupBox("重启/数据备份操作")
         restart_layout = QGridLayout(restart_group)
         restart_layout.setContentsMargins(5, 10, 5, 10)
 
