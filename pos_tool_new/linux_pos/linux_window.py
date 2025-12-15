@@ -411,15 +411,18 @@ class LinuxTabWidget(BaseTabWidget):
         检查本地和远程war包MD5是否一致，如一致弹窗提示用户是否继续。
         返回True表示可以继续，False表示用户取消。
         """
+        self.log("开始校验本地和远程包MD5一致性...")
         remote_md5 = self._get_remote_md5(host, username, password, remote_war_path)
         local_md5 = self._get_local_md5(local_war_path)
         if remote_md5 and local_md5 and remote_md5 == local_md5:
+            self.log(f"本地包和远程包MD5一致: {local_md5}", level="warning")
             reply = QMessageBox.question(
                 self, "疑似相同版本", f"远程包和本地包MD5一致:{remote_md5}，是否继续操作？",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
             )
             if reply != QMessageBox.StandardButton.Yes:
                 return False
+        self.log("MD5校验通过，可以继续操作。",level='success')
         return True
 
     def on_replace_war_linux(self):
@@ -881,6 +884,7 @@ class LinuxTabWidget(BaseTabWidget):
             ssh = self.service._connect_ssh(host, username, password)
             md5_value = self.service.get_file_md5(ssh, war_path)
             ssh.close()
+            self.log(f"正在检查远程MD5值: {md5_value}", level="info")
             return md5_value
         except Exception as e:
             self.service.log(f"远程MD5获取失败: {str(e)}", level="error")
@@ -894,6 +898,7 @@ class LinuxTabWidget(BaseTabWidget):
             with open(war_path, "rb") as f:
                 for chunk in iter(lambda: f.read(4096), b""):
                     md5_hash.update(chunk)
+            self.log(f"正在检查本地MD5值: {md5_hash.hexdigest()}", level="info")
             return md5_hash.hexdigest()
         except Exception as e:
             self.service.log(f"本地MD5获取失败: {str(e)}", level="error")
