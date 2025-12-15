@@ -51,7 +51,7 @@ class ModernSplashScreen(QWidget):
 
         # 标题和版本标签
         self.title_label = self._create_label("POS测试工具", "24px", "#cccccc")
-        self.version_label = self._create_label("v1.5.1.3 - 正在加载...", "12px", "#aaaaaa")
+        self.version_label = self._create_label("v1.5.1.4 - 正在加载...", "12px", "#aaaaaa")
 
         layout.addWidget(self.title_label)
         layout.addWidget(self.version_label)
