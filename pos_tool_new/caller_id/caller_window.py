@@ -55,7 +55,7 @@ class CallerIdTabWidget(BaseTabWidget):
         # 用户姓名
         name_label = QLabel("用户姓名:")
         name_label.setStyleSheet("font-weight: bold;")
-        self.name_input = QLineEdit("Meneu Sifu")
+        self.name_input = QLineEdit("Menu Sifu")
         self.name_input.setFixedHeight(28)  # 固定高度
         self.random_name = QCheckBox("随机生成")
         self.random_name.setChecked(True)

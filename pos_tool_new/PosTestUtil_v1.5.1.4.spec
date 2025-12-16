@@ -42,7 +42,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='PosTestUtil_v1.5.1.3',
+    name='PosTestUtil_v1.5.1.4',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

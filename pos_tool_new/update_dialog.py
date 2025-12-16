@@ -126,7 +126,15 @@ class UpdateDialog(QDialog):
                         QApplication.processEvents()
             self.progress.setValue(100)
             QMessageBox.information(self, "更新完成",
-                                    f"新版本 {self.latest_version} 已下载。请手动关闭旧程序并运行新版本。")
+                                    f"新版本 {self.latest_version} 已下载。即将自动重启新版本。")
+            # 启动新 exe 并传递旧 exe 路径参数
+            import subprocess
+            old_exe = sys.executable
+            new_exe = exe_path
+            try:
+                subprocess.Popen([new_exe, '--cleanup', old_exe], close_fds=True)
+            except Exception as e:
+                QMessageBox.warning(self, "启动新版本失败", f"尝试启动新版本失败：{e}")
             self.accept()
             sys.exit(0)
         except Exception as e:
