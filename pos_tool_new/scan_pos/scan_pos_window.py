@@ -7,6 +7,7 @@ from PyQt6.QtWidgets import (QTableWidget, QTableWidgetItem, QPushButton, QVBoxL
 
 from pos_tool_new.base_tab import BaseTabWidget
 from .scan_pos_service import ScanPosService
+from pos_tool_new.utils import app_config_utils
 
 
 class ScanPosTabWidget(BaseTabWidget):
@@ -44,8 +45,8 @@ class ScanPosTabWidget(BaseTabWidget):
         self._setup_layouts()
 
     def _create_ui(self):
-        self.table = QTableWidget(0, 6)
-        self.table.setHorizontalHeaderLabels(['IP', '设备类型', '商家ID', '名称', '版本', '操作'])
+        self.table = QTableWidget(0, 7)  # 备注列在操作前
+        self.table.setHorizontalHeaderLabels(['IP', '设备类型', '商家ID', '名称', '版本', '备注', '操作'])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.table.setAlternatingRowColors(False)  # 关闭自动隔行色
 
@@ -78,8 +79,22 @@ class ScanPosTabWidget(BaseTabWidget):
         self.search_name_edit.returnPressed.connect(self.on_search)
         self.search_ip_edit.returnPressed.connect(self.on_search)
         self.search_version_edit.returnPressed.connect(self.on_search)  # 新增
+        self.table.itemChanged.connect(self.on_remark_changed)
 
-        self.table.horizontalHeader().sectionClicked.connect(self.on_section_clicked)
+    def on_remark_changed(self, item):
+        # 只处理备注列（第5列）
+        if item.column() != 5:
+            return
+        row = item.row()
+        merchant_id_item = self.table.item(row, 2)
+        if not merchant_id_item:
+            return
+        merchant_id = merchant_id_item.text()
+        remark = item.text()
+        if merchant_id and merchant_id != '——':
+            app_config_utils.set_remark(merchant_id, remark)
+
+        self.update_row_colors()
 
     def _setup_layouts(self):
         search_layout = QHBoxLayout()
@@ -157,21 +172,6 @@ class ScanPosTabWidget(BaseTabWidget):
         self.table.setSortingEnabled(True)
         self.update_row_colors()
 
-    def _add_row_to_table(self, result):
-        self.table.insertRow(self.table.rowCount())
-        row = self.table.rowCount() - 1
-        bg_color = self.row_colors[row % 2]
-        self._set_table_row_items(row, result, bg_color)
-        if all(self.table.item(row, i).text() == '——' for i in [2, 3, 4]):
-            unavailable_label = QLabel('POS已离线')
-            unavailable_label.setStyleSheet('color: red; font-weight: bold;')
-            unavailable_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.table.setCellWidget(row, 5, unavailable_label)
-        else:
-            self._create_row_buttons(row, result)
-        self.table.scrollToBottom()
-        self.update_row_colors()
-
     def _set_table_row_items(self, row, result, bg_color):
         def get_value(key):
             return result.get(key, '')
@@ -189,6 +189,28 @@ class ScanPosTabWidget(BaseTabWidget):
             item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
             item.setBackground(QBrush(bg_color))
             self.table.setItem(row, col, item)
+        # 备注列（第5列）
+        merchant_id = get_value('merchantId')
+        remark = app_config_utils.get_remark(merchant_id) if merchant_id else ''
+        remark_item = QTableWidgetItem(remark)
+        remark_item.setBackground(QBrush(bg_color))
+        remark_item.setFlags(remark_item.flags() | Qt.ItemFlag.ItemIsEditable)
+        self.table.setItem(row, 5, remark_item)
+
+    def _add_row_to_table(self, result):
+        self.table.insertRow(self.table.rowCount())
+        row = self.table.rowCount() - 1
+        bg_color = self.row_colors[row % 2]
+        self._set_table_row_items(row, result, bg_color)
+        if all(self.table.item(row, i).text() == '——' for i in [2, 3, 4]):
+            unavailable_label = QLabel('POS已离线')
+            unavailable_label.setStyleSheet('color: red; font-weight: bold;')
+            unavailable_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.table.setCellWidget(row, 6, unavailable_label)  # 操作列为第6列
+        else:
+            self._create_row_buttons(row, result)
+        self.table.scrollToBottom()
+        self.update_row_colors()
 
     def _create_row_buttons(self, row, result):
         def get_value(key):
@@ -218,7 +240,7 @@ class ScanPosTabWidget(BaseTabWidget):
         btn_layout.addWidget(btn_detail)
         btn_layout.setContentsMargins(0, 0, 0, 0)
         btn_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.table.setCellWidget(row, 5, btn_widget)
+        self.table.setCellWidget(row, 6, btn_widget)  # 操作列为第6列
 
     def show_detail_dialog_by_widget(self, widget):
         # 获取按钮所在的行号

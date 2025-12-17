@@ -382,7 +382,7 @@ class MainWindow(QMainWindow):
     def _setup_window_properties(self):
         """设置窗口属性"""
         self.setWindowIcon(QIcon(resource_path('UI/app.ico')))
-        self.setWindowTitle("POS测试工具 v1.5.1.4 by Mansuper")
+        self.setWindowTitle("POS测试工具 v1.5.1.5 by Mansuper")
         self.resize(900, 580)
 
     def _create_central_widget(self) -> QWidget:
@@ -1034,8 +1034,9 @@ class MainWindow(QMainWindow):
                 (menubar, "1. 在‘关于-检查更新’可以检测并升级工具版本。"),
                 (menubar, "2. 在‘设置-全局IP’可以设置每个Tab的需要的IP。"),
                 (menubar, "3. 在‘设置-布局’可以自定义Tab显示。"),
-                (tabbar, "4. 拖动Tab可以实现Tab自定义排序。"),
-                (splitter_handle, "5. 点击日志区分割条的三个点可以折叠/收起日志区。")
+                (menubar, "4. 在‘设置-临时war包清理’可以删除所有临时war包。"),
+                (tabbar, "5. 拖动Tab可以实现Tab自定义排序。"),
+                (splitter_handle, "6. 点击日志区分割条的三个点可以折叠/收起日志区。")
             ]
             self.guide_overlay = GuideOverlay(self, steps)
             self.guide_overlay.setGeometry(0, 0, self.width(), self.height())

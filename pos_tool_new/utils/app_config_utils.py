@@ -76,3 +76,17 @@ def set_app_config_value(key, value):
     config = read_config()
     config[key] = str(value)
     write_config(config)
+
+
+def get_remark(merchant_id):
+    """获取指定merchant_id的备注"""
+    key = f"remark_{merchant_id}"
+    return get_app_config_value(key, "")
+
+
+def set_remark(merchant_id, remark):
+    """设置指定merchant_id的备注，Free Trials不写入配置文件"""
+    if merchant_id == "Free Trials":
+        return
+    key = f"remark_{merchant_id}"
+    set_app_config_value(key, remark)
