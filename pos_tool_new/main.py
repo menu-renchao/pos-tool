@@ -1,7 +1,10 @@
 import os
 import sys
+import tempfile
 import time
 from typing import Optional
+
+from PyQt6.QtWidgets import QListWidget
 
 from pos_tool_new.modern_splash import ModernSplashScreen
 from pos_tool_new.update_dialog import check_and_update_exe
@@ -281,6 +284,21 @@ class MainWindow(QMainWindow):
         # 首次运行检测
         self.guide_overlay = None
         self.check_and_show_guide_overlay()
+        self.check_and_clear_history_exe()
+
+    def check_and_clear_history_exe(self):
+        from pos_tool_new.utils.app_config_utils import get_app_config_value, set_app_config_value
+        import os
+        if get_app_config_value('need_clear_history_files', 'false') == 'true':
+            # 删除旧exe
+            old_exe_path = get_app_config_value('old_exe_path', '')
+            if old_exe_path and os.path.exists(old_exe_path):
+                try:
+                    os.remove(old_exe_path)
+                except Exception as e:
+                    pass  # 可加日志
+                set_app_config_value('old_exe_path', '')
+            set_app_config_value('need_clear_history_files', 'false')
 
     def _init_components(self):
         """初始化组件"""
@@ -453,6 +471,11 @@ class MainWindow(QMainWindow):
         layout_action = QAction("布局", self)
         layout_action.triggered.connect(self.show_layout_config_dialog)
         settings_menu.addAction(layout_action)
+
+        # 添加清空历史war包菜单项
+        clear_war_action = QAction("临时war包清理", self)
+        clear_war_action.triggered.connect(self.clear_history_war_folders)
+        settings_menu.addAction(clear_war_action)
 
         self.setMenuBar(menubar)
 
@@ -1024,6 +1047,50 @@ class MainWindow(QMainWindow):
         if hasattr(self, 'guide_overlay') and self.guide_overlay and self.guide_overlay.isVisible():
             self.guide_overlay.setGeometry(0, 0, self.width(), self.height())
         super().resizeEvent(event)
+
+    def clear_history_war_folders(self):
+        from pos_tool_new.work_threads import ClearHistoryWarFoldersThread
+        def scan_temp_war_dirs():
+            temp_dir = tempfile.gettempdir()
+            war_dirs = []
+            for name in os.listdir(temp_dir):
+                path = os.path.join(temp_dir, name)
+                if os.path.isdir(path) and name.startswith('war_download'):
+                    war_dirs.append(path)
+            return war_dirs
+
+        def show_confirm_dialog(war_dirs):
+            if not war_dirs:
+                QMessageBox.information(self, "临时war包清理", "未发现可清理的临时war包文件夹。")
+                return
+            dialog = QDialog(self)
+            dialog.setWindowTitle("确认临时war包清理")
+            dialog.setMinimumWidth(500)
+            layout = QVBoxLayout(dialog)
+            layout.addWidget(QLabel(f"将要删除以下{len(war_dirs)}个文件夹："))
+            list_widget = QListWidget()
+            for d in war_dirs:
+                list_widget.addItem(d)
+            layout.addWidget(list_widget)
+            buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+            layout.addWidget(buttons)
+            buttons.accepted.connect(dialog.accept)
+            buttons.rejected.connect(dialog.reject)
+            if dialog.exec() == QDialog.DialogCode.Accepted:
+                # 启动后台线程清理
+                self.clear_war_thread = ClearHistoryWarFoldersThread()
+                def on_result(removed, error_msg):
+                    msg = f"已清理 {len(removed)} 个临时war包文件夹。" if removed else "未能删除任何文件夹。"
+                    if removed:
+                        msg += "\n" + "\n".join(removed)
+                    if error_msg:
+                        msg += f"\n\n错误信息:\n{error_msg}"
+                    QMessageBox.information(self, "清理完成", msg)
+                self.clear_war_thread.result_signal.connect(on_result)
+                self.clear_war_thread.start()
+        # 主线程扫描并弹窗
+        war_dirs = scan_temp_war_dirs()
+        show_confirm_dialog(war_dirs)
 
 
 def create_main_window():

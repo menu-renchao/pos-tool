@@ -127,9 +127,13 @@ class UpdateDialog(QDialog):
             self.progress.setValue(100)
             QMessageBox.information(self, "更新完成",
                                     f"新版本 {self.latest_version} 已下载。即将自动重启新版本。")
-            # 启动新 exe 并传递旧 exe 路径参数
+            # 写入需要清理历史文件标记和旧exe路径
             import subprocess
             old_exe = sys.executable
+            from pos_tool_new.utils.app_config_utils import set_app_config_value
+            set_app_config_value('need_clear_history_files', 'true')
+            set_app_config_value('old_exe_path', old_exe)
+            # 启动新 exe 并传递旧 exe 路径参数
             new_exe = exe_path
             try:
                 subprocess.Popen([new_exe, '--cleanup', old_exe], close_fds=True)

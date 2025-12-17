@@ -1,6 +1,9 @@
 import time
 
 from PyQt6.QtCore import QThread, pyqtSignal
+import tempfile
+import os
+import shutil
 
 from pos_tool_new.download_war.download_war_service import DownloadWarService
 from pos_tool_new.linux_pos.linux_service import LinuxService
@@ -878,3 +881,33 @@ class SmsWorkerThread(BaseWorkerThread):
             self.messages_ready.emit(messages, "")
         except Exception as e:
             self.messages_ready.emit([], str(e))
+
+
+class ClearHistoryWarFoldersThread(BaseWorkerThread):
+    result_signal = pyqtSignal(list, str)  # (removed_list, error_msg)
+
+    def __init__(self):
+        super().__init__()
+
+    def _run_impl(self):
+        import tempfile, os, shutil
+        removed = []
+        error_msg = ''
+        try:
+            temp_dir = tempfile.gettempdir()
+            war_dirs = []
+            for name in os.listdir(temp_dir):
+                path = os.path.join(temp_dir, name)
+                if os.path.isdir(path) and name.startswith('war_download'):
+                    war_dirs.append(path)
+            for d in war_dirs:
+                try:
+                    shutil.rmtree(d)
+                    removed.append(d)
+                except Exception as e:
+                    error_msg += f"删除文件夹失败: {d}, 错误: {e}\n"
+        except Exception as e:
+            error_msg += f"线程异常: {e}\n"
+        # 无论如何都要emit，防止主线程卡死
+        self.result_signal.emit(removed, error_msg)
+        self.finished_updated.emit(True, f"清理完成，共删除{len(removed)}个文件夹。")
