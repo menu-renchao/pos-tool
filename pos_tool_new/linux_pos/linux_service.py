@@ -577,7 +577,7 @@ class LinuxService(Backend):
                     if error_callback:
                         error_callback(err)
                 # 检查解压后唯一子目录
-                stdin, stdout, stderr = ssh.exec_command(f"ls -1 {self.BACKUP_DIR}/{target_folder}")
+                stdin, stdout, stderr = ssh.exec_command(f"sudo ls -1 {self.BACKUP_DIR}/{target_folder}")
                 subdirs = [line.strip() for line in stdout if line.strip()]
                 if len(subdirs) == 1:
                     folder_name = f"{target_folder}/{subdirs[0]}"
