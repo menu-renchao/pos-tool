@@ -80,7 +80,7 @@ class ScanPosTabWidget(BaseTabWidget):
         self.search_ip_edit.returnPressed.connect(self.on_search)
         self.search_version_edit.returnPressed.connect(self.on_search)  # 新增
         self.table.itemChanged.connect(self.on_remark_changed)
-
+        self.table.horizontalHeader().sectionClicked.connect(self.on_section_clicked)
     def on_remark_changed(self, item):
         # 只处理备注列（第5列）
         if item.column() != 5:
@@ -372,7 +372,7 @@ class ScanPosTabWidget(BaseTabWidget):
 
     def on_section_clicked(self, _):
         # 排序后刷新隔行色
-        QTimer.singleShot(0, self.update_row_colors)
+        QTimer.singleShot(50, self.update_row_colors)
 
     def showEvent(self, event):
         """显示事件处理"""
