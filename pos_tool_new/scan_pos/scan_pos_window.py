@@ -93,7 +93,6 @@ class ScanPosTabWidget(BaseTabWidget):
         remark = item.text()
         if merchant_id and merchant_id != '——':
             app_config_utils.set_remark(merchant_id, remark)
-
         self.update_row_colors()
 
     def _setup_layouts(self):

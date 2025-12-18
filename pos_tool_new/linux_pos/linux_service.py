@@ -1,6 +1,8 @@
+import datetime
 import os
 import posixpath
 import re
+import shutil
 import tempfile
 import time
 from typing import List, Tuple, Optional, Callable
@@ -538,6 +540,7 @@ class LinuxService(Backend):
                      log_callback=None):
         """
         通过SSH连接到服务器，解压（如需要）并执行数据恢复。
+        解压 zip 时，自动用 zip 文件名去掉 .zip 后作为解压目标文件夹，避免交互和重名覆盖。
         """
         try:
             if log_callback:
@@ -550,9 +553,15 @@ class LinuxService(Backend):
 
             # 解压zip
             if is_zip:
+                # 目标文件夹名 = zip文件名去掉.zip
+                target_folder = item_name.replace('.zip', '')
                 if log_callback:
-                    log_callback(f"解压zip文件: {self.BACKUP_DIR}/{item_name}")
-                unzip_cmd = f"sudo unzip {self.BACKUP_DIR}/{item_name} -d {self.BACKUP_DIR}/"
+                    log_callback(f"解压zip文件: {self.BACKUP_DIR}/{item_name} 到 {self.BACKUP_DIR}/{target_folder}")
+                # 解压前先删除同名文件夹
+                rm_cmd = f"sudo rm -rf {self.BACKUP_DIR}/{target_folder}"
+                ssh.exec_command(rm_cmd)
+                # 解压到指定文件夹，抑制详细输出
+                unzip_cmd = f"sudo unzip -oq {self.BACKUP_DIR}/{item_name} -d {self.BACKUP_DIR}/{target_folder}"
                 stdin, stdout, stderr = ssh.exec_command(unzip_cmd)
                 unzip_progress = progress
                 while not stdout.channel.exit_status_ready():
@@ -560,16 +569,20 @@ class LinuxService(Backend):
                     unzip_progress = min(unzip_progress + 5, 30)
                     if progress_callback:
                         progress_callback(unzip_progress)
-                for line in stdout:
-                    if log_callback:
-                        log_callback(line.strip())
+                # 只输出错误信息
                 err = stderr.read().decode()
                 if err:
                     if log_callback:
                         log_callback(f"解压错误: {err}", "error")
                     if error_callback:
                         error_callback(err)
-                folder_name = item_name.replace('.zip', '')
+                # 检查解压后唯一子目录
+                stdin, stdout, stderr = ssh.exec_command(f"ls -1 {self.BACKUP_DIR}/{target_folder}")
+                subdirs = [line.strip() for line in stdout if line.strip()]
+                if len(subdirs) == 1:
+                    folder_name = f"{target_folder}/{subdirs[0]}"
+                else:
+                    folder_name = target_folder
                 progress = 30
                 if progress_callback:
                     progress_callback(progress)
@@ -615,7 +628,7 @@ class LinuxService(Backend):
 
     def backup_data(self, host, username, password, progress_callback=None, error_callback=None, log_callback=None):
         """
-        通过SSH连接到服务器，执行数据备份。
+        通过SSH连接到服务器，执行数据备份，并在备份完成后将最新文件夹在服务器远程打包成zip。
         """
         try:
             if log_callback:
@@ -647,19 +660,54 @@ class LinuxService(Backend):
                 if error_callback:
                     error_callback(err)
 
+            # === 新增：远程查找最新文件夹并远程打包 ===
+            self.backup_and_zip(host, ssh, log_callback)
+
             ssh.close()
-            if log_callback:
-                log_callback("数据备份完成", "success")
             if progress_callback:
                 progress_callback(100)
-
         except Exception as e:
             if log_callback:
                 log_callback(f"数据备份异常: {str(e)}", "error")
             if error_callback:
                 error_callback(str(e))
 
-    def modify_remote_files(self, host: str, username: str, password: str, env: str) -> None:
+    @staticmethod
+    def backup_and_zip(merchant_ip, ssh, log_callback=None):
+        """
+        远程查找最新文件夹并在服务器端打包为zip，zip名为版本号+时间。
+        需要传入已连接的ssh对象。
+        """
+        # 1. 获取远程最新文件夹
+        stdin, stdout, stderr = ssh.exec_command(f"ls -dt /opt/backup/*/ | head -1")
+        latest_folder = stdout.read().decode().strip().rstrip('/')
+        if not latest_folder:
+            if log_callback:
+                log_callback("未找到任何备份文件夹，无法打包", "error")
+            return
+        # 2. 获取版本号
+        from pos_tool_new.scan_pos.scan_pos_service import ScanPosService
+        profile = ScanPosService.fetch_company_profile(merchant_ip)
+        version_full = profile.get("company", {}).get("appInfo", {}).get("version", "unknown")
+        version = ".".join(version_full.split(".")[:6]) if version_full and version_full != "unknown" else "unknown"
+        import datetime
+        now_str = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        zip_name = f"{version}_{now_str}.zip"
+        zip_path = f"/opt/backup/{zip_name}"
+        # 3. 远程打包，抑制详细输出
+        folder_base = os.path.basename(latest_folder)
+        zip_cmd = f"cd /opt/backup && sudo zip -rq '{zip_name}' '{folder_base}'"
+        stdin, stdout, stderr = ssh.exec_command(zip_cmd)
+        zip_err = stderr.read().decode()
+        if log_callback:
+            log_callback(f"远程打包命令: {zip_cmd}")
+            if zip_err:
+                log_callback(zip_err, "error" if zip_err else "info")
+            log_callback(f"备份文件夹已远程打包为: {zip_path}", "success")
+        return zip_path
+
+    @staticmethod
+    def modify_remote_files(host: str, username: str, password: str, env: str) -> None:
         """
         批量读取 file_config.json，依次调用 FileConfigService.execute_config_modification 进行远程配置修改。
         """
