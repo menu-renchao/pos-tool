@@ -42,7 +42,8 @@ TAB_ID_MAP = {
     "download_war": "📥 Download War",
     "generate_img": "🖼️ 图片生成",
     "random_mail": "📧 随机邮箱",
-    "sms": "📱 短信验证码"
+    "sms": "📱 短信验证码",
+    "lan_chat": "💬 消息广播"
 }
 TAB_ID_LIST = list(TAB_ID_MAP.keys())
 

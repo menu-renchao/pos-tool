@@ -8,7 +8,6 @@ from PyQt6.QtWidgets import QListWidget
 
 from pos_tool_new.modern_splash import ModernSplashScreen
 from pos_tool_new.update_dialog import check_and_update_exe
-
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from PyQt6.QtCore import QTimer, Qt, QPropertyAnimation, QEasingCurve, QRect, QPoint, QRectF
@@ -382,7 +381,7 @@ class MainWindow(QMainWindow):
     def _setup_window_properties(self):
         """设置窗口属性"""
         self.setWindowIcon(QIcon(resource_path('UI/app.ico')))
-        self.setWindowTitle("POS测试工具 v1.5.1.5 by Mansuper")
+        self.setWindowTitle("POS测试工具 v1.5.1.6 by Mansuper")
         self.resize(900, 580)
 
     def _create_central_widget(self) -> QWidget:
@@ -923,8 +922,7 @@ class MainWindow(QMainWindow):
             ("linux_pos", "pos_tool_new.linux_pos.linux_window", "LinuxTabWidget"),
             ("linux_file_config", "pos_tool_new.linux_file_config.file_config_linux_window", "FileConfigTabWidget"),
             ("win_pos", "pos_tool_new.windows_pos.windows_window", "WindowsTabWidget"),
-            ("win_file_config", "pos_tool_new.windows_file_config.file_config_win_window",
-             "WindowsFileConfigTabWidget"),
+            ("win_file_config", "pos_tool_new.windows_file_config.file_config_win_window", "WindowsFileConfigTabWidget"),
             ("db_config", "pos_tool_new.db_config.db_config_window", "DbConfigWindow"),
             ("scan_pos", "pos_tool_new.scan_pos.scan_pos_window", "ScanPosTabWidget"),
             ("scan_printer", "pos_tool_new.scan_printer.scan_printer_window", "ScanPrinterTabWidget"),
@@ -933,7 +931,8 @@ class MainWindow(QMainWindow):
             ("download_war", "pos_tool_new.download_war.download_war_window", "DownloadWarTabWidget"),
             ("generate_img", "pos_tool_new.generate_img.generate_img_window", "GenerateImgTabWidget"),
             ("random_mail", "pos_tool_new.random_mail.random_mail_window", "RandomMailTabWidget"),
-            ("sms", "pos_tool_new.sms.sms_window", "SmsWindow")
+            ("sms", "pos_tool_new.sms.sms_window", "SmsWindow"),
+            ("lan_chat", "pos_tool_new.lan_chat.lan_chat_window", "LanChatTab")
         ]
         id_to_import = {tid: imp for tid, *imp in self.tab_imports}
         self.tab_imports = [(tid, *id_to_import[tid]) for tid in tab_order if tid in id_to_import]
