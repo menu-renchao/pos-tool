@@ -711,6 +711,9 @@ class MainWindow(QMainWindow):
                 font-weight: 500;
                 font-size: 11px;
             }
+            QPushButton:focus {
+                outline: none;
+            }
             QPushButton:hover {
                 background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
                     stop: 0 #6bacff, stop: 1 #3a7bc8);

@@ -5,7 +5,7 @@ from PyQt6.QtCore import QTimer, pyqtSlot
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import (
     QVBoxLayout, QPushButton, QHBoxLayout, QLabel, QLineEdit, QFileDialog, QGroupBox, QComboBox, QMessageBox,
-    QInputDialog, QSizePolicy, QDialog, QListWidget, QListWidgetItem, QDialogButtonBox, QGridLayout
+    QInputDialog, QDialog, QListWidget, QListWidgetItem, QDialogButtonBox, QGridLayout
 )
 
 from pos_tool_new.backend import Backend
@@ -406,24 +406,64 @@ class LinuxTabWidget(BaseTabWidget):
         self.status_label.setText("连接状态未检测")
         self.status_label.setStyleSheet("color: red;")
 
+    def _show_loading(self, text="校验中..."):
+        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel
+        from PyQt6.QtGui import QFont, QColor, QPainter, QBrush
+        from PyQt6.QtCore import Qt
+        class FrostedGlassLabel(QLabel):
+            def paintEvent(self, event):
+                painter = QPainter(self)
+                painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+                # 半透明白色背景
+                painter.setBrush(QBrush(QColor(255, 255, 255, 180)))
+                painter.setPen(Qt.PenStyle.NoPen)
+                painter.drawRoundedRect(self.rect(), 16, 16)
+                super().paintEvent(event)
+        self._loading_dialog = QDialog(self)
+        self._loading_dialog.setWindowTitle(text)
+        self._loading_dialog.setModal(True)
+        self._loading_dialog.setWindowFlags(self._loading_dialog.windowFlags() | Qt.WindowType.FramelessWindowHint)
+        self._loading_dialog.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        layout = QVBoxLayout()
+        label = FrostedGlassLabel(text)
+        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        label.setFont(QFont("Microsoft YaHei", 14, QFont.Weight.Bold))
+        # 使用低饱和度深灰色字体
+        label.setStyleSheet("color: #6A6A7A; padding: 18px 24px; letter-spacing: 2px;")
+        layout.addWidget(label)
+        self._loading_dialog.setLayout(layout)
+        self._loading_dialog.setFixedSize(220, 80)
+        self._loading_dialog.show()
+        from PyQt6.QtWidgets import QApplication
+        QApplication.processEvents()
+
+    def _hide_loading(self):
+        if hasattr(self, '_loading_dialog') and self._loading_dialog:
+            self._loading_dialog.accept()
+            self._loading_dialog = None
+
     def _check_md5_and_confirm(self, host, username, password, local_war_path, remote_war_path="/opt/tomcat7/webapps/kpos.war"):
         """
         检查本地和远程war包MD5是否一致，如一致弹窗提示用户是否继续。
         返回True表示可以继续，False表示用户取消。
         """
-        self.log("开始校验本地和远程包MD5一致性...")
-        remote_md5 = self._get_remote_md5(host, username, password, remote_war_path)
-        local_md5 = self._get_local_md5(local_war_path)
-        if remote_md5 and local_md5 and remote_md5 == local_md5:
-            self.log(f"本地包和远程包MD5一致: {local_md5}", level="warning")
-            reply = QMessageBox.question(
-                self, "疑似相同版本", f"远程包和本地包MD5一致:{remote_md5}，是否继续操作？",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-            )
-            if reply != QMessageBox.StandardButton.Yes:
-                return False
-        self.log("MD5校验通过，可以继续操作。",level='success')
-        return True
+        self._show_loading("MD5校验中...")
+        try:
+            self.log("开始校验本地和远程包MD5一致性...")
+            remote_md5 = self._get_remote_md5(host, username, password, remote_war_path)
+            local_md5 = self._get_local_md5(local_war_path)
+            if remote_md5 and local_md5 and remote_md5 == local_md5:
+                self.log(f"本地包和远程包MD5一致: {local_md5}", level="warning")
+                reply = QMessageBox.question(
+                    self, "疑似相同版本", f"远程包和本地包MD5一致:{remote_md5}，是否继续操作？",
+                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+                )
+                if reply != QMessageBox.StandardButton.Yes:
+                    return False
+            self.log("MD5校验通过，可以继续操作。",level='success')
+            return True
+        finally:
+            self._hide_loading()
 
     def on_replace_war_linux(self):
         """替换远程WAR包"""
