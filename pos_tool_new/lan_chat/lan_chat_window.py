@@ -12,7 +12,7 @@ from pos_tool_new.utils.app_config_utils import get_app_config_value, set_app_co
 
 class LanChatTab(BaseTabWidget):
     # 信号定义
-    message_received = pyqtSignal(str, str, object)
+    message_received = pyqtSignal(str, str, object, bool)
     connected = pyqtSignal()
     disconnected = pyqtSignal(int, str)
     user_list_received = pyqtSignal(object, int)
@@ -57,9 +57,9 @@ class LanChatTab(BaseTabWidget):
         self.user_list_received.connect(self.on_user_list_received)
         self.system_message.connect(self.append_system_message)
 
-    def _emit_message_received(self, nickname, message, timestamp):
+    def _emit_message_received(self, nickname, message, timestamp, marquee=False):
         try:
-            self.message_received.emit(nickname, message, timestamp)
+            self.message_received.emit(nickname, message, timestamp, marquee)
         except Exception as e:
             pass
 
@@ -305,7 +305,7 @@ class LanChatTab(BaseTabWidget):
         self.append_system_message("与聊天服务器的连接已断开")
         self.connection_status_changed.emit(False)
 
-    def on_message_received(self, nickname, message, timestamp):
+    def on_message_received(self, nickname, message, timestamp, marquee=False):
         """收到消息回调"""
         from datetime import datetime
         if isinstance(timestamp, str):
@@ -331,6 +331,12 @@ class LanChatTab(BaseTabWidget):
         else:
             formatted_msg = f'<b>{nickname}</b> <span style="color: #666;">[{time_str}]</span>: {message}'
             self.message_display.append(formatted_msg)
+
+        # 新增：如果marquee为True，所有客户端都刷新跑马灯
+        if marquee:
+            main_win = self.window()
+            if hasattr(main_win, 'update_marquee_message') and message.strip():
+                main_win.update_marquee_message(message)
 
         # 自动滚动到底部
         cursor = self.message_display.textCursor()

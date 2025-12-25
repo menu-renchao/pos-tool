@@ -42,14 +42,16 @@ class ChatServer:
                         if websocket in self.clients:
                             user_info = self.clients[websocket]
                             msg_content = data.get('message', '')
+                            marquee_flag = data.get('marquee', False)
                             # 新增：只保存勾选跑马灯的消息
-                            if msg_content.strip() and data.get('marquee', False):
+                            if msg_content.strip() and marquee_flag:
                                 self.latest_user_message = msg_content
                             message_data = {
                                 'type': 'message',
                                 'nickname': user_info['nickname'],
                                 'message': msg_content,
-                                'timestamp': datetime.now().isoformat()
+                                'timestamp': datetime.now().isoformat(),
+                                'marquee': marquee_flag  # 关键：加上这一行
                             }
                             await self.broadcast_message(json.dumps(message_data))
                     elif message_type == 'typing':

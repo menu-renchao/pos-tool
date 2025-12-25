@@ -102,7 +102,12 @@ class LanChatService(Backend):
             data = json.loads(message)
             msg_type = data.get('type')
             if msg_type == 'message' and self.on_message_callback:
-                self.on_message_callback(data.get('nickname', '未知用户'), data.get('message', ''), data.get('timestamp', time.time()))
+                self.on_message_callback(
+                    data.get('nickname', '未知用户'),
+                    data.get('message', ''),
+                    data.get('timestamp', time.time()),
+                    data.get('marquee', False)
+                )
             elif msg_type == 'system' and self.on_message_callback:
                 self.on_message_callback('系统', data.get('message', ''), time.time())
             elif msg_type == 'user_list' and self.on_user_list_callback:
