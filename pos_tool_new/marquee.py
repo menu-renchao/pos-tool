@@ -4,17 +4,17 @@ from PyQt6.QtWidgets import QWidget, QHBoxLayout, QLabel, QPushButton, QSizePoli
 class MarqueeBar(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setMinimumHeight(28)
+        self.setMinimumHeight(22)
         self.marquee_bar = QLabel("")
-        self.marquee_bar.setMinimumHeight(28)
+        self.marquee_bar.setMinimumHeight(22)
         self.marquee_bar.setStyleSheet("""
             QLabel {
                 background: #fffbe6;
                 color: #d48806;
-                font-weight: bold;
-                font-size: 15px;
+                font-weight: normal;
+                font-size: 12px;
                 border-bottom: 1px solid #ffe58f;
-                padding-left: 16px;
+                padding-left: 10px;
             }
         """)
         self.marquee_bar.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
@@ -24,13 +24,14 @@ class MarqueeBar(QWidget):
         self.scroll_position = 0
         self.marquee_timer = QTimer(self)
         self.marquee_timer.timeout.connect(self._scroll_marquee)
-        self.marquee_close_btn = QPushButton("×")
-        self.marquee_close_btn.setFixedSize(28, 28)
+        self.marquee_close_btn = QPushButton()
+        self.marquee_close_btn.setText("×")
+        self.marquee_close_btn.setFixedSize(28, 22)
         self.marquee_close_btn.setStyleSheet("""
             QPushButton {
                 background: transparent;
                 color: #d48806;
-                font-size: 18px;
+                font-size: 20px;
                 border: none;
             }
             QPushButton:hover {
@@ -100,4 +101,3 @@ class MarqueeBar(QWidget):
             self.marquee_bar.setText(msg[-display_len:])
             self.scroll_position = len(self.marquee_text) - display_len
         self.marquee_timer.start(120)
-
