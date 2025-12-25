@@ -1207,7 +1207,7 @@ class MainWindow(QMainWindow):
             self.marquee_timer.stop()
             self.marquee_closed_by_user = False
             return
-
+        msg = msg.replace('\r', ' ').replace('\n', ' ')
         display_len = self._get_display_len()
         # 循环拼接，保证长度大于等于3倍display_len以确保平滑滚动
         base_text = msg + (" " * display_len)
