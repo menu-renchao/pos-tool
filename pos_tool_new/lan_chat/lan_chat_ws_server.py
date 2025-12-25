@@ -12,6 +12,7 @@ class ChatServer:
         self.host = host
         self.port = port
         self.clients = {}
+        self.latest_user_message = None  # 新增：保存最新用户消息内容
 
     async def handle_connection(self, websocket, path):
         client_id = id(websocket)
@@ -30,13 +31,24 @@ class ChatServer:
                         await self.broadcast_user_list()
                         await self.broadcast_system_message(f"{nickname} 加入了聊天")
                         logger.info(f"用户 {nickname} 加入聊天室")
+                        # 新增：有新用户加入时，推送最新用户消息
+                        if self.latest_user_message:
+                            await websocket.send(json.dumps({
+                                'type': 'latest_user_message',
+                                'message': self.latest_user_message,
+                                'timestamp': datetime.now().isoformat()
+                            }))
                     elif message_type == 'message':
                         if websocket in self.clients:
                             user_info = self.clients[websocket]
+                            msg_content = data.get('message', '')
+                            # 新增：只保存非空用户消息
+                            if msg_content.strip():
+                                self.latest_user_message = msg_content
                             message_data = {
                                 'type': 'message',
                                 'nickname': user_info['nickname'],
-                                'message': data.get('message', ''),
+                                'message': msg_content,
                                 'timestamp': datetime.now().isoformat()
                             }
                             await self.broadcast_message(json.dumps(message_data))

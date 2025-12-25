@@ -322,6 +322,25 @@ class MainWindow(QMainWindow):
             }
         """)
 
+        # ====== 跑马灯浮层条 ======
+        self.marquee_bar = QLabel("")
+        self.marquee_bar.setFixedHeight(28)
+        self.marquee_bar.setStyleSheet("""
+            QLabel {
+                background: #fffbe6;
+                color: #d48806;
+                font-weight: bold;
+                font-size: 15px;
+                border-bottom: 1px solid #ffe58f;
+                padding-left: 16px;
+            }
+        """)
+        self.marquee_bar.setVisible(False)
+        self.marquee_text = ""
+        self.marquee_pos = 0
+        self.marquee_timer = QTimer(self)
+        self.marquee_timer.timeout.connect(self._scroll_marquee)
+
     def setup_ui(self):
         """设置UI界面"""
         self._setup_window_properties()
@@ -329,6 +348,18 @@ class MainWindow(QMainWindow):
         self.create_menubar()
 
         central_widget = self._create_central_widget()
+        # ====== 在主布局顶部插入跑马灯浮层条 ======
+        layout = central_widget.layout() or central_widget.findChild(QVBoxLayout)
+        if layout is not None:
+            layout.insertWidget(0, self.marquee_bar)
+        else:
+            # fallback: set as a fixed widget at the top
+            vbox = QVBoxLayout(central_widget)
+            vbox.setContentsMargins(0, 0, 0, 0)
+            vbox.setSpacing(0)
+            vbox.addWidget(self.marquee_bar)
+            vbox.addWidget(self._create_central_widget())
+            central_widget.setLayout(vbox)
         self.setCentralWidget(central_widget)
 
         # 安装分割条handle事件过滤器
@@ -1095,6 +1126,34 @@ class MainWindow(QMainWindow):
         war_dirs = scan_temp_war_dirs()
         show_confirm_dialog(war_dirs)
 
+    def _scroll_marquee(self):
+        if not self.marquee_text:
+            self.marquee_bar.setText("")
+            return
+        display_len = 40  # 可视字符数
+        text = self.marquee_text
+        # 用空格填充，保证循环完整
+        full_text = (" " * display_len) + text + (" " * display_len)
+        pos = self.marquee_pos
+        if pos + display_len > len(full_text):
+            pos = 0
+            self.marquee_pos = 0
+        show = full_text[pos:pos+display_len]
+        self.marquee_bar.setText(show)
+        self.marquee_pos = (self.marquee_pos + 1) % (len(full_text) - display_len + 1)
+
+    def update_marquee_message(self, msg: str):
+        """更新并显示最新广播消息到浮层条"""
+        if not msg:
+            self.marquee_bar.setVisible(False)
+            self.marquee_timer.stop()
+            return
+        self.marquee_text = msg + "    "  # 加空格分隔
+        self.marquee_pos = 0
+        self.marquee_bar.setVisible(True)
+        self._scroll_marquee()
+        self.marquee_timer.start(120)  # 调整速度
+
 
 def create_main_window():
     """创建主窗口"""
@@ -1113,3 +1172,4 @@ if __name__ == "__main__":
     splash = ModernSplashScreen(resource_path('UI/loading.gif'), duration=1800)
     splash.start(create_main_window)
     sys.exit(app.exec())
+

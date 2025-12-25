@@ -7,10 +7,16 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTextEdit,
                              QLineEdit, QPushButton, QLabel, QListWidget, QSplitter)
 
 from pos_tool_new.base_tab import BaseTabWidget
+from pos_tool_new.utils.app_config_utils import get_app_config_value, set_app_config_value
 
 
 class LanChatTab(BaseTabWidget):
     # 信号定义
+    message_received = pyqtSignal(str, str, object)
+    connected = pyqtSignal()
+    disconnected = pyqtSignal(int, str)
+    user_list_received = pyqtSignal(object, int)
+    system_message = pyqtSignal(str)
     connection_status_changed = pyqtSignal(bool)
 
     def __init__(self, parent=None):
@@ -19,21 +25,67 @@ class LanChatTab(BaseTabWidget):
         self.unread_count = 0
         self.is_connected = False
 
+        # 读取 server_url 和昵称
+        ip = get_app_config_value('micro_default_ip', '127.0.0.1')
+        server_url = f"ws://{ip}:56789"
+        nickname = get_app_config_value('lan_chat_nickname', '匿名用户')
+
         # 初始化服务
         from .lan_chat_service import LanChatService
-        self.service = LanChatService(self.on_message_received, server_url="ws://192.168.0.72:56789")
-        self.service.set_callbacks(
-            on_connected=self.on_connected,
-            on_disconnected=self.on_disconnected,
-            on_user_list=self.on_user_list_received
+        self.service = LanChatService(
+            on_message_callback=self._emit_message_received,
+            server_url=server_url
         )
-
+        self.service.set_callbacks(
+            on_connected=self._emit_connected,
+            on_disconnected=self._emit_disconnected,
+            on_user_list=self._emit_user_list_received
+        )
+        self._init_nickname = nickname
         self.init_ui()
         self.setup_connections()
         try:
+            self.service.set_nickname(nickname)
             self.service.start()
         except Exception as e:
-            self.append_system_message(f"无法连接到聊天服务器: {e}")
+            self._emit_system_message(f"无法连接到聊天服务器: {e}")
+
+        # 信号连接到主线程UI槽
+        self.message_received.connect(self.on_message_received)
+        self.connected.connect(self.on_connected)
+        self.disconnected.connect(self.on_disconnected)
+        self.user_list_received.connect(self.on_user_list_received)
+        self.system_message.connect(self.append_system_message)
+
+    def _emit_message_received(self, nickname, message, timestamp):
+        try:
+            self.message_received.emit(nickname, message, timestamp)
+        except Exception as e:
+            pass
+
+    def _emit_connected(self):
+        try:
+            self.connected.emit()
+        except Exception:
+            pass
+
+    def _emit_disconnected(self, code, reason):
+        try:
+            self.disconnected.emit(code, reason)
+        except Exception:
+            pass
+
+    def _emit_user_list_received(self, users, count):
+        try:
+            self.user_list_received.emit(users, count)
+        except Exception:
+            pass
+
+    def _emit_system_message(self, message):
+        try:
+            self.system_message.emit(message)
+        except Exception:
+            pass
 
     def init_ui(self):
         """初始化界面"""
@@ -110,18 +162,27 @@ class LanChatTab(BaseTabWidget):
         # 用户数量
         self.user_count_label = QLabel("在线用户: 0")
 
+        # 重连按钮
+        self.reconnect_btn = QPushButton("重连")
+        self.reconnect_btn.setMaximumWidth(50)
+        self.reconnect_btn.setToolTip("手动重连聊天服务器")
+        self.reconnect_btn.setEnabled(False)
+
         # 昵称设置
         nick_layout = QHBoxLayout()
+        nick_layout.setSpacing(5)  # 缩小间距
         nick_label = QLabel("昵称:")
-        self.nickname_edit = QLineEdit("匿名用户")
-        self.nickname_edit.setMaximumWidth(150)
+        self.nickname_edit = QLineEdit(self._init_nickname)
+        self.nickname_edit.setMaximumWidth(120)
         self.set_nickname_btn = QPushButton("设置")
-
+        self.set_nickname_btn.setMaximumWidth(50)
         nick_layout.addWidget(nick_label)
         nick_layout.addWidget(self.nickname_edit)
         nick_layout.addWidget(self.set_nickname_btn)
+        nick_layout.addStretch(1)  # 让昵称输入框和按钮靠近
 
         status_layout.addWidget(self.status_label)
+        status_layout.addWidget(self.reconnect_btn)
         status_layout.addStretch()
         status_layout.addWidget(self.user_count_label)
         status_layout.addLayout(nick_layout)
@@ -174,16 +235,26 @@ class LanChatTab(BaseTabWidget):
         self.send_btn.clicked.connect(self.send_message)
         self.message_input.returnPressed.connect(self.send_message)
         self.set_nickname_btn.clicked.connect(self.set_nickname)
-
+        self.reconnect_btn.clicked.connect(self.on_reconnect_clicked)
         # 输入状态检测
         self.message_input.textChanged.connect(self.on_text_changed)
 
+    def on_reconnect_clicked(self):
+        """手动重连按钮点击事件"""
+        self._emit_system_message("正在尝试手动重连...")
+        self.service.reconnect()
+        self.reconnect_btn.setEnabled(False)
+
     def set_nickname(self):
-        """设置昵称"""
+        """设置昵称并持久化，禁止设置为“系统”"""
         nickname = self.nickname_edit.text().strip()
+        if nickname == '系统':
+            self._emit_system_message("昵称不能为‘系统’！请更换昵称。")
+            return
         if nickname:
             self.service.set_nickname(nickname)
-            self.append_system_message(f"昵称已更改为: {nickname}")
+            set_app_config_value('lan_chat_nickname', nickname)
+            self._emit_system_message(f"昵称已更改为: {nickname}")
 
     def send_message(self):
         """发送消息"""
@@ -210,6 +281,7 @@ class LanChatTab(BaseTabWidget):
         self.status_label.setText("已连接")
         self.status_label.setStyleSheet("color: #4CAF50; font-weight: bold;")
         self.send_btn.setEnabled(True)
+        self.reconnect_btn.setEnabled(False)
         self.append_system_message("已连接到聊天服务器")
         self.connection_status_changed.emit(True)
 
@@ -219,12 +291,12 @@ class LanChatTab(BaseTabWidget):
         self.status_label.setText("连接断开")
         self.status_label.setStyleSheet("color: #f44336; font-weight: bold;")
         self.send_btn.setEnabled(False)
+        self.reconnect_btn.setEnabled(True)
         self.append_system_message("与聊天服务器的连接已断开")
         self.connection_status_changed.emit(False)
 
     def on_message_received(self, nickname, message, timestamp):
         """收到消息回调"""
-        # 兼容字符串和数字时间戳
         from datetime import datetime
         if isinstance(timestamp, str):
             try:
@@ -235,13 +307,23 @@ class LanChatTab(BaseTabWidget):
             time_obj = datetime.fromtimestamp(timestamp)
         time_str = time_obj.strftime('%H:%M:%S')
 
-        # 格式化消息显示
-        if nickname == '系统':
+        # 只显示用户消息内容，不显示系统消息和昵称
+        if nickname == '系统' or not message.strip():
             formatted_msg = f'<span style="color: #ff9800;">[{time_str}] 系统: {message}</span>'
+            self.message_display.append(formatted_msg)
+        elif nickname == '':  # latest_user_message
+            # 跑马灯只显示内容，不显示在消息区
+            main_win = self.window()
+            if hasattr(main_win, 'update_marquee_message'):
+                main_win.update_marquee_message(message)
+            return
         else:
             formatted_msg = f'<b>{nickname}</b> <span style="color: #666;">[{time_str}]</span>: {message}'
-
-        self.message_display.append(formatted_msg)
+            self.message_display.append(formatted_msg)
+            # 跑马灯只显示内容
+            main_win = self.window()
+            if hasattr(main_win, 'update_marquee_message'):
+                main_win.update_marquee_message(message)
 
         # 自动滚动到底部
         cursor = self.message_display.textCursor()
@@ -252,6 +334,14 @@ class LanChatTab(BaseTabWidget):
         if not self.isVisible():
             self.unread_count += 1
             self.update_tab_title()
+
+        # ====== 通知主窗口显示跑马灯浮层条 ======
+        main_win = self.window()
+        if hasattr(main_win, 'update_marquee_message'):
+            if nickname != '系统':
+                main_win.update_marquee_message(f"{nickname}: {message}")
+            else:
+                main_win.update_marquee_message(message)
 
     def on_user_list_received(self, users, count):
         """用户列表更新回调"""
