@@ -1170,7 +1170,7 @@ class MainWindow(QMainWindow):
         # 取一个宽字符的宽度，防止中英文混排导致溢出
         char_width = font_metrics.horizontalAdvance('W')
         display_len = max(1, bar_width // char_width)
-        return display_len * 2
+        return int(display_len * 2.2)
 
     def _scroll_marquee(self):
         """真正的滚动：文本从右向左移动（彻底修正方向）"""
@@ -1179,8 +1179,7 @@ class MainWindow(QMainWindow):
             return
 
         display_len = self._get_display_len()
-        padding = " " * display_len
-        scroll_text = padding + self.marquee_text  # 两边都补空格
+        scroll_text =  self.marquee_text  # 两边都补空格
 
         # 初始化 scroll_position
         if not hasattr(self, "scroll_position") or self.scroll_position is None:
