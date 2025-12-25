@@ -50,9 +50,9 @@ class LanChatService(Backend):
                 self.ws = None
         self.connected = False
 
-    def send_message(self, message: str):
+    def send_message(self, message: str, marquee: bool = False):
         if message.strip() and self.connected:
-            self._send_json({'type': 'message', 'message': message.strip(), 'timestamp': time.time()})
+            self._send_json({'type': 'message', 'message': message.strip(), 'timestamp': time.time(), 'marquee': marquee})
 
     def send_typing_status(self, is_typing: bool):
         if self.connected:

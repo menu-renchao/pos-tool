@@ -323,8 +323,13 @@ class MainWindow(QMainWindow):
         """)
 
         # ====== 跑马灯浮层条 ======
+        marquee_widget = QWidget()
+        marquee_layout = QHBoxLayout(marquee_widget)
+        marquee_layout.setContentsMargins(0, 0, 0, 0)
+        marquee_layout.setSpacing(0)
+        from PyQt6.QtWidgets import QSizePolicy
         self.marquee_bar = QLabel("")
-        self.marquee_bar.setFixedHeight(28)
+        self.marquee_bar.setMinimumHeight(28)
         self.marquee_bar.setStyleSheet("""
             QLabel {
                 background: #fffbe6;
@@ -335,11 +340,39 @@ class MainWindow(QMainWindow):
                 padding-left: 16px;
             }
         """)
-        self.marquee_bar.setVisible(False)
+        self.marquee_bar.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self.marquee_bar.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
+        self.marquee_bar.setWordWrap(False)
         self.marquee_text = ""
         self.marquee_pos = 0
         self.marquee_timer = QTimer(self)
         self.marquee_timer.timeout.connect(self._scroll_marquee)
+        print('[Marquee] QTimer connected to _scroll_marquee')
+        global_log_manager.log('[Marquee] QTimer connected to _scroll_marquee', 'debug')
+        # 新增关闭按钮
+        from PyQt6.QtWidgets import QPushButton
+        self.marquee_close_btn = QPushButton("×")
+        self.marquee_close_btn.setFixedSize(28, 28)
+        self.marquee_close_btn.setStyleSheet("""
+            QPushButton {
+                background: transparent;
+                color: #d48806;
+                font-size: 18px;
+                border: none;
+            }
+            QPushButton:hover {
+                background: #ffe58f;
+            }
+        """)
+        self.marquee_close_btn.setToolTip("关闭跑马灯")
+        self.marquee_close_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        self.marquee_close_btn.clicked.connect(self._close_marquee_bar)
+        marquee_layout.addWidget(self.marquee_bar, 1)
+        marquee_layout.addWidget(self.marquee_close_btn, 0)
+        marquee_widget.setMinimumHeight(28)
+        marquee_widget.setVisible(False)
+        self.marquee_widget = marquee_widget
+        self.marquee_closed_by_user = False
 
     def setup_ui(self):
         """设置UI界面"""
@@ -351,13 +384,12 @@ class MainWindow(QMainWindow):
         # ====== 在主布局顶部插入跑马灯浮层条 ======
         layout = central_widget.layout() or central_widget.findChild(QVBoxLayout)
         if layout is not None:
-            layout.insertWidget(0, self.marquee_bar)
+            layout.insertWidget(0, self.marquee_widget)
         else:
-            # fallback: set as a fixed widget at the top
             vbox = QVBoxLayout(central_widget)
             vbox.setContentsMargins(0, 0, 0, 0)
             vbox.setSpacing(0)
-            vbox.addWidget(self.marquee_bar)
+            vbox.addWidget(self.marquee_widget)
             vbox.addWidget(self._create_central_widget())
             central_widget.setLayout(vbox)
         self.setCentralWidget(central_widget)
@@ -1126,33 +1158,67 @@ class MainWindow(QMainWindow):
         war_dirs = scan_temp_war_dirs()
         show_confirm_dialog(war_dirs)
 
+    def _close_marquee_bar(self):
+        self.marquee_widget.setVisible(False)
+        self.marquee_timer.stop()
+        self.marquee_closed_by_user = True
+
+    def _get_display_len(self):
+        # 动态计算marquee_bar可显示的字符数
+        font_metrics = self.marquee_bar.fontMetrics()
+        bar_width = self.marquee_bar.width()
+        # 取一个宽字符的宽度，防止中英文混排导致溢出
+        char_width = font_metrics.horizontalAdvance('W')
+        display_len = max(1, bar_width // char_width)
+        return display_len * 2
+
     def _scroll_marquee(self):
+        """真正的滚动：文本从右向左移动（彻底修正方向）"""
         if not self.marquee_text:
             self.marquee_bar.setText("")
             return
-        display_len = 160  # 可视字符数
-        text = self.marquee_text
-        full_text = (" " * display_len) + text
-        pos = self.marquee_pos
-        if pos < 0:
-            pos = len(text) + display_len
-            self.marquee_pos = pos
-        show = full_text[pos:pos + display_len]
-        self.marquee_bar.setText(show)
-        self.marquee_pos -= 1
+
+        display_len = self._get_display_len()
+        padding = " " * display_len
+        scroll_text = padding + self.marquee_text  # 两边都补空格
+
+        # 初始化 scroll_position
+        if not hasattr(self, "scroll_position") or self.scroll_position is None:
+            self.scroll_position = len(scroll_text) - display_len
+
+        start_pos = self.scroll_position
+        end_pos = start_pos + display_len
+        show_text = scroll_text[start_pos:end_pos]
+        self.marquee_bar.setText(show_text)
+
+        # 向左移动
+        self.scroll_position -= 1
+        if self.scroll_position < 0:
+            self.scroll_position = len(scroll_text) - display_len
 
     def update_marquee_message(self, msg: str):
-        """更新并显示最新广播消息到浮层条"""
+        print(f"[Marquee] update_marquee_message called, msg='{msg}'")
+        global_log_manager.log(f"[Marquee] update_marquee_message called, msg='{msg}'", "debug")
         if not msg:
-            self.marquee_bar.setVisible(False)
+            self.marquee_widget.setVisible(False)
             self.marquee_timer.stop()
+            print('[Marquee] marquee_timer stopped (empty msg)')
+            global_log_manager.log('[Marquee] marquee_timer stopped (empty msg)', 'debug')
+            self.marquee_closed_by_user = False
             return
-        self.marquee_text = msg + "    "  # 加空格分隔
-        display_len = 180
-        self.marquee_pos = len(self.marquee_text) + display_len
-        self.marquee_bar.setVisible(True)
+        display_len = self._get_display_len()
+        # 循环拼接，保证长度大于等于2倍display_len
+        base_text = msg + (" " * display_len)
+        while len(base_text) < 2 * display_len:
+            base_text += msg + (" " * display_len)
+        self.marquee_text = base_text
+        self.scroll_position = 0  # 从最左侧开始
+        self.marquee_widget.setVisible(True)
+        self.marquee_closed_by_user = False
         self._scroll_marquee()
         self.marquee_timer.start(120)
+        print('[Marquee] marquee_timer started')
+        global_log_manager.log('[Marquee] marquee_timer started', 'debug')
 
 
 def create_main_window():

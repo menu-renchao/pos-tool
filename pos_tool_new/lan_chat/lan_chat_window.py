@@ -4,7 +4,7 @@ from datetime import datetime
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont, QTextCursor
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTextEdit,
-                             QLineEdit, QPushButton, QLabel, QListWidget, QSplitter)
+                             QLineEdit, QPushButton, QLabel, QListWidget, QSplitter, QCheckBox)
 
 from pos_tool_new.base_tab import BaseTabWidget
 from pos_tool_new.utils.app_config_utils import get_app_config_value, set_app_config_value
@@ -193,6 +193,11 @@ class LanChatTab(BaseTabWidget):
         """创建输入区域"""
         input_layout = QHBoxLayout()
 
+        # 新增：跑马灯显示复选框，默认不勾选
+        self.marquee_checkbox = QCheckBox("跑马灯显示")
+        self.marquee_checkbox.setChecked(False)
+        input_layout.addWidget(self.marquee_checkbox)
+
         self.message_input = QLineEdit()
         self.message_input.setPlaceholderText("输入消息...")
         self.message_input.setStyleSheet("""
@@ -260,9 +265,15 @@ class LanChatTab(BaseTabWidget):
         """发送消息"""
         message = self.message_input.text().strip()
         if message and self.is_connected:
-            self.service.send_message(message)
+            marquee = self.marquee_checkbox.isChecked() if hasattr(self, 'marquee_checkbox') else False
+            self.service.send_message(message, marquee=marquee)
             self.message_input.clear()
             self.stop_typing_indicator()
+            # 只有勾选了复选框才同步到主页跑马灯
+            if marquee:
+                main_win = self.window()
+                if hasattr(main_win, 'update_marquee_message'):
+                    main_win.update_marquee_message(message)
 
     def on_text_changed(self):
         """文本变化处理输入状态"""
@@ -307,23 +318,20 @@ class LanChatTab(BaseTabWidget):
             time_obj = datetime.fromtimestamp(timestamp)
         time_str = time_obj.strftime('%H:%M:%S')
 
-        # 只显示用户消息内容，不显示系统消息和昵称
+        # 系统消息只显示在消息区，不推送到跑马灯
         if nickname == '系统' or not message.strip():
             formatted_msg = f'<span style="color: #ff9800;">[{time_str}] 系统: {message}</span>'
             self.message_display.append(formatted_msg)
-        elif nickname == '':  # latest_user_message
-            # 跑马灯只显示内容，不显示在消息区
+            return
+        # latest_user_message 只显示内容到跑马灯，不显示在消息区
+        elif nickname == '':
             main_win = self.window()
-            if hasattr(main_win, 'update_marquee_message'):
+            if hasattr(main_win, 'update_marquee_message') and message.strip():
                 main_win.update_marquee_message(message)
             return
         else:
             formatted_msg = f'<b>{nickname}</b> <span style="color: #666;">[{time_str}]</span>: {message}'
             self.message_display.append(formatted_msg)
-            # 跑马灯只显示内容
-            main_win = self.window()
-            if hasattr(main_win, 'update_marquee_message'):
-                main_win.update_marquee_message(message)
 
         # 自动滚动到底部
         cursor = self.message_display.textCursor()
@@ -335,13 +343,6 @@ class LanChatTab(BaseTabWidget):
             self.unread_count += 1
             self.update_tab_title()
 
-        # ====== 通知主窗口显示跑马灯浮层条 ======
-        main_win = self.window()
-        if hasattr(main_win, 'update_marquee_message'):
-            if nickname != '系统':
-                main_win.update_marquee_message(f"{nickname}: {message}")
-            else:
-                main_win.update_marquee_message(message)
 
     def on_user_list_received(self, users, count):
         """用户列表更新回调"""

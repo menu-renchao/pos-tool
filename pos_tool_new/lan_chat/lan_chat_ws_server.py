@@ -42,8 +42,8 @@ class ChatServer:
                         if websocket in self.clients:
                             user_info = self.clients[websocket]
                             msg_content = data.get('message', '')
-                            # 新增：只保存非空用户消息
-                            if msg_content.strip():
+                            # 新增：只保存勾选跑马灯的消息
+                            if msg_content.strip() and data.get('marquee', False):
                                 self.latest_user_message = msg_content
                             message_data = {
                                 'type': 'message',
