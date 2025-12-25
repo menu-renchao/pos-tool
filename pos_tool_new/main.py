@@ -347,8 +347,6 @@ class MainWindow(QMainWindow):
         self.marquee_pos = 0
         self.marquee_timer = QTimer(self)
         self.marquee_timer.timeout.connect(self._scroll_marquee)
-        print('[Marquee] QTimer connected to _scroll_marquee')
-        global_log_manager.log('[Marquee] QTimer connected to _scroll_marquee', 'debug')
         # 新增关闭按钮
         from PyQt6.QtWidgets import QPushButton
         self.marquee_close_btn = QPushButton("×")
@@ -1170,54 +1168,66 @@ class MainWindow(QMainWindow):
         # 取一个宽字符的宽度，防止中英文混排导致溢出
         char_width = font_metrics.horizontalAdvance('W')
         display_len = max(1, bar_width // char_width)
-        return int(display_len * 2.2)
+        return display_len
 
     def _scroll_marquee(self):
-        """真正的滚动：文本从右向左移动（彻底修正方向）"""
+        """真正的滚动：文本从右向左移动（反转版本）"""
         if not self.marquee_text:
             self.marquee_bar.setText("")
             return
 
         display_len = self._get_display_len()
-        scroll_text =  self.marquee_text  # 两边都补空格
 
         # 初始化 scroll_position
         if not hasattr(self, "scroll_position") or self.scroll_position is None:
-            self.scroll_position = len(scroll_text) - display_len
+            # 从最右侧开始
+            self.scroll_position = 0
 
         start_pos = self.scroll_position
         end_pos = start_pos + display_len
-        show_text = scroll_text[start_pos:end_pos]
+
+        # 截取要显示的部分
+        if end_pos <= len(self.marquee_text):
+            show_text = self.marquee_text[start_pos:end_pos]
+        else:
+            # 处理循环：取末尾部分+开头部分
+            remaining = end_pos - len(self.marquee_text)
+            show_text = self.marquee_text[start_pos:] + self.marquee_text[:remaining]
+
         self.marquee_bar.setText(show_text)
 
-        # 向左移动
-        self.scroll_position -= 1
-        if self.scroll_position < 0:
-            self.scroll_position = len(scroll_text) - display_len
+        # 向右移动（从右到左滚动的效果）
+        self.scroll_position += 1
+        if self.scroll_position >= len(self.marquee_text):
+            self.scroll_position = 0
 
     def update_marquee_message(self, msg: str):
-        print(f"[Marquee] update_marquee_message called, msg='{msg}'")
-        global_log_manager.log(f"[Marquee] update_marquee_message called, msg='{msg}'", "debug")
         if not msg:
             self.marquee_widget.setVisible(False)
             self.marquee_timer.stop()
-            print('[Marquee] marquee_timer stopped (empty msg)')
-            global_log_manager.log('[Marquee] marquee_timer stopped (empty msg)', 'debug')
             self.marquee_closed_by_user = False
             return
+
         display_len = self._get_display_len()
-        # 循环拼接，保证长度大于等于2倍display_len
+        # 循环拼接，保证长度大于等于3倍display_len以确保平滑滚动
         base_text = msg + (" " * display_len)
-        while len(base_text) < 2 * display_len:
+        while len(base_text) < 3 * display_len:
             base_text += msg + (" " * display_len)
+
         self.marquee_text = base_text
-        self.scroll_position = 0  # 从最左侧开始
+        self.scroll_position = 0  # 从最右侧开始
         self.marquee_widget.setVisible(True)
         self.marquee_closed_by_user = False
-        self._scroll_marquee()
+
+        # 首次显示时，先显示完整的消息
+        if len(msg) <= display_len:
+            self.marquee_bar.setText(msg)
+        else:
+            # 如果消息本身很长，显示最后的部分
+            self.marquee_bar.setText(msg[-display_len:])
+            self.scroll_position = len(self.marquee_text) - display_len
+
         self.marquee_timer.start(120)
-        print('[Marquee] marquee_timer started')
-        global_log_manager.log('[Marquee] marquee_timer started', 'debug')
 
 
 def create_main_window():

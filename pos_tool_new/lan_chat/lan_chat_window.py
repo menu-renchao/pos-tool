@@ -200,17 +200,7 @@ class LanChatTab(BaseTabWidget):
 
         self.message_input = QLineEdit()
         self.message_input.setPlaceholderText("输入消息...")
-        self.message_input.setStyleSheet("""
-            QLineEdit {
-                border: 2px solid #ddd;
-                border-radius: 5px;
-                padding: 8px;
-                font-size: 12px;
-            }
-            QLineEdit:focus {
-                border-color: #2196F3;
-            }
-        """)
+        self.message_input.setStyleSheet("""""")
 
         self.send_btn = QPushButton("发送")
         self.send_btn.setStyleSheet("""
@@ -220,6 +210,16 @@ class LanChatTab(BaseTabWidget):
                 border: none;
                 border-radius: 5px;
                 padding: 8px 15px;
+            QLineEdit {
+                border: 2px solid #ddd;
+                border-radius: 5px;
+                padding: 8px;
+                font-size: 12px;
+            }
+            QLineEdit:focus {
+                border-color: #2196F3;
+            }
+        
                 font-weight: bold;
             }
             QPushButton:hover {
@@ -269,7 +269,6 @@ class LanChatTab(BaseTabWidget):
             self.service.send_message(message, marquee=marquee)
             self.message_input.clear()
             self.stop_typing_indicator()
-            # 只有勾选了复选框才同步到主页跑马灯
             if marquee:
                 main_win = self.window()
                 if hasattr(main_win, 'update_marquee_message'):
