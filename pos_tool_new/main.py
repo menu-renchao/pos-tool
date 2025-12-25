@@ -1130,17 +1130,16 @@ class MainWindow(QMainWindow):
         if not self.marquee_text:
             self.marquee_bar.setText("")
             return
-        display_len = 40  # 可视字符数
+        display_len = 160  # 可视字符数
         text = self.marquee_text
-        # 用空格填充，保证循环完整
-        full_text = (" " * display_len) + text + (" " * display_len)
+        full_text = (" " * display_len) + text
         pos = self.marquee_pos
-        if pos + display_len > len(full_text):
-            pos = 0
-            self.marquee_pos = 0
-        show = full_text[pos:pos+display_len]
+        if pos < 0:
+            pos = len(text) + display_len
+            self.marquee_pos = pos
+        show = full_text[pos:pos + display_len]
         self.marquee_bar.setText(show)
-        self.marquee_pos = (self.marquee_pos + 1) % (len(full_text) - display_len + 1)
+        self.marquee_pos -= 1
 
     def update_marquee_message(self, msg: str):
         """更新并显示最新广播消息到浮层条"""
@@ -1149,10 +1148,11 @@ class MainWindow(QMainWindow):
             self.marquee_timer.stop()
             return
         self.marquee_text = msg + "    "  # 加空格分隔
-        self.marquee_pos = 0
+        display_len = 180
+        self.marquee_pos = len(self.marquee_text) + display_len
         self.marquee_bar.setVisible(True)
         self._scroll_marquee()
-        self.marquee_timer.start(120)  # 调整速度
+        self.marquee_timer.start(120)
 
 
 def create_main_window():
