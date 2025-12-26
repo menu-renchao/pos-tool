@@ -1,11 +1,6 @@
 import React from 'react';
 
-const ScanTable = ({ devices, onOpenDevice, onShowDetails, onRemarkChange }) => {
-  const handleRemarkChange = (ip, remark) => {
-    onRemarkChange(ip, remark);
-    // 这里可以添加保存备注到后端的逻辑
-  };
-
+const ScanTable = ({ devices, onOpenDevice, onShowDetails }) => {
   return (
     <div className="scan-table-container">
       <table className="scan-table">
@@ -16,7 +11,6 @@ const ScanTable = ({ devices, onOpenDevice, onShowDetails, onRemarkChange }) => 
             <th>商家ID</th>
             <th>名称</th>
             <th>版本</th>
-            <th>备注</th>
             <th>操作</th>
           </tr>
         </thead>
@@ -28,15 +22,6 @@ const ScanTable = ({ devices, onOpenDevice, onShowDetails, onRemarkChange }) => 
               <td>{device.merchantId || (device.name && device.version ? 'Free Trials' : '——')}</td>
               <td>{device.name || '——'}</td>
               <td>{device.version || '——'}</td>
-              <td>
-                <input
-                  type="text"
-                  className="remark-input"
-                  value={device.remark || ''}
-                  onChange={(e) => handleRemarkChange(device.ip, e.target.value)}
-                  placeholder="添加备注"
-                />
-              </td>
               <td>
                 <div className="action-buttons">
                   {device.merchantId || device.name ? (
