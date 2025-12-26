@@ -468,9 +468,11 @@ class GenerateImgThread(BaseWorkerThread):
 
         self.progress_updated.emit(100, None, None, None)
         if err:
+            self.finished_updated.emit(False, err)
             raise Exception(f"图片生成失败: {err}")
         else:
             self.status_updated.emit(f"图片生成成功: {output_path}")
+            self.finished_updated.emit(True, output_path)
 
 
 class ScanPosWorkerThread(BaseWorkerThread):

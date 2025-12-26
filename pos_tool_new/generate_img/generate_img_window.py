@@ -196,11 +196,11 @@ class GenerateImgTabWidget(BaseTabWidget):
         self.thread.finished_updated.connect(self.on_generate_finished)
         self.thread.start()
 
-    def on_generate_finished(self, output_path):
+    def on_generate_finished(self, success, output_path):
         """生成完成回调"""
         self.gen_btn.setDisabled(False)
 
-        if output_path:
+        if success and output_path:
             self.status_label.setText("生成成功！")
             self.status_label.setStyleSheet("""
                 QLabel { 
