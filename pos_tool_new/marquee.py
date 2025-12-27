@@ -85,7 +85,7 @@ class MarqueeBar(QWidget):
         available_width = bar_width # 10px padding-left + 28px 关闭按钮
         display_len = max(1, int(available_width / avg_char_width))
 
-        return display_len
+        return display_len-35
 
     def _scroll_marquee(self):
         """优化滚动逻辑，支持平滑滚动"""
