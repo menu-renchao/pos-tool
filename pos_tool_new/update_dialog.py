@@ -24,7 +24,7 @@ EXE_RUN_DIR = os.path.dirname(sys.executable)
 def get_api_url():
     """根据配置文件动态获取API_URL"""
     ip = get_app_config_value('micro_default_ip')
-    port = get_app_config_value('micro_default_upgrade_port')
+    port = get_app_config_value('micro_default_port')
     return f"http://{ip}:{port}/api"
 
 

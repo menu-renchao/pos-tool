@@ -262,7 +262,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         from pos_tool_new.utils.app_config_utils import get_app_config_value
         self._sms_service_ip = get_app_config_value('micro_default_ip', None)
-        self._sms_service_port = get_app_config_value('micro_default_sms_port', None)
+        self._sms_service_port = get_app_config_value('micro_default_port', None)
         super().__init__()
         self.finish_timer: Optional[QTimer] = None
         self.log_text: Optional[EnhancedTextEdit] = None
@@ -974,26 +974,15 @@ class MainWindow(QMainWindow):
         ip_layout.addWidget(ip_label)
         ip_layout.addWidget(ip_edit)
         layout.addLayout(ip_layout)
-        # 短信服务端口输入
-        sms_port_layout = QHBoxLayout()
-        sms_port_label = QLabel("短信服务端口:")
-        micro_default_sms_port = get_app_config_value('micro_default_sms_port', None)
-        sms_port_edit = QLineEdit()
-        sms_port_edit.setText(str(self._micro_service_sms_port) if hasattr(self,
-                                                                           '_micro_service_sms_port') else micro_default_sms_port or '')
-        sms_port_layout.addWidget(sms_port_label)
-        sms_port_layout.addWidget(sms_port_edit)
-        layout.addLayout(sms_port_layout)
-        # 升级服务端口输入
-        upgrade_port_layout = QHBoxLayout()
-        upgrade_port_label = QLabel("升级服务端口:")
-        micro_default_upgrade_port = get_app_config_value('micro_default_upgrade_port', None)
-        upgrade_port_edit = QLineEdit()
-        upgrade_port_edit.setText(str(self._micro_service_upgrade_port) if hasattr(self,
-                                                                                   '_micro_service_upgrade_port') else micro_default_upgrade_port or '')
-        upgrade_port_layout.addWidget(upgrade_port_label)
-        upgrade_port_layout.addWidget(upgrade_port_edit)
-        layout.addLayout(upgrade_port_layout)
+        # 微服务端口输入（合并短信和升级服务端口）
+        port_layout = QHBoxLayout()
+        port_label = QLabel("微服务端口:")
+        micro_default_port = get_app_config_value('micro_default_port', None)
+        port_edit = QLineEdit()
+        port_edit.setText(str(self._micro_service_port) if hasattr(self, '_micro_service_port') else micro_default_port or '')
+        port_layout.addWidget(port_label)
+        port_layout.addWidget(port_edit)
+        layout.addLayout(port_layout)
         # 按钮
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         layout.addWidget(buttons)
@@ -1001,19 +990,17 @@ class MainWindow(QMainWindow):
         buttons.rejected.connect(dialog.reject)
         if dialog.exec() == QDialog.DialogCode.Accepted:
             self._micro_service_ip = ip_edit.text().strip()
-            self._micro_service_sms_port = sms_port_edit.text().strip()
-            self._micro_service_upgrade_port = upgrade_port_edit.text().strip()
-            if not self._micro_service_ip or not self._micro_service_sms_port or not self._micro_service_upgrade_port:
-                QMessageBox.warning(self, "提示", "请填写微服务的IP、短信服务端口和升级服务端口后再保存！")
+            self._micro_service_port = port_edit.text().strip()
+            if not self._micro_service_ip or not self._micro_service_port:
+                QMessageBox.warning(self, "提示", "请填写微服务的IP和端口后再保存！")
                 return
-            self._micro_service_api_url = f"http://{self._micro_service_ip}:{self._micro_service_sms_port}"
+            self._micro_service_api_url = f"http://{self._micro_service_ip}:{self._micro_service_port}"
             os.environ['PLAYWRIGHT_SERVER_URL'] = self._micro_service_api_url
             # 保存到app.config
             set_app_config_value('micro_default_ip', self._micro_service_ip)
-            set_app_config_value('micro_default_sms_port', self._micro_service_sms_port)
-            set_app_config_value('micro_default_upgrade_port', self._micro_service_upgrade_port)
+            set_app_config_value('micro_default_port', self._micro_service_port)
             QMessageBox.information(self, "提示",
-                                    f"微服务配置已保存:\nIP: {self._micro_service_ip}\n短信服务端口: {self._micro_service_sms_port}\n升级服务端口: {self._micro_service_upgrade_port}")
+                                    f"微服务配置已保存:\nIP: {self._micro_service_ip}\n端口: {self._micro_service_port}")
 
     def check_and_show_guide_overlay(self):
         """首次运行检测并显示多步骤引导蒙层"""
@@ -1129,6 +1116,10 @@ if __name__ == "__main__":
     splash = ModernSplashScreen(resource_path('UI/loading.gif'), duration=1800)
     splash.start(create_main_window)
     sys.exit(app.exec())
+
+
+
+
 
 
 

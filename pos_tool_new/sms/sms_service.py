@@ -17,7 +17,7 @@ def get_usable_phone_numbers_remote():
         data = resp.json()
         return data.get("phone_numbers", [])
     except Exception:
-        return "服务没生效或者尝试更新手机号列\n移步【设置】->【微服务】检查ip和短信服务端口是否正确"
+        return "服务没生效或者尝试更新手机号列\n移步【设置】->【微服务】检查ip和服务端口是否正确"
 
 
 def get_latest_code_remote(phone_number, keyword, count):
