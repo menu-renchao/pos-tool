@@ -121,14 +121,8 @@ class MarqueeBar(QWidget):
         if self.scroll_position >= len(self.marquee_text):
             self.scroll_position = 0
 
-        # 动态调整滚动速度（根据文本长度）
-        text_length = len(self.display_text)
-        if text_length > 100:
-            self.marquee_timer.setInterval(80)  # 长文本滚动快一些
-        elif text_length > 50:
-            self.marquee_timer.setInterval(100)
-        else:
-            self.marquee_timer.setInterval(120)
+
+        self.marquee_timer.setInterval(200)
 
     def update_marquee_message(self, msg: str):
         """优化消息更新逻辑"""
@@ -170,16 +164,7 @@ class MarqueeBar(QWidget):
             initial_text = msg[-display_len:] if len(msg) > display_len else msg
             self.marquee_bar.setText(initial_text)
 
-            # 根据文本长度设置初始滚动速度
-            text_length = len(msg)
-            if text_length > 100:
-                interval = 80
-            elif text_length > 50:
-                interval = 100
-            else:
-                interval = 120
-
-            self.marquee_timer.start(interval)
+            self.marquee_timer.start(200)
         else:
             # 不需要滚动：直接显示完整文本
             self.marquee_text = msg
