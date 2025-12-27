@@ -1,13 +1,28 @@
 # lan_chat_tab.py
 from datetime import datetime
 
-from PyQt6.QtCore import Qt, pyqtSignal
+import ctypes
+from ctypes import wintypes
+
+from PyQt6.QtCore import Qt, pyqtSignal, QTimer
 from PyQt6.QtGui import QFont, QTextCursor
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTextEdit,
                              QLineEdit, QPushButton, QLabel, QListWidget, QSplitter, QCheckBox)
 
 from pos_tool_new.base_tab import BaseTabWidget
 from pos_tool_new.utils.app_config_utils import get_app_config_value, set_app_config_value
+
+
+def flash_window(hwnd, count=5):
+    class FLASHWINFO(ctypes.Structure):
+        _fields_ = [('cbSize', wintypes.UINT),
+                    ('hwnd', wintypes.HWND),
+                    ('dwFlags', wintypes.DWORD),
+                    ('uCount', wintypes.UINT),
+                    ('dwTimeout', wintypes.DWORD)]
+    FLASHW_ALL = 3
+    info = FLASHWINFO(ctypes.sizeof(FLASHWINFO), hwnd, FLASHW_ALL, count, 0)
+    ctypes.windll.user32.FlashWindowEx(ctypes.byref(info))
 
 
 class LanChatTab(BaseTabWidget):
@@ -56,6 +71,12 @@ class LanChatTab(BaseTabWidget):
         self.disconnected.connect(self.on_disconnected)
         self.user_list_received.connect(self.on_user_list_received)
         self.system_message.connect(self.append_system_message)
+
+        # 闪烁相关
+        self.tab_flash_timer = QTimer(self)
+        self.tab_flash_timer.setInterval(500)  # 500ms 闪烁
+        self.tab_flash_timer.timeout.connect(self._toggle_tab_flash)
+        self.tab_flash_state = False
 
     def _emit_message_received(self, nickname, message, timestamp, marquee=False):
         try:
@@ -333,6 +354,15 @@ class LanChatTab(BaseTabWidget):
 
     def on_message_received(self, nickname, message, timestamp, marquee=False):
         """收到消息回调"""
+        # 新增：收到新消息时闪烁任务栏图标（仅Windows）
+        try:
+            import platform
+            if platform.system() == 'Windows':
+                main_win = self.window()
+                hwnd = int(main_win.winId())
+                flash_window(hwnd)
+        except Exception:
+            pass
         from datetime import datetime
         if isinstance(timestamp, str):
             try:
@@ -387,14 +417,26 @@ class LanChatTab(BaseTabWidget):
         formatted_msg = f'<span style="color: #ff9800;">[{time_str}] 系统: {message}</span>'
         self.message_display.append(formatted_msg)
 
+    def _toggle_tab_flash(self):
+        self.tab_flash_state = not self.tab_flash_state
+        self.update_tab_title()
+
     def update_tab_title(self):
-        """更新标签页标题"""
+        """更新标签页标题，支持闪烁且不改变布局"""
         if self.parent_tab_widget:
             base_title = "💬 消息广播"
             if self.unread_count > 0:
                 base_title += f" ({self.unread_count})"
-
-            # 查找当前标签页索引
+                # 闪烁时用全角空格补齐，替换“消息广播”为“新消息”
+                if self.tab_flash_state:
+                    # 保持长度一致：len("消息广播") == len("新消息  ")
+                    base_title = base_title.replace("消息广播", "新消息　")
+                if not self.tab_flash_timer.isActive():
+                    self.tab_flash_timer.start()
+            else:
+                if self.tab_flash_timer.isActive():
+                    self.tab_flash_timer.stop()
+                self.tab_flash_state = False
             for i in range(self.parent_tab_widget.count()):
                 if self.parent_tab_widget.widget(i) == self:
                     self.parent_tab_widget.setTabText(i, base_title)
@@ -405,6 +447,10 @@ class LanChatTab(BaseTabWidget):
         super().showEvent(event)
         self.unread_count = 0
         self.update_tab_title()
+        # 显示时停止闪烁
+        if self.tab_flash_timer.isActive():
+            self.tab_flash_timer.stop()
+        self.tab_flash_state = False
         self.hide_main_log_area()
 
     def closeEvent(self, event):
@@ -420,4 +466,3 @@ class LanChatTab(BaseTabWidget):
     def dispose(self):
         if hasattr(self, 'service') and self.service:
             self.service.stop()
-
