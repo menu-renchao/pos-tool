@@ -105,6 +105,26 @@ class LanChatTab(BaseTabWidget):
         chat_widget = QWidget()
         chat_layout = QVBoxLayout(chat_widget)
 
+        # 消息显示区上方加清空按钮
+        msg_top_layout = QHBoxLayout()
+        msg_top_layout.addStretch()
+        self.clear_btn = QPushButton("清空聊天记录")
+        self.clear_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #f44336;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                padding: 6px 12px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #b71c1c;
+            }
+        """)
+        msg_top_layout.addWidget(self.clear_btn)
+        chat_layout.addLayout(msg_top_layout)
+
         # 消息显示区域
         self.message_display = QTextEdit()
         self.message_display.setReadOnly(True)
@@ -193,15 +213,18 @@ class LanChatTab(BaseTabWidget):
         """创建输入区域"""
         input_layout = QHBoxLayout()
 
-        # 新增：跑马灯显示复选框，默认不勾选
+        # 跑马灯显示复选框，默认不勾选
         self.marquee_checkbox = QCheckBox("跑马灯显示")
         self.marquee_checkbox.setChecked(False)
         input_layout.addWidget(self.marquee_checkbox)
 
-        self.message_input = QLineEdit()
-        self.message_input.setPlaceholderText("输入消息...")
-        self.message_input.setStyleSheet("""""")
+        # 多行输入框
+        self.message_input = QTextEdit()
+        self.message_input.setFixedHeight(50)
+        self.message_input.setStyleSheet("")
+        input_layout.addWidget(self.message_input)
 
+        # 发送按钮
         self.send_btn = QPushButton("发送")
         self.send_btn.setStyleSheet("""
             QPushButton {
@@ -210,16 +233,6 @@ class LanChatTab(BaseTabWidget):
                 border: none;
                 border-radius: 5px;
                 padding: 8px 15px;
-            QLineEdit {
-                border: 2px solid #ddd;
-                border-radius: 5px;
-                padding: 8px;
-                font-size: 12px;
-            }
-            QLineEdit:focus {
-                border-color: #2196F3;
-            }
-        
                 font-weight: bold;
             }
             QPushButton:hover {
@@ -229,8 +242,6 @@ class LanChatTab(BaseTabWidget):
                 background-color: #ccc;
             }
         """)
-
-        input_layout.addWidget(self.message_input)
         input_layout.addWidget(self.send_btn)
 
         return input_layout
@@ -238,11 +249,22 @@ class LanChatTab(BaseTabWidget):
     def setup_connections(self):
         """设置信号连接"""
         self.send_btn.clicked.connect(self.send_message)
-        self.message_input.returnPressed.connect(self.send_message)
+        self.clear_btn.clicked.connect(self.clear_message_display)
+        # 支持 Ctrl+Enter 发送，Enter 换行
+        self.message_input.installEventFilter(self)
         self.set_nickname_btn.clicked.connect(self.set_nickname)
         self.reconnect_btn.clicked.connect(self.on_reconnect_clicked)
         # 输入状态检测
         self.message_input.textChanged.connect(self.on_text_changed)
+
+    def eventFilter(self, obj, event):
+        from PyQt6.QtCore import QEvent, Qt
+        if obj == self.message_input and event.type() == QEvent.Type.KeyPress:
+            if (event.key() == Qt.Key.Key_Return or event.key() == Qt.Key.Key_Enter):
+                if event.modifiers() & Qt.KeyboardModifier.ControlModifier:
+                    self.send_message()
+                    return True  # 阻止事件继续传递
+        return super().eventFilter(obj, event)
 
     def on_reconnect_clicked(self):
         """手动重连按钮点击事件"""
@@ -263,7 +285,7 @@ class LanChatTab(BaseTabWidget):
 
     def send_message(self):
         """发送消息"""
-        message = self.message_input.text().strip()
+        message = self.message_input.toPlainText().strip()
         if message and self.is_connected:
             marquee = self.marquee_checkbox.isChecked() if hasattr(self, 'marquee_checkbox') else False
             self.service.send_message(message, marquee=marquee)
@@ -274,9 +296,13 @@ class LanChatTab(BaseTabWidget):
                 if hasattr(main_win, 'update_marquee_message'):
                     main_win.update_marquee_message(message)
 
+    def clear_message_display(self):
+        """清空聊天记录显示区"""
+        self.message_display.clear()
+
     def on_text_changed(self):
         """文本变化处理输入状态"""
-        if self.message_input.text().strip():
+        if self.message_input.toPlainText().strip():
             self.service.send_typing_status(True)
             self.typing_timer.start(3000)  # 3秒后停止显示输入状态
 
