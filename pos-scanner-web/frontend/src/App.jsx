@@ -202,10 +202,6 @@ function App() {
           devices={filteredDevices}
           onOpenDevice={handleOpenDevice}
           onShowDetails={handleShowDetails}
-          onRemarkChange={(ip, remark) => {
-            // 处理备注更新
-            console.log(`更新设备 ${ip} 的备注:`, remark);
-          }}
         />
 
         {showModal && (
