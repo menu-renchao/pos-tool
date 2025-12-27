@@ -416,3 +416,8 @@ class LanChatTab(BaseTabWidget):
         """隐藏事件处理"""
         super().hideEvent(event)
         self.show_main_log_area()
+
+    def dispose(self):
+        if hasattr(self, 'service') and self.service:
+            self.service.stop()
+

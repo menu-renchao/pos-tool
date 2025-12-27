@@ -593,6 +593,9 @@ class MainWindow(QMainWindow):
     def refresh_tabs(self):
         """移除所有tab并重新加载"""
         while self.tabs.count():
+            tab = self.tabs.widget(0)
+            if hasattr(tab, 'dispose'):
+                tab.dispose()
             self.tabs.removeTab(0)
         config = load_tab_config_from_app()
         tab_order = config.get("tab_order", TAB_ID_LIST)
@@ -1116,10 +1119,3 @@ if __name__ == "__main__":
     splash = ModernSplashScreen(resource_path('UI/loading.gif'), duration=1800)
     splash.start(create_main_window)
     sys.exit(app.exec())
-
-
-
-
-
-
-
