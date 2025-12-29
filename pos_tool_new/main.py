@@ -4,22 +4,16 @@ import tempfile
 import time
 from typing import Optional
 
-from PyQt6.QtWidgets import QListWidget
-
-from pos_tool_new.modern_splash import ModernSplashScreen
-from pos_tool_new.update_dialog import check_and_update_exe
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 from PyQt6.QtCore import QTimer, Qt, QPropertyAnimation, QEasingCurve, QRect, QPoint, QRectF
-from PyQt6.QtGui import QFont, QPalette, QTextCharFormat, QTextCursor, QAction, QIcon, QColor, QPainterPath
+from PyQt6.QtGui import QFont, QPalette, QTextCharFormat, QTextCursor, QAction, QIcon, QColor, QPainterPath, QPainter
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QTabWidget, QTextEdit, QPushButton, QHBoxLayout,
     QLabel, QGroupBox, QProgressBar, QMainWindow,
-    QMenuBar, QMessageBox, QVBoxLayout, QSplitter, QCheckBox, QDialog, QDialogButtonBox, QLineEdit
+    QMenuBar, QMessageBox, QVBoxLayout, QSplitter, QCheckBox, QDialog, QDialogButtonBox, QLineEdit, QListWidget, QSplitterHandle
 )
-from PyQt6.QtWidgets import QSplitterHandle
-from PyQt6.QtGui import QPainter
 
+from pos_tool_new.modern_splash import ModernSplashScreen
+from pos_tool_new.update_dialog import check_and_update_exe
 from pos_tool_new.backend import Backend
 from pos_tool_new.version_info.version_info import VersionInfoDialog
 from pos_tool_new.utils.log_manager import global_log_manager
@@ -296,7 +290,7 @@ class MainWindow(QMainWindow):
             if old_exe_path and os.path.exists(old_exe_path):
                 try:
                     os.remove(old_exe_path)
-                except Exception as e:
+                except Exception:
                     pass  # 可加日志
                 set_app_config_value('old_exe_path', '')
             set_app_config_value('need_clear_history_files', 'false')
@@ -334,7 +328,8 @@ class MainWindow(QMainWindow):
         # ====== 在主布局顶部插入跑马灯浮层条 ======
         layout = central_widget.layout() or central_widget.findChild(QVBoxLayout)
         if layout is not None:
-            layout.insertWidget(0, self.marquee_widget)
+            if hasattr(layout, 'insertWidget'):
+                layout.insertWidget(0, self.marquee_widget)
         else:
             vbox = QVBoxLayout(central_widget)
             vbox.setContentsMargins(0, 0, 0, 0)
@@ -1011,30 +1006,29 @@ class MainWindow(QMainWindow):
         guide_shown = get_app_config_value('guide_shown', 'false')
         if guide_shown != 'true':
             # 获取目标控件
-            menu_ip = None
-            menu_layout = None
-            menu_update = None
-            tabbar = None
-            splitter_handle = None
             menubar = self.menuBar()
             # 菜单栏“设置”下的各action
             for act in menubar.actions():
                 if act.text().startswith("设置"):
                     for sub in act.menu().actions():
                         if "全局IP" in sub.text():
-                            menu_ip = sub
+                            pass  # menu_ip = sub
                         if "布局" in sub.text():
-                            menu_layout = sub
+                            pass  # menu_layout = sub
                 if act.text().startswith("关于"):
                     for sub in act.menu().actions():
                         if "检查更新" in sub.text():
-                            menu_update = sub
+                            pass  # menu_update = sub
             # tab栏
             if hasattr(self, 'tabs'):
                 tabbar = self.tabs.tabBar()
+            else:
+                tabbar = None
             # 分割条handle
             if hasattr(self, 'splitter'):
                 splitter_handle = self.splitter.handle(1)
+            else:
+                splitter_handle = None
             steps = [
                 (menubar, "1. 在‘关于-检查更新’可以检测并升级工具版本。"),
                 (menubar, "2. 在‘设置-全局IP’可以设置每个Tab的需要的IP。"),
@@ -1119,3 +1113,4 @@ if __name__ == "__main__":
     splash = ModernSplashScreen(resource_path('UI/loading.gif'), duration=1800)
     splash.start(create_main_window)
     sys.exit(app.exec())
+
