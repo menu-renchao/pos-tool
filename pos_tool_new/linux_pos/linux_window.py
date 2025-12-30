@@ -201,20 +201,11 @@ class LinuxTabWidget(BaseTabWidget):
         ssh_main_layout.addStretch()
         self.layout.addWidget(ssh_group)
 
-        # ========== 第二行：环境选择和文件操作 ==========
+        # ========== 第二行：文件操作 ==========
         row2_layout = QHBoxLayout()
         row2_layout.setSpacing(10)
 
-        # 环境选择 (1/3)
-        env_group = QGroupBox("配置文件环境选择")
-        env_layout = QHBoxLayout(env_group)
-        env_layout.setContentsMargins(5, 10, 5, 10)
-        env_frame, self.env_group = self.create_env_selector("QA")
-        env_layout.addWidget(env_frame)
-        env_layout.addStretch()
-        row2_layout.addWidget(env_group, 1)
-
-        # 文件选择 (2/3)
+        # 文件选择 (1/2)
         file_group = QGroupBox("换包/升级服务")
         file_main_layout = QVBoxLayout(file_group)
         file_main_layout.setContentsMargins(5, 10, 5, 10)
@@ -236,7 +227,7 @@ class LinuxTabWidget(BaseTabWidget):
         path_layout.addWidget(btn_download_net)
 
         file_main_layout.addLayout(path_layout)
-        row2_layout.addWidget(file_group, 4)
+        row2_layout.addWidget(file_group, 1)
 
         self.layout.addLayout(row2_layout)
 
@@ -315,6 +306,16 @@ class LinuxTabWidget(BaseTabWidget):
         pipeline_group = QGroupBox("流水线")
         pipeline_layout = QHBoxLayout(pipeline_group)
         pipeline_layout.setContentsMargins(5, 10, 5, 10)
+
+        # 环境选择（只在流水线里）
+        env_group = QGroupBox()
+        env_group.setTitle("配置文件环境选择")
+        env_layout = QHBoxLayout(env_group)
+        env_layout.setContentsMargins(5, 10, 5, 10)
+        env_frame, self.env_group = self.create_env_selector("QA")
+        env_layout.addWidget(env_frame)
+        env_layout.addStretch()
+        pipeline_layout.addWidget(env_group)
 
         self.pipeline_upgrade_btn = QPushButton("一键升级(war包)")
         self.pipeline_upgrade_btn.setToolTip("替换war包->修改文件->重启POS")
@@ -396,6 +397,7 @@ class LinuxTabWidget(BaseTabWidget):
             self.status_label.setText(f"正在测试连接... 剩余{self.countdown}秒")
         elif self.countdown == 0:
             self.status_label.setText("连接超时！")
+            self.status_label.setStyleSheet("color: red;")
         if self.countdown <= 0 and not self.ssh_test_finished:
             self.ssh_test_finished = True
             self.timer.stop()
