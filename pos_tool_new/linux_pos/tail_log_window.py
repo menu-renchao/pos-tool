@@ -98,8 +98,16 @@ class FindDialog(QDialog):
             }
         """)
 
+        # 新增：搜索按钮
+        self.search_btn = QPushButton()
+        self.search_btn.setText("🔍")  # 可替换为合适的图标
+        self.search_btn.setFixedWidth(36)
+        self.search_btn.setToolTip("点击搜索")
+        self.search_btn.setStyleSheet("font-size:16px;")
+
         input_layout.addWidget(input_label)
         input_layout.addWidget(self.input, 1)
+        input_layout.addWidget(self.search_btn)
 
         main_layout.addLayout(input_layout)
 
@@ -160,16 +168,27 @@ class FindDialog(QDialog):
 
     def setup_connections(self):
         """设置信号连接"""
-        self.input.textChanged.connect(self.on_text_changed)
+        # self.input.textChanged.connect(self.on_text_changed)  # 移除自动搜索
         self.prev_btn.clicked.connect(self.find_previous_clicked)
         self.next_btn.clicked.connect(self.find_next_clicked)
         self.highlight_cb.toggled.connect(self.on_highlight_toggled)
         self.case_cb.toggled.connect(self.on_options_changed)  # 新增
         self.regex_cb.toggled.connect(self.on_options_changed)  # 新增
         self.find_timer.timeout.connect(self.delayed_search)
+        # self.input.returnPressed.connect(self.find_next_clicked)  # 移除回车查找
+        self.search_btn.clicked.connect(self.on_search_clicked)  # 新增：点击按钮才查找
 
-        # 回车键查找下一个
-        self.input.returnPressed.connect(self.find_next_clicked)
+    def on_search_clicked(self):
+        """点击搜索按钮时执行查找/高亮"""
+        text = self.input.text().strip()
+        if not text:
+            self.status_label.setText("请输入关键词")
+            self.clear_highlight()
+            return
+        if self.highlight_cb.isChecked():
+            self.highlight_all_clicked()
+        else:
+            self.find_next_clicked()
 
     def on_options_changed(self, checked):
         """选项变化处理（区分大小写、正则表达式）"""
@@ -500,7 +519,7 @@ class TailLogWindow(QDialog):
         # 日志显示区域
         self.text_edit = QTextEdit(self)
         self.text_edit.setReadOnly(True)
-        self.text_edit.setLineWrapMode(QTextEdit.LineWrapMode.NoWrap)  # 不自动换行
+        self.text_edit.setLineWrapMode(QTextEdit.LineWrapMode.WidgetWidth)  # 默认开启换行
 
         # 添加行号功能
         font = QFont("Consolas", 10)
@@ -520,7 +539,7 @@ class TailLogWindow(QDialog):
         self.pause_btn.setObjectName("pauseBtn")
         self.pause_btn.clicked.connect(self.toggle_pause)
 
-        self.wrap_btn = QPushButton("切换换行")
+        self.wrap_btn = QPushButton("取消换行")
         self.wrap_btn.clicked.connect(self.toggle_wrap)
 
         # 查找按钮
