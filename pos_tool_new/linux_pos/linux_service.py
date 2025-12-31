@@ -425,7 +425,7 @@ class LinuxService(Backend):
     def upload_and_extract_package(self, host: str, username: str, password: str, local_file: str,
                                    progress_callback: Optional[Callable] = None,
                                    speed_callback: Optional[Callable] = None) -> None:
-        """上传并解压升级包"""
+        """上传并解压升级包，解压后自动检查并修正目录权限为menu:menu"""
         try:
             if progress_callback:
                 progress_callback(10)
@@ -450,8 +450,9 @@ class LinuxService(Backend):
 
                 # 解压文件前，删除同名文件夹
                 folder_name = os.path.splitext(os.path.basename(remote_file))[0]
-                self.log(f"删除同名文件夹: {self.MENU_HOME}/{folder_name}", level="warning")
-                self._execute_command(ssh, f"sudo rm -rf {self.MENU_HOME}/{folder_name}")
+                target_dir = f"{self.MENU_HOME}/{folder_name}"
+                self.log(f"删除同名文件夹: {target_dir}", level="warning")
+                self._execute_command(ssh, f"sudo rm -rf {target_dir}")
                 # 解压文件
                 self.log("解压文件 ...", level="info")
                 out, err, exit_status = self._execute_command(ssh,
@@ -462,6 +463,12 @@ class LinuxService(Backend):
                     self.log(f"解压失败: {err}", level="error")
                 if progress_callback:
                     progress_callback(100)
+
+                # 新增：解压后检查属主，若为root则chown为menu:menu
+                out, err, stat_exit = self._execute_command(ssh, f"stat -c %U {target_dir}")
+                if stat_exit == 0 and out.strip() == 'root':
+                    self.log(f"{target_dir} 属主为root，自动更改为menu:menu ...", level="info")
+                    self._execute_command(ssh, f"sudo chown -R menu:menu {target_dir}")
         except Exception as e:
             self.log(f"操作失败: {str(e)}", level="error")
             if progress_callback:
