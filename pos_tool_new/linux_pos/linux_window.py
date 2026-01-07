@@ -240,38 +240,58 @@ class LinuxTabWidget(BaseTabWidget):
         ops_layout = QVBoxLayout(ops_group)
         ops_layout.setContentsMargins(5, 10, 5, 10)
 
-        # 第一行按钮
-        ops_row1 = QHBoxLayout()
+        # 优化为网格布局，按钮对齐美观
+        ops_grid = QGridLayout()
+        ops_grid.setSpacing(12)
+        btn_width = 120
+
         self.replace_btn = QPushButton("替换war包")
+        self.replace_btn.setFixedWidth(btn_width)
         self.replace_btn.clicked.connect(self.on_replace_war_linux)
-        ops_row1.addWidget(self.replace_btn)
+        ops_grid.addWidget(self.replace_btn, 0, 0)
 
         self.upload_updater_btn = QPushButton("上传升级包")
+        self.upload_updater_btn.setFixedWidth(btn_width)
         self.upload_updater_btn.clicked.connect(self.on_upload_upgrade_package)
         self.upload_updater_btn.setToolTip("上传到/home/menu并解压")
-        ops_row1.addWidget(self.upload_updater_btn)
+        ops_grid.addWidget(self.upload_updater_btn, 0, 1)
 
         self.upgrade_package_btn = QPushButton("使用升级包")
+        self.upgrade_package_btn.setFixedWidth(btn_width)
         self.upgrade_package_btn.clicked.connect(self.on_upgrade_with_package)
         self.upgrade_package_btn.setToolTip("扫描/home/menu下的升级工具")
-        ops_row1.addWidget(self.upgrade_package_btn)
+        ops_grid.addWidget(self.upgrade_package_btn, 0, 2)
 
-        # 第二行按钮
-        ops_row2 = QHBoxLayout()
+        self.upgrade_package_btn = QPushButton("敬请期待")
+        self.upgrade_package_btn.setFixedWidth(btn_width)
+        self.upgrade_package_btn.setToolTip("没有任何功能，只是占一个坑看起来好看")
+        ops_grid.addWidget(self.upgrade_package_btn, 0, 3)
+
         self.local_md5_btn = QPushButton("本地MD5")
+        self.local_md5_btn.setFixedWidth(btn_width)
         self.local_md5_btn.clicked.connect(self.on_check_local_md5)
-        ops_row2.addWidget(self.local_md5_btn)
+        ops_grid.addWidget(self.local_md5_btn, 1, 0)
 
         self.remote_md5_btn = QPushButton("远程MD5")
+        self.remote_md5_btn.setFixedWidth(btn_width)
         self.remote_md5_btn.clicked.connect(self.on_check_remote_md5)
-        ops_row2.addWidget(self.remote_md5_btn)
+        ops_grid.addWidget(self.remote_md5_btn, 1, 1)
 
         self.remote_app_btn = QPushButton("壳子版本")
+        self.remote_app_btn.setFixedWidth(btn_width)
         self.remote_app_btn.clicked.connect(self.on_get_app_version)
-        ops_row2.addWidget(self.remote_app_btn)
+        ops_grid.addWidget(self.remote_app_btn, 1, 2)
 
-        ops_layout.addLayout(ops_row1)
-        ops_layout.addLayout(ops_row2)
+        # 新增 clouddatahub 版本按钮
+        self.clouddatahub_version_btn = QPushButton("clouddatahub版本")
+        self.clouddatahub_version_btn.setFixedWidth(btn_width)
+        self.clouddatahub_version_btn.clicked.connect(self.on_get_clouddatahub_version)
+        ops_grid.addWidget(self.clouddatahub_version_btn, 1, 3)
+
+        # 若首行按钮少于次行，可补空白或拉伸
+        ops_grid.setColumnStretch(4, 1)
+
+        ops_layout.addLayout(ops_grid)
         row3_layout.addWidget(ops_group, 2)
 
         # 重启操作
@@ -1238,6 +1258,26 @@ class LinuxTabWidget(BaseTabWidget):
                 self.service.log(f"获取POS版本号失败: {str(e)}", level="error")
 
         self._execute_with_connection_validation("查询远程POS版本号", get_app_version_callback)
+
+    def on_get_clouddatahub_version(self):
+        """
+        查询并打印远程 CloudDataHub 的版本号
+        """
+
+        def get_clouddatahub_version_callback(host, username, password):
+            remote_path = "/opt/clouddatahub/conf/application.yml"
+            try:
+                ssh = self.service._connect_ssh(host, username, password)
+                version = self.service.get_clouddatahub_version(ssh)
+                if version:
+                    self.service.log(f"CloudDataHub 版本: {version}", level="info")
+                else:
+                    self.service.log(f"未能获取 CloudDataHub 版本号，或文件不存在: {remote_path}", level="warning")
+                ssh.close()
+            except Exception as e:
+                self.service.log(f"获取 CloudDataHub 版本号失败: {str(e)}", level="error")
+
+        self._execute_with_connection_validation("查询远程 CloudDataHub 版本号", get_clouddatahub_version_callback)
 
 
 class MultiSelectLogDialog(QDialog):

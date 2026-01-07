@@ -835,3 +835,21 @@ class LinuxService(Backend):
                 channel.close()
             if ssh:
                 ssh.close()
+
+    def get_clouddatahub_version(self, ssh: paramiko.SSHClient) -> Optional[str]:
+        """
+        获取远程 /opt/tomcat7/webapps/cloudDatahub/WEB-INF/classes/application.properties 文件中的 application.syncVersion 字段
+        """
+        remote_path = "/opt/tomcat7/webapps/cloudDatahub/WEB-INF/classes/application.properties"
+        try:
+            content = self._read_remote_file(ssh, remote_path)
+            import re
+            match = re.search(r'^application\.syncVersion\s*=\s*([\w\.-]+)', content, re.MULTILINE)
+            if match:
+                return match.group(1)
+            else:
+                return None
+        except Exception as e:
+            self.log(f"获取clouddatahub版本号失败: {str(e)}", level="error")
+            return None
+
