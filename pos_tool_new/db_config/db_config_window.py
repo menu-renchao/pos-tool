@@ -440,21 +440,21 @@ class DbConfigWindow(BaseTabWidget):
             # 描述列
             desc_item = QTableWidgetItem(item.description)
             desc_item.setToolTip(item.description)
-            desc_item.setFlags(desc_item.flags() & ~Qt.ItemFlag.ItemIsSelectable)
+            desc_item.setFlags(desc_item.flags() & ~Qt.ItemFlag.ItemIsSelectable & ~Qt.ItemFlag.ItemIsEditable)
             self.config_table.setItem(row, 1, desc_item)
 
             # SQL预览列
             sql_preview = item.sqls[0] if item.sqls else "无SQL语句"
             sql_item = QTableWidgetItem(sql_preview)
             sql_item.setToolTip("点击查看完整SQL详情")
-            sql_item.setFlags(sql_item.flags() & ~Qt.ItemFlag.ItemIsSelectable)
+            sql_item.setFlags(sql_item.flags() & ~Qt.ItemFlag.ItemIsSelectable & ~Qt.ItemFlag.ItemIsEditable)
             self.config_table.setItem(row, 2, sql_item)
 
             # 重启要求列
             restart_text = '是，需重启' if item.need_restart else '否，立即生效'
             restart_item = QTableWidgetItem(restart_text)
             restart_item.setToolTip("配置生效方式")
-            restart_item.setFlags(restart_item.flags() & ~Qt.ItemFlag.ItemIsSelectable)
+            restart_item.setFlags(restart_item.flags() & ~Qt.ItemFlag.ItemIsSelectable & ~Qt.ItemFlag.ItemIsEditable)
             if item.need_restart:
                 restart_item.setForeground(Qt.GlobalColor.red)
             else:

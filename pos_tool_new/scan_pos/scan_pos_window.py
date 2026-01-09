@@ -194,6 +194,7 @@ class ScanPosTabWidget(BaseTabWidget):
         remark_item = QTableWidgetItem(remark)
         remark_item.setBackground(QBrush(bg_color))
         remark_item.setFlags(remark_item.flags() | Qt.ItemFlag.ItemIsEditable)
+        remark_item.setToolTip(remark)  # 悬浮显示全部内容
         self.table.setItem(row, 5, remark_item)
 
     def _add_row_to_table(self, result):

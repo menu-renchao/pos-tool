@@ -518,13 +518,13 @@ QTableWidget::item {
             # 配置名称
             name_item = QTableWidgetItem(config.name)
             name_item.setToolTip(config.name)
-            name_item.setFlags(name_item.flags() | Qt.ItemFlag.ItemIsSelectable)
+            name_item.setFlags((name_item.flags() | Qt.ItemFlag.ItemIsSelectable) & ~Qt.ItemFlag.ItemIsEditable)
             self.config_table.setItem(i, 1, name_item)
 
             # 文件路径
             path_item = QTableWidgetItem(config.file_path)
             path_item.setToolTip(config.file_path)
-            path_item.setFlags(path_item.flags() | Qt.ItemFlag.ItemIsSelectable)
+            path_item.setFlags((path_item.flags() | Qt.ItemFlag.ItemIsSelectable) & ~Qt.ItemFlag.ItemIsEditable)
             self.config_table.setItem(i, 2, path_item)
 
             # 键值对数量（改为按钮，点击弹窗）
