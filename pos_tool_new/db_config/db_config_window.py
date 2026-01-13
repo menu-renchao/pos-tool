@@ -617,9 +617,7 @@ class DbConfigWindow(BaseTabWidget):
     def _on_config_error(self, msg):
         QMessageBox.critical(self, '错误', msg)
 
-    def _on_config_finished(self, success, msg):
-        if success:
-            self.refresh_config_table()
+    def _on_config_finished(self):
         self._config_thread = None
 
     def on_worker_error(self, msg):
