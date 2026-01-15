@@ -91,3 +91,20 @@ def set_remark(merchant_id, remark):
         return
     key = f"remark_{merchant_id}"
     set_app_config_value(key, remark)
+
+
+def get_tc_session_ids():
+    """获取TCSESSIONID配置，返回dict"""
+    config = read_config()
+    return {
+        "TCSESSIONID_1": config.get("TCSESSIONID_1", "2507ED4FAACCF3B89F28EFB2AF5E8F1F"),
+        "TCSESSIONID_2": config.get("TCSESSIONID_2", "765BD3E3AD0BF5B9185394176B0AAEC5")
+    }
+
+
+def set_tc_session_ids(tc1, tc2):
+    """设置TCSESSIONID配置"""
+    config = read_config()
+    config["TCSESSIONID_1"] = tc1
+    config["TCSESSIONID_2"] = tc2
+    write_config(config)

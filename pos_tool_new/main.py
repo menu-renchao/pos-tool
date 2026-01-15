@@ -484,6 +484,10 @@ class MainWindow(QMainWindow):
         clear_war_action.triggered.connect(self.clear_history_war_folders)
         settings_menu.addAction(clear_war_action)
 
+        tc_session_action = QAction("TCSESSIONID配置", self)
+        tc_session_action.triggered.connect(self.show_tc_session_config_dialog)
+        settings_menu.addAction(tc_session_action)
+
         self.setMenuBar(menubar)
 
     def show_layout_config_dialog(self):
@@ -999,6 +1003,30 @@ class MainWindow(QMainWindow):
             set_app_config_value('micro_default_port', self._micro_service_port)
             QMessageBox.information(self, "提示",
                                     f"微服务配置已保存:\nIP: {self._micro_service_ip}\n端口: {self._micro_service_port}")
+
+    def show_tc_session_config_dialog(self):
+        from pos_tool_new.utils.app_config_utils import get_tc_session_ids, set_tc_session_ids
+        dialog = QDialog(self)
+        dialog.setWindowTitle("TCSESSIONID配置")
+        dialog.setFixedWidth(500)
+        layout = QVBoxLayout(dialog)
+        ids = get_tc_session_ids()
+        label1 = QLabel("TCSESSIONID_1:")
+        edit1 = QLineEdit(ids["TCSESSIONID_1"])
+        label2 = QLabel("TCSESSIONID_2:")
+        edit2 = QLineEdit(ids["TCSESSIONID_2"])
+        layout.addWidget(label1)
+        layout.addWidget(edit1)
+        layout.addWidget(label2)
+        layout.addWidget(edit2)
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        layout.addWidget(buttons)
+        def on_ok():
+            set_tc_session_ids(edit1.text().strip(), edit2.text().strip())
+            dialog.accept()
+        buttons.accepted.connect(on_ok)
+        buttons.rejected.connect(dialog.reject)
+        dialog.exec()
 
     def check_and_show_guide_overlay(self):
         """首次运行检测并显示多步骤引导蒙层"""

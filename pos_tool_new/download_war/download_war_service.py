@@ -4,6 +4,7 @@ from urllib.parse import urlparse, unquote
 import requests
 
 from pos_tool_new.backend import Backend
+from pos_tool_new.utils.app_config_utils import get_tc_session_ids
 
 
 class DownloadWarService(Backend):
@@ -47,8 +48,10 @@ class DownloadWarService(Backend):
                 "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
                 "cookie": "RememberMe=2055198417^266#-4234407954504083926; TCSESSIONID=2507ED4FAACCF3B89F28EFB2AF5E8F1F"
             }
+            tc_sessions = get_tc_session_ids()
+            headers["cookie"] = f"RememberMe=2055198417^266#-4234407954504083926; TCSESSIONID={tc_sessions['TCSESSIONID_1']}"
             headers_2 = headers.copy()
-            headers_2["cookie"] = "TCSESSIONID=765BD3E3AD0BF5B9185394176B0AAEC5"
+            headers_2["cookie"] = f"TCSESSIONID={tc_sessions['TCSESSIONID_2']}"
             if 'buildConfiguration' in initial_url or 'kpos.war' in initial_url:
                 transformed_url = self.transform_url(initial_url)
                 if transformed_url:
