@@ -1005,16 +1005,16 @@ class MainWindow(QMainWindow):
                                     f"微服务配置已保存:\nIP: {self._micro_service_ip}\n端口: {self._micro_service_port}")
 
     def show_tc_session_config_dialog(self):
-        from pos_tool_new.utils.app_config_utils import get_tc_session_ids, set_tc_session_ids
+        from pos_tool_new.utils.app_config_utils import get_cookie_and_sessionid, set_cookie_and_sessionid
         dialog = QDialog(self)
         dialog.setWindowTitle("TCSESSIONID配置")
         dialog.setFixedWidth(500)
         layout = QVBoxLayout(dialog)
-        ids = get_tc_session_ids()
-        label1 = QLabel("TCSESSIONID_1:")
-        edit1 = QLineEdit(ids["TCSESSIONID_1"])
-        label2 = QLabel("TCSESSIONID_2:")
-        edit2 = QLineEdit(ids["TCSESSIONID_2"])
+        ids = get_cookie_and_sessionid()
+        label1 = QLabel("COOKIE:")
+        edit1 = QLineEdit(ids["COOKIE"])
+        label2 = QLabel("TCSESSIONID:")
+        edit2 = QLineEdit(ids["TCSESSIONID"])
         layout.addWidget(label1)
         layout.addWidget(edit1)
         layout.addWidget(label2)
@@ -1022,7 +1022,7 @@ class MainWindow(QMainWindow):
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         layout.addWidget(buttons)
         def on_ok():
-            set_tc_session_ids(edit1.text().strip(), edit2.text().strip())
+            set_cookie_and_sessionid(edit1.text().strip(), edit2.text().strip())
             dialog.accept()
         buttons.accepted.connect(on_ok)
         buttons.rejected.connect(dialog.reject)

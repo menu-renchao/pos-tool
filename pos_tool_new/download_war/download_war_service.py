@@ -4,7 +4,7 @@ from urllib.parse import urlparse, unquote
 import requests
 
 from pos_tool_new.backend import Backend
-from pos_tool_new.utils.app_config_utils import get_tc_session_ids
+from pos_tool_new.utils.app_config_utils import get_cookie_and_sessionid
 
 
 class DownloadWarService(Backend):
@@ -32,6 +32,9 @@ class DownloadWarService(Backend):
             import time
             import os
             initial_url = url
+            cookie_dict = get_cookie_and_sessionid()
+            print(cookie_dict["COOKIE"])
+            print(cookie_dict["TCSESSIONID"])
             headers = {
                 "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
                 "accept-encoding": "gzip, deflate, br, zstd",
@@ -46,12 +49,10 @@ class DownloadWarService(Backend):
                 "sec-fetch-user": "?1",
                 "upgrade-insecure-requests": "1",
                 "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
-                "cookie": "RememberMe=2055198417^266#-4234407954504083926; TCSESSIONID=2507ED4FAACCF3B89F28EFB2AF5E8F1F"
+                "cookie": cookie_dict["COOKIE"]
             }
-            tc_sessions = get_tc_session_ids()
-            headers["cookie"] = f"RememberMe=2055198417^266#-4234407954504083926; TCSESSIONID={tc_sessions['TCSESSIONID_1']}"
             headers_2 = headers.copy()
-            headers_2["cookie"] = f"TCSESSIONID={tc_sessions['TCSESSIONID_2']}"
+            headers_2["cookie"] = f"TCSESSIONID={cookie_dict['TCSESSIONID']}"
             if 'buildConfiguration' in initial_url or 'kpos.war' in initial_url:
                 transformed_url = self.transform_url(initial_url)
                 if transformed_url:

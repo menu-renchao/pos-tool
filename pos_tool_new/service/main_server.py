@@ -134,10 +134,18 @@ class IntegratedServer:
 
     async def start_websocket_server(self):
         """启动WebSocket聊天服务器"""
-        async with websockets.serve(self.chat_server.handle_connection,
-                                    self.chat_server.host, self.chat_server.port):
-            logger.info(f"WebSocket聊天服务器启动在 {self.chat_server.host}:{self.chat_server.port}")
-            await asyncio.Future()  # 永久运行
+        try:
+            async with websockets.serve(self.chat_server.handle_connection,
+                                        self.chat_server.host, self.chat_server.port):
+                logger.info(f"WebSocket聊天服务器启动在 {self.chat_server.host}:{self.chat_server.port}")
+                await asyncio.Future()  # 永久运行
+        except OSError as e:
+            if getattr(e, 'winerror', None) == 64:
+                logger.warning("WebSocket服务器遇到 WinError 64（指定的网络名不再可用），通常为客户端异常断开，可忽略。")
+            else:
+                logger.error(f"WebSocket服务器发生 OSError: {e}")
+        except Exception as e:
+            logger.error(f"WebSocket服务器发生未知异常: {e}")
 
     def start_flask_server(self):
         """启动Flask HTTP服务器"""
