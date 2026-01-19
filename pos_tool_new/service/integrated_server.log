@@ -1,0 +1,22 @@
+2026-01-14 19:10:27,357 - main_server - INFO - ¿ªÊ¼Æô¶¯¼¯³É·şÎñÆ÷...
+2026-01-14 19:10:27,358 - main_server - INFO - HTTP·şÎñÆ÷Æô¶¯ÔÚ 0.0.0.0:5001
+2026-01-14 19:10:27,384 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://192.168.0.17:5001
+2026-01-14 19:10:27,385 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-01-14 19:10:27,390 - websockets.server - INFO - server listening on 0.0.0.0:56789
+2026-01-14 19:10:27,390 - main_server - INFO - WebSocketÁÄÌì·şÎñÆ÷Æô¶¯ÔÚ 0.0.0.0:56789
+2026-01-14 19:10:42,266 - websockets.server - INFO - server closing
+2026-01-14 19:10:42,266 - websockets.server - INFO - server closed
+2026-01-15 10:13:38,060 - main_server - INFO - ¿ªÊ¼Æô¶¯¼¯³É·şÎñÆ÷...
+2026-01-15 10:13:38,062 - main_server - INFO - HTTP·şÎñÆ÷Æô¶¯ÔÚ 0.0.0.0:5001
+2026-01-15 10:13:38,091 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://192.168.0.17:5001
+2026-01-15 10:13:38,091 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-01-15 10:13:38,095 - websockets.server - INFO - server listening on 0.0.0.0:56789
+2026-01-15 10:13:38,095 - main_server - INFO - WebSocketÁÄÌì·şÎñÆ÷Æô¶¯ÔÚ 0.0.0.0:56789
+2026-01-15 10:13:42,304 - websockets.server - INFO - server closing
+2026-01-15 10:13:42,304 - websockets.server - INFO - server closed

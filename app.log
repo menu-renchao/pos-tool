@@ -1,0 +1,1082 @@
+2025-12-27 16:45:55,520 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-27 16:45:55,543 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:5001
+2025-12-27 16:45:55,556 - pos_tool_new.utils.log_manager - INFO - 尝试连接到 ws://192.168.0.50:56789
+2025-12-27 16:45:55,593 - websocket - INFO - Websocket connected
+2025-12-27 16:45:55,617 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 698 ms
+2025-12-27 16:45:55,617 - pos_tool_new.utils.log_manager - INFO - WebSocket连接已建立
+2025-12-27 16:45:58,520 - urllib3.connectionpool - DEBUG - http://192.168.0.50:5001 "GET /api/usable_phone_numbers HTTP/1.1" 200 148
+2025-12-31 15:17:22,656 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-31 15:17:22,682 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:5001
+2025-12-31 15:17:22,701 - pos_tool_new.utils.log_manager - INFO - 尝试连接到 ws://192.168.0.50:56789
+2025-12-31 15:17:22,742 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 1045 ms
+2025-12-31 15:17:22,747 - websocket - INFO - Websocket connected
+2025-12-31 15:17:22,747 - pos_tool_new.utils.log_manager - INFO - WebSocket连接已建立
+2025-12-31 15:17:25,023 - urllib3.connectionpool - DEBUG - http://192.168.0.50:5001 "GET /api/usable_phone_numbers HTTP/1.1" 200 148
+2025-12-31 15:18:22,758 - websocket - DEBUG - Sending ping
+2025-12-31 15:18:52,773 - websocket - DEBUG - Sending ping
+2025-12-31 15:19:22,776 - websocket - DEBUG - Sending ping
+2025-12-31 15:19:52,786 - websocket - DEBUG - Sending ping
+2025-12-31 15:20:22,793 - websocket - DEBUG - Sending ping
+2025-12-31 15:20:52,797 - websocket - DEBUG - Sending ping
+2025-12-31 15:21:22,808 - websocket - DEBUG - Sending ping
+2025-12-31 15:21:52,819 - websocket - DEBUG - Sending ping
+2025-12-31 15:22:22,825 - websocket - DEBUG - Sending ping
+2025-12-31 15:22:52,837 - websocket - DEBUG - Sending ping
+2025-12-31 15:23:22,852 - websocket - DEBUG - Sending ping
+2025-12-31 15:23:52,853 - websocket - DEBUG - Sending ping
+2025-12-31 15:24:22,865 - websocket - DEBUG - Sending ping
+2025-12-31 15:24:52,870 - websocket - DEBUG - Sending ping
+2025-12-31 15:25:22,883 - websocket - DEBUG - Sending ping
+2025-12-31 15:25:52,883 - websocket - DEBUG - Sending ping
+2025-12-31 15:26:22,887 - websocket - DEBUG - Sending ping
+2025-12-31 15:26:52,897 - websocket - DEBUG - Sending ping
+2025-12-31 15:27:22,906 - websocket - DEBUG - Sending ping
+2025-12-31 15:27:52,913 - websocket - DEBUG - Sending ping
+2025-12-31 15:28:22,926 - websocket - DEBUG - Sending ping
+2025-12-31 15:28:52,929 - websocket - DEBUG - Sending ping
+2025-12-31 15:29:22,934 - websocket - DEBUG - Sending ping
+2025-12-31 15:29:52,934 - websocket - DEBUG - Sending ping
+2025-12-31 15:30:22,948 - websocket - DEBUG - Sending ping
+2025-12-31 15:30:52,957 - websocket - DEBUG - Sending ping
+2025-12-31 15:31:22,966 - websocket - DEBUG - Sending ping
+2025-12-31 15:31:52,977 - websocket - DEBUG - Sending ping
+2025-12-31 15:32:22,977 - websocket - DEBUG - Sending ping
+2025-12-31 15:32:52,992 - websocket - DEBUG - Sending ping
+2025-12-31 15:33:22,999 - websocket - DEBUG - Sending ping
+2025-12-31 15:33:53,013 - websocket - DEBUG - Sending ping
+2025-12-31 15:34:23,022 - websocket - DEBUG - Sending ping
+2025-12-31 15:34:53,024 - websocket - DEBUG - Sending ping
+2025-12-31 15:35:23,034 - websocket - DEBUG - Sending ping
+2025-12-31 15:35:53,039 - websocket - DEBUG - Sending ping
+2025-12-31 15:36:23,048 - websocket - DEBUG - Sending ping
+2025-12-31 15:36:53,048 - websocket - DEBUG - Sending ping
+2025-12-31 15:37:23,056 - websocket - DEBUG - Sending ping
+2025-12-31 15:37:53,061 - websocket - DEBUG - Sending ping
+2025-12-31 15:38:23,067 - websocket - DEBUG - Sending ping
+2025-12-31 15:38:53,073 - websocket - DEBUG - Sending ping
+2025-12-31 15:39:23,084 - websocket - DEBUG - Sending ping
+2025-12-31 15:39:53,087 - websocket - DEBUG - Sending ping
+2025-12-31 15:40:23,096 - websocket - DEBUG - Sending ping
+2025-12-31 15:40:53,098 - websocket - DEBUG - Sending ping
+2025-12-31 15:41:23,101 - websocket - DEBUG - Sending ping
+2025-12-31 15:41:53,106 - websocket - DEBUG - Sending ping
+2025-12-31 15:42:23,119 - websocket - DEBUG - Sending ping
+2025-12-31 15:42:53,125 - websocket - DEBUG - Sending ping
+2025-12-31 15:43:23,127 - websocket - DEBUG - Sending ping
+2025-12-31 15:43:53,131 - websocket - DEBUG - Sending ping
+2025-12-31 15:44:23,131 - websocket - DEBUG - Sending ping
+2025-12-31 15:44:53,144 - websocket - DEBUG - Sending ping
+2025-12-31 15:45:23,153 - websocket - DEBUG - Sending ping
+2025-12-31 15:45:53,157 - websocket - DEBUG - Sending ping
+2025-12-31 15:46:23,158 - websocket - DEBUG - Sending ping
+2025-12-31 15:46:53,171 - websocket - DEBUG - Sending ping
+2025-12-31 15:47:23,184 - websocket - DEBUG - Sending ping
+2025-12-31 15:47:53,189 - websocket - DEBUG - Sending ping
+2025-12-31 15:48:23,192 - websocket - DEBUG - Sending ping
+2025-12-31 15:48:53,203 - websocket - DEBUG - Sending ping
+2025-12-31 15:49:23,212 - websocket - DEBUG - Sending ping
+2025-12-31 15:49:53,225 - websocket - DEBUG - Sending ping
+2025-12-31 15:50:23,234 - websocket - DEBUG - Sending ping
+2025-12-31 15:50:53,247 - websocket - DEBUG - Sending ping
+2025-12-31 15:51:23,254 - websocket - DEBUG - Sending ping
+2025-12-31 15:51:53,259 - websocket - DEBUG - Sending ping
+2025-12-31 15:52:23,261 - websocket - DEBUG - Sending ping
+2025-12-31 15:52:53,266 - websocket - DEBUG - Sending ping
+2025-12-31 15:53:23,273 - websocket - DEBUG - Sending ping
+2025-12-31 15:53:53,281 - websocket - DEBUG - Sending ping
+2025-12-31 15:54:23,283 - websocket - DEBUG - Sending ping
+2025-12-31 15:54:53,292 - websocket - DEBUG - Sending ping
+2025-12-31 15:55:23,298 - websocket - DEBUG - Sending ping
+2025-12-31 15:55:53,299 - websocket - DEBUG - Sending ping
+2025-12-31 15:56:23,309 - websocket - DEBUG - Sending ping
+2025-12-31 15:56:53,314 - websocket - DEBUG - Sending ping
+2025-12-31 15:57:23,314 - websocket - DEBUG - Sending ping
+2025-12-31 15:57:53,323 - websocket - DEBUG - Sending ping
+2025-12-31 15:58:23,335 - websocket - DEBUG - Sending ping
+2025-12-31 15:58:53,343 - websocket - DEBUG - Sending ping
+2025-12-31 15:59:23,344 - websocket - DEBUG - Sending ping
+2025-12-31 15:59:53,348 - websocket - DEBUG - Sending ping
+2025-12-31 16:00:23,355 - websocket - DEBUG - Sending ping
+2025-12-31 16:00:53,355 - websocket - DEBUG - Sending ping
+2025-12-31 16:01:23,370 - websocket - DEBUG - Sending ping
+2025-12-31 16:01:53,381 - websocket - DEBUG - Sending ping
+2025-12-31 16:02:23,389 - websocket - DEBUG - Sending ping
+2025-12-31 16:02:53,391 - websocket - DEBUG - Sending ping
+2025-12-31 16:03:23,403 - websocket - DEBUG - Sending ping
+2025-12-31 16:03:53,416 - websocket - DEBUG - Sending ping
+2025-12-31 16:04:23,417 - websocket - DEBUG - Sending ping
+2025-12-31 16:04:53,432 - websocket - DEBUG - Sending ping
+2025-12-31 16:05:23,447 - websocket - DEBUG - Sending ping
+2025-12-31 16:05:53,454 - websocket - DEBUG - Sending ping
+2025-12-31 16:06:23,463 - websocket - DEBUG - Sending ping
+2025-12-31 16:06:53,467 - websocket - DEBUG - Sending ping
+2025-12-31 16:07:23,480 - websocket - DEBUG - Sending ping
+2025-12-31 16:07:53,489 - websocket - DEBUG - Sending ping
+2025-12-31 16:08:23,495 - websocket - DEBUG - Sending ping
+2025-12-31 16:08:53,504 - websocket - DEBUG - Sending ping
+2025-12-31 16:09:23,506 - websocket - DEBUG - Sending ping
+2025-12-31 16:09:53,516 - websocket - DEBUG - Sending ping
+2025-12-31 16:10:23,524 - websocket - DEBUG - Sending ping
+2025-12-31 16:10:53,532 - websocket - DEBUG - Sending ping
+2025-12-31 16:11:23,542 - websocket - DEBUG - Sending ping
+2025-12-31 16:11:53,551 - websocket - DEBUG - Sending ping
+2025-12-31 16:12:23,556 - websocket - DEBUG - Sending ping
+2025-12-31 16:12:53,563 - websocket - DEBUG - Sending ping
+2025-12-31 16:13:23,574 - websocket - DEBUG - Sending ping
+2025-12-31 16:13:53,582 - websocket - DEBUG - Sending ping
+2025-12-31 16:14:23,592 - websocket - DEBUG - Sending ping
+2025-12-31 16:14:53,602 - websocket - DEBUG - Sending ping
+2025-12-31 16:15:23,610 - websocket - DEBUG - Sending ping
+2025-12-31 16:15:53,618 - websocket - DEBUG - Sending ping
+2025-12-31 16:16:23,628 - websocket - DEBUG - Sending ping
+2025-12-31 16:16:53,637 - websocket - DEBUG - Sending ping
+2025-12-31 16:17:23,641 - websocket - DEBUG - Sending ping
+2025-12-31 16:17:53,649 - websocket - DEBUG - Sending ping
+2025-12-31 16:18:23,662 - websocket - DEBUG - Sending ping
+2025-12-31 16:18:53,668 - websocket - DEBUG - Sending ping
+2025-12-31 16:19:23,669 - websocket - DEBUG - Sending ping
+2025-12-31 16:19:53,680 - websocket - DEBUG - Sending ping
+2025-12-31 16:20:23,680 - websocket - DEBUG - Sending ping
+2025-12-31 16:20:53,684 - websocket - DEBUG - Sending ping
+2025-12-31 16:21:23,687 - websocket - DEBUG - Sending ping
+2025-12-31 16:21:53,689 - websocket - DEBUG - Sending ping
+2025-12-31 16:22:23,693 - websocket - DEBUG - Sending ping
+2025-12-31 16:22:53,695 - websocket - DEBUG - Sending ping
+2025-12-31 16:23:23,704 - websocket - DEBUG - Sending ping
+2025-12-31 16:23:53,719 - websocket - DEBUG - Sending ping
+2025-12-31 16:24:23,734 - websocket - DEBUG - Sending ping
+2025-12-31 16:24:53,744 - websocket - DEBUG - Sending ping
+2025-12-31 16:25:23,751 - websocket - DEBUG - Sending ping
+2025-12-31 16:25:53,755 - websocket - DEBUG - Sending ping
+2025-12-31 16:26:23,763 - websocket - DEBUG - Sending ping
+2025-12-31 16:26:53,769 - websocket - DEBUG - Sending ping
+2025-12-31 16:27:23,773 - websocket - DEBUG - Sending ping
+2025-12-31 16:27:53,784 - websocket - DEBUG - Sending ping
+2025-12-31 16:28:23,798 - websocket - DEBUG - Sending ping
+2025-12-31 16:28:53,802 - websocket - DEBUG - Sending ping
+2025-12-31 16:29:23,812 - websocket - DEBUG - Sending ping
+2025-12-31 16:29:53,817 - websocket - DEBUG - Sending ping
+2025-12-31 16:30:23,830 - websocket - DEBUG - Sending ping
+2025-12-31 16:30:53,842 - websocket - DEBUG - Sending ping
+2025-12-31 16:31:23,847 - websocket - DEBUG - Sending ping
+2025-12-31 16:31:53,852 - websocket - DEBUG - Sending ping
+2025-12-31 16:32:23,858 - websocket - DEBUG - Sending ping
+2025-12-31 16:32:53,863 - websocket - DEBUG - Sending ping
+2025-12-31 16:33:23,864 - websocket - DEBUG - Sending ping
+2025-12-31 16:33:53,864 - websocket - DEBUG - Sending ping
+2025-12-31 16:34:23,874 - websocket - DEBUG - Sending ping
+2025-12-31 16:34:53,884 - websocket - DEBUG - Sending ping
+2025-12-31 16:35:23,897 - websocket - DEBUG - Sending ping
+2025-12-31 16:35:53,903 - websocket - DEBUG - Sending ping
+2025-12-31 16:36:23,915 - websocket - DEBUG - Sending ping
+2025-12-31 16:36:53,922 - websocket - DEBUG - Sending ping
+2025-12-31 16:37:23,933 - websocket - DEBUG - Sending ping
+2025-12-31 16:37:53,936 - websocket - DEBUG - Sending ping
+2025-12-31 16:38:23,947 - websocket - DEBUG - Sending ping
+2025-12-31 16:38:53,961 - websocket - DEBUG - Sending ping
+2025-12-31 16:39:23,973 - websocket - DEBUG - Sending ping
+2025-12-31 16:39:53,980 - websocket - DEBUG - Sending ping
+2025-12-31 16:40:23,991 - websocket - DEBUG - Sending ping
+2025-12-31 16:40:54,003 - websocket - DEBUG - Sending ping
+2025-12-31 16:41:24,017 - websocket - DEBUG - Sending ping
+2025-12-31 16:41:54,022 - websocket - DEBUG - Sending ping
+2025-12-31 16:42:24,035 - websocket - DEBUG - Sending ping
+2025-12-31 16:42:54,049 - websocket - DEBUG - Sending ping
+2025-12-31 16:43:24,051 - websocket - DEBUG - Sending ping
+2026-01-16 09:37:39,392 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2026-01-16 09:37:39,413 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:5001
+2026-01-16 09:37:39,435 - pos_tool_new.utils.log_manager - INFO - 尝试连接到 ws://192.168.0.50:56789
+2026-01-16 09:37:39,443 - websocket - INFO - Websocket connected
+2026-01-16 09:37:39,443 - pos_tool_new.utils.log_manager - INFO - WebSocket连接已建立
+2026-01-16 09:37:39,541 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 834 ms
+2026-01-19 17:14:31,155 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 0 个
+2026-01-19 17:14:31,312 - pos_tool_new.utils.log_manager - INFO - 尝试连接到 ws://127.0.0.1:56789
+2026-01-19 17:23:32,426 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2026-01-19 17:23:32,451 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:5001
+2026-01-19 17:23:32,479 - pos_tool_new.utils.log_manager - INFO - 尝试连接到 ws://192.168.0.50:56789
+2026-01-19 17:23:32,488 - websocket - INFO - Websocket connected
+2026-01-19 17:23:32,488 - pos_tool_new.utils.log_manager - INFO - WebSocket连接已建立
+2026-01-19 17:23:35,893 - urllib3.connectionpool - DEBUG - http://192.168.0.50:5001 "GET /api/usable_phone_numbers HTTP/1.1" 200 164
+2026-01-19 17:26:06,312 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2026-01-19 17:26:06,334 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:5001
+2026-01-19 17:26:06,344 - pos_tool_new.utils.log_manager - INFO - 尝试连接到 ws://192.168.0.50:56789
+2026-01-19 17:26:06,365 - websocket - INFO - Websocket connected
+2026-01-19 17:26:06,366 - pos_tool_new.utils.log_manager - INFO - WebSocket连接已建立
+2026-01-19 17:26:09,793 - urllib3.connectionpool - DEBUG - http://192.168.0.50:5001 "GET /api/usable_phone_numbers HTTP/1.1" 200 116
+2026-01-19 17:26:11,381 - paramiko.transport - DEBUG - starting thread (client mode): 0x459e2f60
+2026-01-19 17:26:11,381 - paramiko.transport - DEBUG - Local version/idstring: SSH-2.0-paramiko_3.5.1
+2026-01-19 17:26:11,407 - paramiko.transport - DEBUG - Remote version/idstring: SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.13
+2026-01-19 17:26:11,407 - paramiko.transport - INFO - Connected (version 2.0, client OpenSSH_8.9p1)
+2026-01-19 17:26:11,409 - paramiko.transport - DEBUG - === Key exchange possibilities ===
+2026-01-19 17:26:11,409 - paramiko.transport - DEBUG - kex algos: curve25519-sha256, curve25519-sha256@libssh.org, ecdh-sha2-nistp256, ecdh-sha2-nistp384, ecdh-sha2-nistp521, sntrup761x25519-sha512@openssh.com, diffie-hellman-group-exchange-sha256, diffie-hellman-group16-sha512, diffie-hellman-group18-sha512, diffie-hellman-group14-sha256, diffie-hellman-group1-sha1, kex-strict-s-v00@openssh.com
+2026-01-19 17:26:11,409 - paramiko.transport - DEBUG - server key: rsa-sha2-512, rsa-sha2-256, ecdsa-sha2-nistp256, ssh-ed25519
+2026-01-19 17:26:11,409 - paramiko.transport - DEBUG - client encrypt: chacha20-poly1305@openssh.com, aes128-ctr, aes192-ctr, aes256-ctr, aes128-gcm@openssh.com, aes256-gcm@openssh.com
+2026-01-19 17:26:11,409 - paramiko.transport - DEBUG - server encrypt: chacha20-poly1305@openssh.com, aes128-ctr, aes192-ctr, aes256-ctr, aes128-gcm@openssh.com, aes256-gcm@openssh.com
+2026-01-19 17:26:11,409 - paramiko.transport - DEBUG - client mac: umac-64-etm@openssh.com, umac-128-etm@openssh.com, hmac-sha2-256-etm@openssh.com, hmac-sha2-512-etm@openssh.com, hmac-sha1-etm@openssh.com, umac-64@openssh.com, umac-128@openssh.com, hmac-sha2-256, hmac-sha2-512, hmac-sha1
+2026-01-19 17:26:11,409 - paramiko.transport - DEBUG - server mac: umac-64-etm@openssh.com, umac-128-etm@openssh.com, hmac-sha2-256-etm@openssh.com, hmac-sha2-512-etm@openssh.com, hmac-sha1-etm@openssh.com, umac-64@openssh.com, umac-128@openssh.com, hmac-sha2-256, hmac-sha2-512, hmac-sha1
+2026-01-19 17:26:11,409 - paramiko.transport - DEBUG - client compress: none, zlib@openssh.com
+2026-01-19 17:26:11,409 - paramiko.transport - DEBUG - server compress: none, zlib@openssh.com
+2026-01-19 17:26:11,409 - paramiko.transport - DEBUG - client lang: <none>
+2026-01-19 17:26:11,409 - paramiko.transport - DEBUG - server lang: <none>
+2026-01-19 17:26:11,409 - paramiko.transport - DEBUG - kex follows: False
+2026-01-19 17:26:11,409 - paramiko.transport - DEBUG - === Key exchange agreements ===
+2026-01-19 17:26:11,409 - paramiko.transport - DEBUG - Strict kex mode: True
+2026-01-19 17:26:11,409 - paramiko.transport - DEBUG - Kex: curve25519-sha256@libssh.org
+2026-01-19 17:26:11,409 - paramiko.transport - DEBUG - HostKey: ssh-ed25519
+2026-01-19 17:26:11,410 - paramiko.transport - DEBUG - Cipher: aes128-ctr
+2026-01-19 17:26:11,410 - paramiko.transport - DEBUG - MAC: hmac-sha2-256
+2026-01-19 17:26:11,410 - paramiko.transport - DEBUG - Compression: none
+2026-01-19 17:26:11,410 - paramiko.transport - DEBUG - === End of kex handshake ===
+2026-01-19 17:26:11,418 - paramiko.transport - DEBUG - Resetting outbound seqno after NEWKEYS due to strict mode
+2026-01-19 17:26:11,418 - paramiko.transport - DEBUG - kex engine KexCurve25519 specified hash_algo <built-in function openssl_sha256>
+2026-01-19 17:26:11,419 - paramiko.transport - DEBUG - Switch to new keys ...
+2026-01-19 17:26:11,419 - paramiko.transport - DEBUG - Resetting inbound seqno after NEWKEYS due to strict mode
+2026-01-19 17:26:11,419 - paramiko.transport - DEBUG - Adding ssh-ed25519 host key for 192.168.0.166: b'3b25dd86de2ae7391e753e02d17a0937'
+2026-01-19 17:26:11,419 - paramiko.transport - DEBUG - Got EXT_INFO: {'server-sig-algs': b'ssh-ed25519,sk-ssh-ed25519@openssh.com,ssh-rsa,rsa-sha2-256,rsa-sha2-512,ssh-dss,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,sk-ecdsa-sha2-nistp256@openssh.com,webauthn-sk-ecdsa-sha2-nistp256@openssh.com', 'publickey-hostbound@openssh.com': b'0'}
+2026-01-19 17:26:11,434 - paramiko.transport - DEBUG - Trying SSH agent key b'836084bd492d7ccc3e108bcf18d8f178'
+2026-01-19 17:26:11,465 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:11,490 - paramiko.transport - INFO - Authentication (publickey) failed.
+2026-01-19 17:26:11,761 - paramiko.transport - DEBUG - Trying discovered key b'61bce1b9199918e7567e1aa0f519e72b' in C:\Users\nhqrt/.ssh/id_rsa
+2026-01-19 17:26:11,762 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:11,762 - paramiko.transport - DEBUG - Finalizing pubkey algorithm for key of type 'ssh-rsa'
+2026-01-19 17:26:11,763 - paramiko.transport - DEBUG - Our pubkey algorithm list: ['rsa-sha2-512', 'rsa-sha2-256', 'ssh-rsa']
+2026-01-19 17:26:11,763 - paramiko.transport - DEBUG - Server-side algorithm list: ['ssh-ed25519', 'sk-ssh-ed25519@openssh.com', 'ssh-rsa', 'rsa-sha2-256', 'rsa-sha2-512', 'ssh-dss', 'ecdsa-sha2-nistp256', 'ecdsa-sha2-nistp384', 'ecdsa-sha2-nistp521', 'sk-ecdsa-sha2-nistp256@openssh.com', 'webauthn-sk-ecdsa-sha2-nistp256@openssh.com']
+2026-01-19 17:26:11,763 - paramiko.transport - DEBUG - Agreed upon 'rsa-sha2-512' pubkey algorithm
+2026-01-19 17:26:11,774 - paramiko.transport - INFO - Authentication (publickey) failed.
+2026-01-19 17:26:11,775 - paramiko.transport - DEBUG - Trying discovered key b'836084bd492d7ccc3e108bcf18d8f178' in C:\Users\nhqrt/.ssh/id_ed25519
+2026-01-19 17:26:11,776 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:11,785 - paramiko.transport - INFO - Authentication (publickey) failed.
+2026-01-19 17:26:11,786 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:11,819 - paramiko.transport - INFO - Authentication (password) successful!
+2026-01-19 17:26:11,819 - pos_tool_new.utils.log_manager - INFO - 远程主机: 192.168.0.166, 文件路径: /opt/tomcat7/webapps/kpos/front/js/cloudUrlConfig.json
+2026-01-19 17:26:11,819 - paramiko.transport - DEBUG - [chan 0] Max packet in: 32768 bytes
+2026-01-19 17:26:11,858 - paramiko.transport - DEBUG - Received global request "hostkeys-00@openssh.com"
+2026-01-19 17:26:11,859 - paramiko.transport - DEBUG - Rejecting "hostkeys-00@openssh.com" global request from server.
+2026-01-19 17:26:11,911 - paramiko.transport - DEBUG - [chan 0] Max packet out: 32768 bytes
+2026-01-19 17:26:11,911 - paramiko.transport - DEBUG - Secsh channel 0 opened.
+2026-01-19 17:26:11,914 - paramiko.transport - DEBUG - [chan 0] Sesch channel 0 request ok
+2026-01-19 17:26:11,920 - paramiko.transport - DEBUG - [chan 0] EOF received (0)
+2026-01-19 17:26:11,920 - paramiko.transport - DEBUG - [chan 0] EOF sent (0)
+2026-01-19 17:26:11,920 - paramiko.transport - DEBUG - [chan 1] Max packet in: 32768 bytes
+2026-01-19 17:26:11,965 - paramiko.transport - DEBUG - [chan 1] Max packet out: 32768 bytes
+2026-01-19 17:26:11,965 - paramiko.transport - DEBUG - Secsh channel 1 opened.
+2026-01-19 17:26:11,967 - paramiko.transport - DEBUG - [chan 1] Sesch channel 1 request ok
+2026-01-19 17:26:11,975 - paramiko.transport - DEBUG - [chan 1] EOF received (1)
+2026-01-19 17:26:11,975 - paramiko.transport - DEBUG - [chan 1] EOF sent (1)
+2026-01-19 17:26:11,975 - pos_tool_new.utils.log_manager - DEBUG - 远程文件原始内容摘要: {
+  "cloudify": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloudify",
+  "loyalty_program": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=loyalty_program",
+  "cloud_report_service": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloud_report_service&autoCreateBusiness=true",
+  "epager": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=epager"
+}
+2026-01-19 17:26:11,975 - pos_tool_new.utils.log_manager - INFO - 开始修改远程文件内容: kpos/front/js/cloudUrlConfig.json, 环境: QA
+2026-01-19 17:26:11,975 - pos_tool_new.utils.log_manager - DEBUG - 原始内容摘要: {
+  "cloudify": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloudify",
+  "loyalty_program": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=loyalty_program",
+  "cloud_report_service": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloud_report_service&autoCreateBusiness=true",
+  "epager": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=epager"
+}
+2026-01-19 17:26:11,976 - pos_tool_new.utils.log_manager - WARNING - 未找到字段: expiration_management
+2026-01-19 17:26:11,977 - pos_tool_new.utils.log_manager - DEBUG - JSON内容修改前摘要: {"cloudify": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloudify", "loyalty_program": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=loyalty_program", "cloud_report_service": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloud_report_service&autoCreateBusiness=true", "epager": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=epager"}
+2026-01-19 17:26:11,977 - pos_tool_new.utils.log_manager - DEBUG - JSON内容修改后摘要: {"cloudify": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloudify", "loyalty_program": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=loyalty_program", "cloud_report_service": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloud_report_service&autoCreateBusiness=true", "epager": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=epager"}
+2026-01-19 17:26:11,977 - pos_tool_new.utils.log_manager - DEBUG - 修改后内容摘要: {
+  "cloudify": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloudify",
+  "loyalty_program": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=loyalty_program",
+  "cloud_report_service": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloud_report_service&autoCreateBusiness=true",
+  "epager": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=epager"
+}
+2026-01-19 17:26:11,977 - pos_tool_new.utils.log_manager - DEBUG - 远程文件修改后内容摘要: {
+  "cloudify": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloudify",
+  "loyalty_program": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=loyalty_program",
+  "cloud_report_service": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloud_report_service&autoCreateBusiness=true",
+  "epager": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=epager"
+}
+2026-01-19 17:26:11,977 - pos_tool_new.utils.log_manager - INFO - 文件内容无需修改: /opt/tomcat7/webapps/kpos/front/js/cloudUrlConfig.json
+2026-01-19 17:26:11,977 - paramiko.transport - DEBUG - EOF in transport thread
+2026-01-19 17:26:11,981 - pos_tool_new.utils.log_manager - INFO - 配置执行成功: 文件内容无需修改
+2026-01-19 17:26:11,984 - paramiko.transport - DEBUG - starting thread (client mode): 0x45a0b470
+2026-01-19 17:26:11,986 - paramiko.transport - DEBUG - Local version/idstring: SSH-2.0-paramiko_3.5.1
+2026-01-19 17:26:12,005 - paramiko.transport - DEBUG - Remote version/idstring: SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.13
+2026-01-19 17:26:12,005 - paramiko.transport - INFO - Connected (version 2.0, client OpenSSH_8.9p1)
+2026-01-19 17:26:12,005 - paramiko.transport - DEBUG - === Key exchange possibilities ===
+2026-01-19 17:26:12,005 - paramiko.transport - DEBUG - kex algos: curve25519-sha256, curve25519-sha256@libssh.org, ecdh-sha2-nistp256, ecdh-sha2-nistp384, ecdh-sha2-nistp521, sntrup761x25519-sha512@openssh.com, diffie-hellman-group-exchange-sha256, diffie-hellman-group16-sha512, diffie-hellman-group18-sha512, diffie-hellman-group14-sha256, diffie-hellman-group1-sha1, kex-strict-s-v00@openssh.com
+2026-01-19 17:26:12,005 - paramiko.transport - DEBUG - server key: rsa-sha2-512, rsa-sha2-256, ecdsa-sha2-nistp256, ssh-ed25519
+2026-01-19 17:26:12,005 - paramiko.transport - DEBUG - client encrypt: chacha20-poly1305@openssh.com, aes128-ctr, aes192-ctr, aes256-ctr, aes128-gcm@openssh.com, aes256-gcm@openssh.com
+2026-01-19 17:26:12,005 - paramiko.transport - DEBUG - server encrypt: chacha20-poly1305@openssh.com, aes128-ctr, aes192-ctr, aes256-ctr, aes128-gcm@openssh.com, aes256-gcm@openssh.com
+2026-01-19 17:26:12,005 - paramiko.transport - DEBUG - client mac: umac-64-etm@openssh.com, umac-128-etm@openssh.com, hmac-sha2-256-etm@openssh.com, hmac-sha2-512-etm@openssh.com, hmac-sha1-etm@openssh.com, umac-64@openssh.com, umac-128@openssh.com, hmac-sha2-256, hmac-sha2-512, hmac-sha1
+2026-01-19 17:26:12,005 - paramiko.transport - DEBUG - server mac: umac-64-etm@openssh.com, umac-128-etm@openssh.com, hmac-sha2-256-etm@openssh.com, hmac-sha2-512-etm@openssh.com, hmac-sha1-etm@openssh.com, umac-64@openssh.com, umac-128@openssh.com, hmac-sha2-256, hmac-sha2-512, hmac-sha1
+2026-01-19 17:26:12,005 - paramiko.transport - DEBUG - client compress: none, zlib@openssh.com
+2026-01-19 17:26:12,005 - paramiko.transport - DEBUG - server compress: none, zlib@openssh.com
+2026-01-19 17:26:12,007 - paramiko.transport - DEBUG - client lang: <none>
+2026-01-19 17:26:12,007 - paramiko.transport - DEBUG - server lang: <none>
+2026-01-19 17:26:12,007 - paramiko.transport - DEBUG - kex follows: False
+2026-01-19 17:26:12,007 - paramiko.transport - DEBUG - === Key exchange agreements ===
+2026-01-19 17:26:12,007 - paramiko.transport - DEBUG - Strict kex mode: True
+2026-01-19 17:26:12,007 - paramiko.transport - DEBUG - Kex: curve25519-sha256@libssh.org
+2026-01-19 17:26:12,007 - paramiko.transport - DEBUG - HostKey: ssh-ed25519
+2026-01-19 17:26:12,007 - paramiko.transport - DEBUG - Cipher: aes128-ctr
+2026-01-19 17:26:12,007 - paramiko.transport - DEBUG - MAC: hmac-sha2-256
+2026-01-19 17:26:12,007 - paramiko.transport - DEBUG - Compression: none
+2026-01-19 17:26:12,007 - paramiko.transport - DEBUG - === End of kex handshake ===
+2026-01-19 17:26:12,017 - paramiko.transport - DEBUG - Resetting outbound seqno after NEWKEYS due to strict mode
+2026-01-19 17:26:12,017 - paramiko.transport - DEBUG - kex engine KexCurve25519 specified hash_algo <built-in function openssl_sha256>
+2026-01-19 17:26:12,017 - paramiko.transport - DEBUG - Switch to new keys ...
+2026-01-19 17:26:12,017 - paramiko.transport - DEBUG - Resetting inbound seqno after NEWKEYS due to strict mode
+2026-01-19 17:26:12,018 - paramiko.transport - DEBUG - Adding ssh-ed25519 host key for 192.168.0.166: b'3b25dd86de2ae7391e753e02d17a0937'
+2026-01-19 17:26:12,018 - paramiko.transport - DEBUG - Got EXT_INFO: {'server-sig-algs': b'ssh-ed25519,sk-ssh-ed25519@openssh.com,ssh-rsa,rsa-sha2-256,rsa-sha2-512,ssh-dss,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,sk-ecdsa-sha2-nistp256@openssh.com,webauthn-sk-ecdsa-sha2-nistp256@openssh.com', 'publickey-hostbound@openssh.com': b'0'}
+2026-01-19 17:26:12,028 - paramiko.transport - DEBUG - Trying SSH agent key b'836084bd492d7ccc3e108bcf18d8f178'
+2026-01-19 17:26:12,061 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:12,082 - paramiko.transport - INFO - Authentication (publickey) failed.
+2026-01-19 17:26:12,314 - paramiko.transport - DEBUG - Trying discovered key b'61bce1b9199918e7567e1aa0f519e72b' in C:\Users\nhqrt/.ssh/id_rsa
+2026-01-19 17:26:12,315 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:12,315 - paramiko.transport - DEBUG - Finalizing pubkey algorithm for key of type 'ssh-rsa'
+2026-01-19 17:26:12,315 - paramiko.transport - DEBUG - Our pubkey algorithm list: ['rsa-sha2-512', 'rsa-sha2-256', 'ssh-rsa']
+2026-01-19 17:26:12,315 - paramiko.transport - DEBUG - Server-side algorithm list: ['ssh-ed25519', 'sk-ssh-ed25519@openssh.com', 'ssh-rsa', 'rsa-sha2-256', 'rsa-sha2-512', 'ssh-dss', 'ecdsa-sha2-nistp256', 'ecdsa-sha2-nistp384', 'ecdsa-sha2-nistp521', 'sk-ecdsa-sha2-nistp256@openssh.com', 'webauthn-sk-ecdsa-sha2-nistp256@openssh.com']
+2026-01-19 17:26:12,315 - paramiko.transport - DEBUG - Agreed upon 'rsa-sha2-512' pubkey algorithm
+2026-01-19 17:26:12,327 - paramiko.transport - INFO - Authentication (publickey) failed.
+2026-01-19 17:26:12,328 - paramiko.transport - DEBUG - Trying discovered key b'836084bd492d7ccc3e108bcf18d8f178' in C:\Users\nhqrt/.ssh/id_ed25519
+2026-01-19 17:26:12,328 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:12,338 - paramiko.transport - INFO - Authentication (publickey) failed.
+2026-01-19 17:26:12,339 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:12,372 - paramiko.transport - INFO - Authentication (password) successful!
+2026-01-19 17:26:12,372 - pos_tool_new.utils.log_manager - INFO - 远程主机: 192.168.0.166, 文件路径: /opt/tomcat7/webapps/kpos/front2/json/cloudUrlConfig.json
+2026-01-19 17:26:12,373 - paramiko.transport - DEBUG - [chan 0] Max packet in: 32768 bytes
+2026-01-19 17:26:12,410 - paramiko.transport - DEBUG - Received global request "hostkeys-00@openssh.com"
+2026-01-19 17:26:12,410 - paramiko.transport - DEBUG - Rejecting "hostkeys-00@openssh.com" global request from server.
+2026-01-19 17:26:12,457 - paramiko.transport - DEBUG - [chan 0] Max packet out: 32768 bytes
+2026-01-19 17:26:12,457 - paramiko.transport - DEBUG - Secsh channel 0 opened.
+2026-01-19 17:26:12,460 - paramiko.transport - DEBUG - [chan 0] Sesch channel 0 request ok
+2026-01-19 17:26:12,466 - paramiko.transport - DEBUG - [chan 0] EOF received (0)
+2026-01-19 17:26:12,466 - paramiko.transport - DEBUG - [chan 0] EOF sent (0)
+2026-01-19 17:26:12,466 - paramiko.transport - DEBUG - [chan 1] Max packet in: 32768 bytes
+2026-01-19 17:26:12,509 - paramiko.transport - DEBUG - [chan 1] Max packet out: 32768 bytes
+2026-01-19 17:26:12,509 - paramiko.transport - DEBUG - Secsh channel 1 opened.
+2026-01-19 17:26:12,512 - paramiko.transport - DEBUG - [chan 1] Sesch channel 1 request ok
+2026-01-19 17:26:12,519 - paramiko.transport - DEBUG - [chan 1] EOF received (1)
+2026-01-19 17:26:12,519 - paramiko.transport - DEBUG - [chan 1] EOF sent (1)
+2026-01-19 17:26:12,519 - pos_tool_new.utils.log_manager - DEBUG - 远程文件原始内容摘要: {
+  "cloudify": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloudify",
+  "loyalty_program": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=loyalty_program",
+  "cloud_report_service": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloud_report_service&autoCreateBusiness=true",
+  "epager": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=epager",
+  "expiration_management": "https://wms.bal
+2026-01-19 17:26:12,521 - pos_tool_new.utils.log_manager - INFO - 开始修改远程文件内容: kpos/front2/json/cloudUrlConfig.json, 环境: QA
+2026-01-19 17:26:12,521 - pos_tool_new.utils.log_manager - DEBUG - 原始内容摘要: {
+  "cloudify": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloudify",
+  "loyalty_program": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=loyalty_program",
+  "cloud_report_service": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloud_report_service&autoCreateBusiness=true",
+  "epager": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=epager",
+  "expiration_management": "https://wms.bal
+2026-01-19 17:26:12,521 - pos_tool_new.utils.log_manager - DEBUG - JSON内容修改前摘要: {"cloudify": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloudify", "loyalty_program": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=loyalty_program", "cloud_report_service": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloud_report_service&autoCreateBusiness=true", "epager": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=epager", "expiration_management": "https://wms.balamxqa.com/expira
+2026-01-19 17:26:12,521 - pos_tool_new.utils.log_manager - DEBUG - JSON内容修改后摘要: {"cloudify": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloudify", "loyalty_program": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=loyalty_program", "cloud_report_service": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloud_report_service&autoCreateBusiness=true", "epager": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=epager", "expiration_management": "https://wms.balamxqa.com/expira
+2026-01-19 17:26:12,521 - pos_tool_new.utils.log_manager - DEBUG - 修改后内容摘要: {
+  "cloudify": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloudify",
+  "loyalty_program": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=loyalty_program",
+  "cloud_report_service": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloud_report_service&autoCreateBusiness=true",
+  "epager": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=epager",
+  "expiration_management": "https://wms.balamxqa
+2026-01-19 17:26:12,521 - pos_tool_new.utils.log_manager - DEBUG - 远程文件修改后内容摘要: {
+  "cloudify": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloudify",
+  "loyalty_program": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=loyalty_program",
+  "cloud_report_service": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloud_report_service&autoCreateBusiness=true",
+  "epager": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=epager",
+  "expiration_management": "https://wms.balamxqa
+2026-01-19 17:26:12,521 - pos_tool_new.utils.log_manager - INFO - 文件内容无需修改: /opt/tomcat7/webapps/kpos/front2/json/cloudUrlConfig.json
+2026-01-19 17:26:12,521 - paramiko.transport - DEBUG - EOF in transport thread
+2026-01-19 17:26:12,524 - pos_tool_new.utils.log_manager - INFO - 配置执行成功: 文件内容无需修改
+2026-01-19 17:26:12,552 - paramiko.transport - DEBUG - starting thread (client mode): 0x13ec6b0
+2026-01-19 17:26:12,552 - paramiko.transport - DEBUG - Local version/idstring: SSH-2.0-paramiko_3.5.1
+2026-01-19 17:26:12,552 - paramiko.transport - DEBUG - Remote version/idstring: SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.13
+2026-01-19 17:26:12,552 - paramiko.transport - INFO - Connected (version 2.0, client OpenSSH_8.9p1)
+2026-01-19 17:26:12,554 - paramiko.transport - DEBUG - === Key exchange possibilities ===
+2026-01-19 17:26:12,554 - paramiko.transport - DEBUG - kex algos: curve25519-sha256, curve25519-sha256@libssh.org, ecdh-sha2-nistp256, ecdh-sha2-nistp384, ecdh-sha2-nistp521, sntrup761x25519-sha512@openssh.com, diffie-hellman-group-exchange-sha256, diffie-hellman-group16-sha512, diffie-hellman-group18-sha512, diffie-hellman-group14-sha256, diffie-hellman-group1-sha1, kex-strict-s-v00@openssh.com
+2026-01-19 17:26:12,554 - paramiko.transport - DEBUG - server key: rsa-sha2-512, rsa-sha2-256, ecdsa-sha2-nistp256, ssh-ed25519
+2026-01-19 17:26:12,554 - paramiko.transport - DEBUG - client encrypt: chacha20-poly1305@openssh.com, aes128-ctr, aes192-ctr, aes256-ctr, aes128-gcm@openssh.com, aes256-gcm@openssh.com
+2026-01-19 17:26:12,554 - paramiko.transport - DEBUG - server encrypt: chacha20-poly1305@openssh.com, aes128-ctr, aes192-ctr, aes256-ctr, aes128-gcm@openssh.com, aes256-gcm@openssh.com
+2026-01-19 17:26:12,554 - paramiko.transport - DEBUG - client mac: umac-64-etm@openssh.com, umac-128-etm@openssh.com, hmac-sha2-256-etm@openssh.com, hmac-sha2-512-etm@openssh.com, hmac-sha1-etm@openssh.com, umac-64@openssh.com, umac-128@openssh.com, hmac-sha2-256, hmac-sha2-512, hmac-sha1
+2026-01-19 17:26:12,554 - paramiko.transport - DEBUG - server mac: umac-64-etm@openssh.com, umac-128-etm@openssh.com, hmac-sha2-256-etm@openssh.com, hmac-sha2-512-etm@openssh.com, hmac-sha1-etm@openssh.com, umac-64@openssh.com, umac-128@openssh.com, hmac-sha2-256, hmac-sha2-512, hmac-sha1
+2026-01-19 17:26:12,554 - paramiko.transport - DEBUG - client compress: none, zlib@openssh.com
+2026-01-19 17:26:12,554 - paramiko.transport - DEBUG - server compress: none, zlib@openssh.com
+2026-01-19 17:26:12,554 - paramiko.transport - DEBUG - client lang: <none>
+2026-01-19 17:26:12,555 - paramiko.transport - DEBUG - server lang: <none>
+2026-01-19 17:26:12,555 - paramiko.transport - DEBUG - kex follows: False
+2026-01-19 17:26:12,555 - paramiko.transport - DEBUG - === Key exchange agreements ===
+2026-01-19 17:26:12,555 - paramiko.transport - DEBUG - Strict kex mode: True
+2026-01-19 17:26:12,555 - paramiko.transport - DEBUG - Kex: curve25519-sha256@libssh.org
+2026-01-19 17:26:12,555 - paramiko.transport - DEBUG - HostKey: ssh-ed25519
+2026-01-19 17:26:12,555 - paramiko.transport - DEBUG - Cipher: aes128-ctr
+2026-01-19 17:26:12,555 - paramiko.transport - DEBUG - MAC: hmac-sha2-256
+2026-01-19 17:26:12,555 - paramiko.transport - DEBUG - Compression: none
+2026-01-19 17:26:12,555 - paramiko.transport - DEBUG - === End of kex handshake ===
+2026-01-19 17:26:12,568 - paramiko.transport - DEBUG - Resetting outbound seqno after NEWKEYS due to strict mode
+2026-01-19 17:26:12,568 - paramiko.transport - DEBUG - kex engine KexCurve25519 specified hash_algo <built-in function openssl_sha256>
+2026-01-19 17:26:12,569 - paramiko.transport - DEBUG - Switch to new keys ...
+2026-01-19 17:26:12,569 - paramiko.transport - DEBUG - Resetting inbound seqno after NEWKEYS due to strict mode
+2026-01-19 17:26:12,569 - paramiko.transport - DEBUG - Adding ssh-ed25519 host key for 192.168.0.166: b'3b25dd86de2ae7391e753e02d17a0937'
+2026-01-19 17:26:12,569 - paramiko.transport - DEBUG - Got EXT_INFO: {'server-sig-algs': b'ssh-ed25519,sk-ssh-ed25519@openssh.com,ssh-rsa,rsa-sha2-256,rsa-sha2-512,ssh-dss,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,sk-ecdsa-sha2-nistp256@openssh.com,webauthn-sk-ecdsa-sha2-nistp256@openssh.com', 'publickey-hostbound@openssh.com': b'0'}
+2026-01-19 17:26:12,580 - paramiko.transport - DEBUG - Trying SSH agent key b'836084bd492d7ccc3e108bcf18d8f178'
+2026-01-19 17:26:12,617 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:12,636 - paramiko.transport - INFO - Authentication (publickey) failed.
+2026-01-19 17:26:12,869 - paramiko.transport - DEBUG - Trying discovered key b'61bce1b9199918e7567e1aa0f519e72b' in C:\Users\nhqrt/.ssh/id_rsa
+2026-01-19 17:26:12,870 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:12,870 - paramiko.transport - DEBUG - Finalizing pubkey algorithm for key of type 'ssh-rsa'
+2026-01-19 17:26:12,870 - paramiko.transport - DEBUG - Our pubkey algorithm list: ['rsa-sha2-512', 'rsa-sha2-256', 'ssh-rsa']
+2026-01-19 17:26:12,870 - paramiko.transport - DEBUG - Server-side algorithm list: ['ssh-ed25519', 'sk-ssh-ed25519@openssh.com', 'ssh-rsa', 'rsa-sha2-256', 'rsa-sha2-512', 'ssh-dss', 'ecdsa-sha2-nistp256', 'ecdsa-sha2-nistp384', 'ecdsa-sha2-nistp521', 'sk-ecdsa-sha2-nistp256@openssh.com', 'webauthn-sk-ecdsa-sha2-nistp256@openssh.com']
+2026-01-19 17:26:12,870 - paramiko.transport - DEBUG - Agreed upon 'rsa-sha2-512' pubkey algorithm
+2026-01-19 17:26:12,881 - paramiko.transport - INFO - Authentication (publickey) failed.
+2026-01-19 17:26:12,881 - paramiko.transport - DEBUG - Trying discovered key b'836084bd492d7ccc3e108bcf18d8f178' in C:\Users\nhqrt/.ssh/id_ed25519
+2026-01-19 17:26:12,883 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:12,892 - paramiko.transport - INFO - Authentication (publickey) failed.
+2026-01-19 17:26:12,894 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:12,927 - paramiko.transport - INFO - Authentication (password) successful!
+2026-01-19 17:26:12,928 - pos_tool_new.utils.log_manager - INFO - 远程主机: 192.168.0.166, 文件路径: /opt/tomcat7/webapps/kpos/front3/js/cloudUrlConfig.json
+2026-01-19 17:26:12,928 - paramiko.transport - DEBUG - [chan 0] Max packet in: 32768 bytes
+2026-01-19 17:26:12,978 - paramiko.transport - DEBUG - Received global request "hostkeys-00@openssh.com"
+2026-01-19 17:26:12,978 - paramiko.transport - DEBUG - Rejecting "hostkeys-00@openssh.com" global request from server.
+2026-01-19 17:26:13,020 - paramiko.transport - DEBUG - [chan 0] Max packet out: 32768 bytes
+2026-01-19 17:26:13,020 - paramiko.transport - DEBUG - Secsh channel 0 opened.
+2026-01-19 17:26:13,022 - paramiko.transport - DEBUG - [chan 0] Sesch channel 0 request ok
+2026-01-19 17:26:13,028 - paramiko.transport - DEBUG - [chan 0] EOF received (0)
+2026-01-19 17:26:13,028 - paramiko.transport - DEBUG - [chan 0] EOF sent (0)
+2026-01-19 17:26:13,029 - paramiko.transport - DEBUG - [chan 1] Max packet in: 32768 bytes
+2026-01-19 17:26:13,073 - paramiko.transport - DEBUG - [chan 1] Max packet out: 32768 bytes
+2026-01-19 17:26:13,073 - paramiko.transport - DEBUG - Secsh channel 1 opened.
+2026-01-19 17:26:13,076 - paramiko.transport - DEBUG - [chan 1] Sesch channel 1 request ok
+2026-01-19 17:26:13,083 - paramiko.transport - DEBUG - [chan 1] EOF received (1)
+2026-01-19 17:26:13,083 - paramiko.transport - DEBUG - [chan 1] EOF sent (1)
+2026-01-19 17:26:13,083 - pos_tool_new.utils.log_manager - DEBUG - 远程文件原始内容摘要: {
+  "cloudify": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloudify",
+  "loyalty_program": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=loyalty_program",
+  "cloud_report_service": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloud_report_service&autoCreateBusiness=true",
+  "epager": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=epager"
+}
+2026-01-19 17:26:13,083 - pos_tool_new.utils.log_manager - INFO - 开始修改远程文件内容: kpos/front3/js/cloudUrlConfig.json, 环境: QA
+2026-01-19 17:26:13,083 - pos_tool_new.utils.log_manager - DEBUG - 原始内容摘要: {
+  "cloudify": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloudify",
+  "loyalty_program": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=loyalty_program",
+  "cloud_report_service": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloud_report_service&autoCreateBusiness=true",
+  "epager": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=epager"
+}
+2026-01-19 17:26:13,084 - pos_tool_new.utils.log_manager - WARNING - 未找到字段: expiration_management
+2026-01-19 17:26:13,084 - pos_tool_new.utils.log_manager - DEBUG - JSON内容修改前摘要: {"cloudify": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloudify", "loyalty_program": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=loyalty_program", "cloud_report_service": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloud_report_service&autoCreateBusiness=true", "epager": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=epager"}
+2026-01-19 17:26:13,084 - pos_tool_new.utils.log_manager - DEBUG - JSON内容修改后摘要: {"cloudify": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloudify", "loyalty_program": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=loyalty_program", "cloud_report_service": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloud_report_service&autoCreateBusiness=true", "epager": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=epager"}
+2026-01-19 17:26:13,085 - pos_tool_new.utils.log_manager - DEBUG - 修改后内容摘要: {
+  "cloudify": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloudify",
+  "loyalty_program": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=loyalty_program",
+  "cloud_report_service": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloud_report_service&autoCreateBusiness=true",
+  "epager": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=epager"
+}
+2026-01-19 17:26:13,085 - pos_tool_new.utils.log_manager - DEBUG - 远程文件修改后内容摘要: {
+  "cloudify": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloudify",
+  "loyalty_program": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=loyalty_program",
+  "cloud_report_service": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=cloud_report_service&autoCreateBusiness=true",
+  "epager": "https://cloud.menusifucloudqa.com/api/iam/pos/service/entry?serviceName=epager"
+}
+2026-01-19 17:26:13,085 - pos_tool_new.utils.log_manager - INFO - 文件内容无需修改: /opt/tomcat7/webapps/kpos/front3/js/cloudUrlConfig.json
+2026-01-19 17:26:13,085 - paramiko.transport - DEBUG - EOF in transport thread
+2026-01-19 17:26:13,094 - pos_tool_new.utils.log_manager - INFO - 配置执行成功: 文件内容无需修改
+2026-01-19 17:26:13,097 - paramiko.transport - DEBUG - starting thread (client mode): 0x13cf1a0
+2026-01-19 17:26:13,097 - paramiko.transport - DEBUG - Local version/idstring: SSH-2.0-paramiko_3.5.1
+2026-01-19 17:26:13,112 - paramiko.transport - DEBUG - Remote version/idstring: SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.13
+2026-01-19 17:26:13,112 - paramiko.transport - INFO - Connected (version 2.0, client OpenSSH_8.9p1)
+2026-01-19 17:26:13,114 - paramiko.transport - DEBUG - === Key exchange possibilities ===
+2026-01-19 17:26:13,114 - paramiko.transport - DEBUG - kex algos: curve25519-sha256, curve25519-sha256@libssh.org, ecdh-sha2-nistp256, ecdh-sha2-nistp384, ecdh-sha2-nistp521, sntrup761x25519-sha512@openssh.com, diffie-hellman-group-exchange-sha256, diffie-hellman-group16-sha512, diffie-hellman-group18-sha512, diffie-hellman-group14-sha256, diffie-hellman-group1-sha1, kex-strict-s-v00@openssh.com
+2026-01-19 17:26:13,114 - paramiko.transport - DEBUG - server key: rsa-sha2-512, rsa-sha2-256, ecdsa-sha2-nistp256, ssh-ed25519
+2026-01-19 17:26:13,114 - paramiko.transport - DEBUG - client encrypt: chacha20-poly1305@openssh.com, aes128-ctr, aes192-ctr, aes256-ctr, aes128-gcm@openssh.com, aes256-gcm@openssh.com
+2026-01-19 17:26:13,114 - paramiko.transport - DEBUG - server encrypt: chacha20-poly1305@openssh.com, aes128-ctr, aes192-ctr, aes256-ctr, aes128-gcm@openssh.com, aes256-gcm@openssh.com
+2026-01-19 17:26:13,114 - paramiko.transport - DEBUG - client mac: umac-64-etm@openssh.com, umac-128-etm@openssh.com, hmac-sha2-256-etm@openssh.com, hmac-sha2-512-etm@openssh.com, hmac-sha1-etm@openssh.com, umac-64@openssh.com, umac-128@openssh.com, hmac-sha2-256, hmac-sha2-512, hmac-sha1
+2026-01-19 17:26:13,114 - paramiko.transport - DEBUG - server mac: umac-64-etm@openssh.com, umac-128-etm@openssh.com, hmac-sha2-256-etm@openssh.com, hmac-sha2-512-etm@openssh.com, hmac-sha1-etm@openssh.com, umac-64@openssh.com, umac-128@openssh.com, hmac-sha2-256, hmac-sha2-512, hmac-sha1
+2026-01-19 17:26:13,115 - paramiko.transport - DEBUG - client compress: none, zlib@openssh.com
+2026-01-19 17:26:13,115 - paramiko.transport - DEBUG - server compress: none, zlib@openssh.com
+2026-01-19 17:26:13,115 - paramiko.transport - DEBUG - client lang: <none>
+2026-01-19 17:26:13,115 - paramiko.transport - DEBUG - server lang: <none>
+2026-01-19 17:26:13,115 - paramiko.transport - DEBUG - kex follows: False
+2026-01-19 17:26:13,115 - paramiko.transport - DEBUG - === Key exchange agreements ===
+2026-01-19 17:26:13,115 - paramiko.transport - DEBUG - Strict kex mode: True
+2026-01-19 17:26:13,115 - paramiko.transport - DEBUG - Kex: curve25519-sha256@libssh.org
+2026-01-19 17:26:13,115 - paramiko.transport - DEBUG - HostKey: ssh-ed25519
+2026-01-19 17:26:13,115 - paramiko.transport - DEBUG - Cipher: aes128-ctr
+2026-01-19 17:26:13,115 - paramiko.transport - DEBUG - MAC: hmac-sha2-256
+2026-01-19 17:26:13,115 - paramiko.transport - DEBUG - Compression: none
+2026-01-19 17:26:13,115 - paramiko.transport - DEBUG - === End of kex handshake ===
+2026-01-19 17:26:13,129 - paramiko.transport - DEBUG - Resetting outbound seqno after NEWKEYS due to strict mode
+2026-01-19 17:26:13,129 - paramiko.transport - DEBUG - kex engine KexCurve25519 specified hash_algo <built-in function openssl_sha256>
+2026-01-19 17:26:13,129 - paramiko.transport - DEBUG - Switch to new keys ...
+2026-01-19 17:26:13,129 - paramiko.transport - DEBUG - Resetting inbound seqno after NEWKEYS due to strict mode
+2026-01-19 17:26:13,130 - paramiko.transport - DEBUG - Adding ssh-ed25519 host key for 192.168.0.166: b'3b25dd86de2ae7391e753e02d17a0937'
+2026-01-19 17:26:13,130 - paramiko.transport - DEBUG - Got EXT_INFO: {'server-sig-algs': b'ssh-ed25519,sk-ssh-ed25519@openssh.com,ssh-rsa,rsa-sha2-256,rsa-sha2-512,ssh-dss,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,sk-ecdsa-sha2-nistp256@openssh.com,webauthn-sk-ecdsa-sha2-nistp256@openssh.com', 'publickey-hostbound@openssh.com': b'0'}
+2026-01-19 17:26:13,140 - paramiko.transport - DEBUG - Trying SSH agent key b'836084bd492d7ccc3e108bcf18d8f178'
+2026-01-19 17:26:13,173 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:13,193 - paramiko.transport - INFO - Authentication (publickey) failed.
+2026-01-19 17:26:13,422 - paramiko.transport - DEBUG - Trying discovered key b'61bce1b9199918e7567e1aa0f519e72b' in C:\Users\nhqrt/.ssh/id_rsa
+2026-01-19 17:26:13,423 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:13,423 - paramiko.transport - DEBUG - Finalizing pubkey algorithm for key of type 'ssh-rsa'
+2026-01-19 17:26:13,423 - paramiko.transport - DEBUG - Our pubkey algorithm list: ['rsa-sha2-512', 'rsa-sha2-256', 'ssh-rsa']
+2026-01-19 17:26:13,423 - paramiko.transport - DEBUG - Server-side algorithm list: ['ssh-ed25519', 'sk-ssh-ed25519@openssh.com', 'ssh-rsa', 'rsa-sha2-256', 'rsa-sha2-512', 'ssh-dss', 'ecdsa-sha2-nistp256', 'ecdsa-sha2-nistp384', 'ecdsa-sha2-nistp521', 'sk-ecdsa-sha2-nistp256@openssh.com', 'webauthn-sk-ecdsa-sha2-nistp256@openssh.com']
+2026-01-19 17:26:13,423 - paramiko.transport - DEBUG - Agreed upon 'rsa-sha2-512' pubkey algorithm
+2026-01-19 17:26:13,436 - paramiko.transport - INFO - Authentication (publickey) failed.
+2026-01-19 17:26:13,436 - paramiko.transport - DEBUG - Trying discovered key b'836084bd492d7ccc3e108bcf18d8f178' in C:\Users\nhqrt/.ssh/id_ed25519
+2026-01-19 17:26:13,437 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:13,446 - paramiko.transport - INFO - Authentication (publickey) failed.
+2026-01-19 17:26:13,447 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:13,480 - paramiko.transport - INFO - Authentication (password) successful!
+2026-01-19 17:26:13,481 - pos_tool_new.utils.log_manager - INFO - 远程主机: 192.168.0.166, 文件路径: /opt/tomcat7/webapps/cloudDatahub/WEB-INF/classes/application.properties
+2026-01-19 17:26:13,481 - paramiko.transport - DEBUG - [chan 0] Max packet in: 32768 bytes
+2026-01-19 17:26:13,527 - paramiko.transport - DEBUG - Received global request "hostkeys-00@openssh.com"
+2026-01-19 17:26:13,527 - paramiko.transport - DEBUG - Rejecting "hostkeys-00@openssh.com" global request from server.
+2026-01-19 17:26:13,579 - paramiko.transport - DEBUG - [chan 0] Max packet out: 32768 bytes
+2026-01-19 17:26:13,580 - paramiko.transport - DEBUG - Secsh channel 0 opened.
+2026-01-19 17:26:13,582 - paramiko.transport - DEBUG - [chan 0] Sesch channel 0 request ok
+2026-01-19 17:26:13,588 - paramiko.transport - DEBUG - [chan 0] EOF received (0)
+2026-01-19 17:26:13,588 - paramiko.transport - DEBUG - [chan 0] EOF sent (0)
+2026-01-19 17:26:13,588 - paramiko.transport - DEBUG - [chan 1] Max packet in: 32768 bytes
+2026-01-19 17:26:13,633 - paramiko.transport - DEBUG - [chan 1] Max packet out: 32768 bytes
+2026-01-19 17:26:13,633 - paramiko.transport - DEBUG - Secsh channel 1 opened.
+2026-01-19 17:26:13,635 - paramiko.transport - DEBUG - [chan 1] Sesch channel 1 request ok
+2026-01-19 17:26:13,642 - paramiko.transport - DEBUG - [chan 1] EOF received (1)
+2026-01-19 17:26:13,643 - paramiko.transport - DEBUG - [chan 1] EOF sent (1)
+2026-01-19 17:26:13,643 - pos_tool_new.utils.log_manager - DEBUG - 远程文件原始内容摘要: spring.datasource.tomcat.testOnBorrow=true
+spring.datasource.tomcat.validationQuery=SELECT 1
+
+spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.MySQLDialect
+spring.jpa.properties.hibernate.enable_lazy_load_no_trans=true
+
+database.username = Byl/UCedRmL9yf0XrfxZZg==
+database.password = QEq77wpoSGGmplxvlptcjA==
+database.url = jdbc:mysql://localhost:22108/kpos?autoReconnect=true&useSSL=false
+
+application.syncVersion = 1.0.1.24
+application.environmentType = integration
+appl
+2026-01-19 17:26:13,643 - pos_tool_new.utils.log_manager - INFO - 开始修改远程文件内容: cloudDatahub/WEB-INF/classes/application.properties, 环境: QA
+2026-01-19 17:26:13,645 - pos_tool_new.utils.log_manager - DEBUG - 原始内容摘要: spring.datasource.tomcat.testOnBorrow=true
+spring.datasource.tomcat.validationQuery=SELECT 1
+
+spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.MySQLDialect
+spring.jpa.properties.hibernate.enable_lazy_load_no_trans=true
+
+database.username = Byl/UCedRmL9yf0XrfxZZg==
+database.password = QEq77wpoSGGmplxvlptcjA==
+database.url = jdbc:mysql://localhost:22108/kpos?autoReconnect=true&useSSL=false
+
+application.syncVersion = 1.0.1.24
+application.environmentType = integration
+appl
+2026-01-19 17:26:13,645 - pos_tool_new.utils.log_manager - DEBUG - Properties内容修改前摘要: spring.datasource.tomcat.testOnBorrow=true
+spring.datasource.tomcat.validationQuery=SELECT 1
+
+spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.MySQLDialect
+spring.jpa.properties.hibernate.enable_lazy_load_no_trans=true
+
+database.username = Byl/UCedRmL9yf0XrfxZZg==
+database.password = QEq77wpoSGGmplxvlptcjA==
+database.url = jdbc:mysql://localhost:22108/kpos?autoReconnect=true&useSSL=false
+
+application.syncVersion = 1.0.1.24
+application.environmentType = integration
+appl
+2026-01-19 17:26:13,645 - pos_tool_new.utils.log_manager - DEBUG - Properties内容修改后摘要: spring.datasource.tomcat.testOnBorrow=true
+spring.datasource.tomcat.validationQuery=SELECT 1
+
+spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.MySQLDialect
+spring.jpa.properties.hibernate.enable_lazy_load_no_trans=true
+
+database.username = Byl/UCedRmL9yf0XrfxZZg==
+database.password = QEq77wpoSGGmplxvlptcjA==
+database.url = jdbc:mysql://localhost:22108/kpos?autoReconnect=true&useSSL=false
+
+application.syncVersion = 1.0.1.24
+application.environmentType = integration
+application.type
+2026-01-19 17:26:13,645 - pos_tool_new.utils.log_manager - DEBUG - 修改后内容摘要: spring.datasource.tomcat.testOnBorrow=true
+spring.datasource.tomcat.validationQuery=SELECT 1
+
+spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.MySQLDialect
+spring.jpa.properties.hibernate.enable_lazy_load_no_trans=true
+
+database.username = Byl/UCedRmL9yf0XrfxZZg==
+database.password = QEq77wpoSGGmplxvlptcjA==
+database.url = jdbc:mysql://localhost:22108/kpos?autoReconnect=true&useSSL=false
+
+application.syncVersion = 1.0.1.24
+application.environmentType = integration
+application.type
+2026-01-19 17:26:13,645 - pos_tool_new.utils.log_manager - DEBUG - 远程文件修改后内容摘要: spring.datasource.tomcat.testOnBorrow=true
+spring.datasource.tomcat.validationQuery=SELECT 1
+
+spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.MySQLDialect
+spring.jpa.properties.hibernate.enable_lazy_load_no_trans=true
+
+database.username = Byl/UCedRmL9yf0XrfxZZg==
+database.password = QEq77wpoSGGmplxvlptcjA==
+database.url = jdbc:mysql://localhost:22108/kpos?autoReconnect=true&useSSL=false
+
+application.syncVersion = 1.0.1.24
+application.environmentType = integration
+application.type
+2026-01-19 17:26:13,645 - paramiko.transport - DEBUG - [chan 2] Max packet in: 32768 bytes
+2026-01-19 17:26:13,685 - paramiko.transport - DEBUG - [chan 2] Max packet out: 32768 bytes
+2026-01-19 17:26:13,685 - paramiko.transport - DEBUG - Secsh channel 2 opened.
+2026-01-19 17:26:13,688 - paramiko.transport - DEBUG - [chan 2] Sesch channel 2 request ok
+2026-01-19 17:26:13,703 - paramiko.transport.sftp - INFO - [chan 2] Opened sftp connection (server version 3)
+2026-01-19 17:26:13,705 - paramiko.transport.sftp - DEBUG - [chan 2] open(b'/opt/tomcat7/webapps/cloudDatahub/WEB-INF/classes/application.properties', 'wb')
+2026-01-19 17:26:13,706 - paramiko.transport.sftp - DEBUG - [chan 2] open(b'/opt/tomcat7/webapps/cloudDatahub/WEB-INF/classes/application.properties', 'wb') -> 00000000
+2026-01-19 17:26:13,708 - paramiko.transport.sftp - DEBUG - [chan 2] close(00000000)
+2026-01-19 17:26:13,709 - paramiko.transport.sftp - DEBUG - [chan 2] stat(b'/opt/tomcat7/webapps/cloudDatahub/WEB-INF/classes/application.properties')
+2026-01-19 17:26:13,710 - paramiko.transport.sftp - INFO - [chan 2] sftp session closed.
+2026-01-19 17:26:13,710 - paramiko.transport - DEBUG - [chan 2] EOF sent (2)
+2026-01-19 17:26:13,710 - pos_tool_new.utils.log_manager - INFO - 文件已写入新内容: /opt/tomcat7/webapps/cloudDatahub/WEB-INF/classes/application.properties
+2026-01-19 17:26:13,711 - paramiko.transport - DEBUG - EOF in transport thread
+2026-01-19 17:26:13,715 - pos_tool_new.utils.log_manager - INFO - 配置执行成功: 文件修改成功: /opt/tomcat7/webapps/cloudDatahub/WEB-INF/classes/application.properties
+2026-01-19 17:26:13,719 - paramiko.transport - DEBUG - starting thread (client mode): 0x13ed910
+2026-01-19 17:26:13,719 - paramiko.transport - DEBUG - Local version/idstring: SSH-2.0-paramiko_3.5.1
+2026-01-19 17:26:13,735 - paramiko.transport - DEBUG - Remote version/idstring: SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.13
+2026-01-19 17:26:13,736 - paramiko.transport - INFO - Connected (version 2.0, client OpenSSH_8.9p1)
+2026-01-19 17:26:13,736 - paramiko.transport - DEBUG - === Key exchange possibilities ===
+2026-01-19 17:26:13,736 - paramiko.transport - DEBUG - kex algos: curve25519-sha256, curve25519-sha256@libssh.org, ecdh-sha2-nistp256, ecdh-sha2-nistp384, ecdh-sha2-nistp521, sntrup761x25519-sha512@openssh.com, diffie-hellman-group-exchange-sha256, diffie-hellman-group16-sha512, diffie-hellman-group18-sha512, diffie-hellman-group14-sha256, diffie-hellman-group1-sha1, kex-strict-s-v00@openssh.com
+2026-01-19 17:26:13,736 - paramiko.transport - DEBUG - server key: rsa-sha2-512, rsa-sha2-256, ecdsa-sha2-nistp256, ssh-ed25519
+2026-01-19 17:26:13,736 - paramiko.transport - DEBUG - client encrypt: chacha20-poly1305@openssh.com, aes128-ctr, aes192-ctr, aes256-ctr, aes128-gcm@openssh.com, aes256-gcm@openssh.com
+2026-01-19 17:26:13,737 - paramiko.transport - DEBUG - server encrypt: chacha20-poly1305@openssh.com, aes128-ctr, aes192-ctr, aes256-ctr, aes128-gcm@openssh.com, aes256-gcm@openssh.com
+2026-01-19 17:26:13,737 - paramiko.transport - DEBUG - client mac: umac-64-etm@openssh.com, umac-128-etm@openssh.com, hmac-sha2-256-etm@openssh.com, hmac-sha2-512-etm@openssh.com, hmac-sha1-etm@openssh.com, umac-64@openssh.com, umac-128@openssh.com, hmac-sha2-256, hmac-sha2-512, hmac-sha1
+2026-01-19 17:26:13,737 - paramiko.transport - DEBUG - server mac: umac-64-etm@openssh.com, umac-128-etm@openssh.com, hmac-sha2-256-etm@openssh.com, hmac-sha2-512-etm@openssh.com, hmac-sha1-etm@openssh.com, umac-64@openssh.com, umac-128@openssh.com, hmac-sha2-256, hmac-sha2-512, hmac-sha1
+2026-01-19 17:26:13,737 - paramiko.transport - DEBUG - client compress: none, zlib@openssh.com
+2026-01-19 17:26:13,737 - paramiko.transport - DEBUG - server compress: none, zlib@openssh.com
+2026-01-19 17:26:13,737 - paramiko.transport - DEBUG - client lang: <none>
+2026-01-19 17:26:13,737 - paramiko.transport - DEBUG - server lang: <none>
+2026-01-19 17:26:13,737 - paramiko.transport - DEBUG - kex follows: False
+2026-01-19 17:26:13,737 - paramiko.transport - DEBUG - === Key exchange agreements ===
+2026-01-19 17:26:13,737 - paramiko.transport - DEBUG - Strict kex mode: True
+2026-01-19 17:26:13,737 - paramiko.transport - DEBUG - Kex: curve25519-sha256@libssh.org
+2026-01-19 17:26:13,737 - paramiko.transport - DEBUG - HostKey: ssh-ed25519
+2026-01-19 17:26:13,737 - paramiko.transport - DEBUG - Cipher: aes128-ctr
+2026-01-19 17:26:13,737 - paramiko.transport - DEBUG - MAC: hmac-sha2-256
+2026-01-19 17:26:13,737 - paramiko.transport - DEBUG - Compression: none
+2026-01-19 17:26:13,737 - paramiko.transport - DEBUG - === End of kex handshake ===
+2026-01-19 17:26:13,746 - paramiko.transport - DEBUG - Resetting outbound seqno after NEWKEYS due to strict mode
+2026-01-19 17:26:13,747 - paramiko.transport - DEBUG - kex engine KexCurve25519 specified hash_algo <built-in function openssl_sha256>
+2026-01-19 17:26:13,747 - paramiko.transport - DEBUG - Switch to new keys ...
+2026-01-19 17:26:13,747 - paramiko.transport - DEBUG - Resetting inbound seqno after NEWKEYS due to strict mode
+2026-01-19 17:26:13,747 - paramiko.transport - DEBUG - Adding ssh-ed25519 host key for 192.168.0.166: b'3b25dd86de2ae7391e753e02d17a0937'
+2026-01-19 17:26:13,747 - paramiko.transport - DEBUG - Got EXT_INFO: {'server-sig-algs': b'ssh-ed25519,sk-ssh-ed25519@openssh.com,ssh-rsa,rsa-sha2-256,rsa-sha2-512,ssh-dss,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,sk-ecdsa-sha2-nistp256@openssh.com,webauthn-sk-ecdsa-sha2-nistp256@openssh.com', 'publickey-hostbound@openssh.com': b'0'}
+2026-01-19 17:26:13,760 - paramiko.transport - DEBUG - Trying SSH agent key b'836084bd492d7ccc3e108bcf18d8f178'
+2026-01-19 17:26:13,789 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:13,809 - paramiko.transport - INFO - Authentication (publickey) failed.
+2026-01-19 17:26:14,042 - paramiko.transport - DEBUG - Trying discovered key b'61bce1b9199918e7567e1aa0f519e72b' in C:\Users\nhqrt/.ssh/id_rsa
+2026-01-19 17:26:14,043 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:14,043 - paramiko.transport - DEBUG - Finalizing pubkey algorithm for key of type 'ssh-rsa'
+2026-01-19 17:26:14,043 - paramiko.transport - DEBUG - Our pubkey algorithm list: ['rsa-sha2-512', 'rsa-sha2-256', 'ssh-rsa']
+2026-01-19 17:26:14,043 - paramiko.transport - DEBUG - Server-side algorithm list: ['ssh-ed25519', 'sk-ssh-ed25519@openssh.com', 'ssh-rsa', 'rsa-sha2-256', 'rsa-sha2-512', 'ssh-dss', 'ecdsa-sha2-nistp256', 'ecdsa-sha2-nistp384', 'ecdsa-sha2-nistp521', 'sk-ecdsa-sha2-nistp256@openssh.com', 'webauthn-sk-ecdsa-sha2-nistp256@openssh.com']
+2026-01-19 17:26:14,043 - paramiko.transport - DEBUG - Agreed upon 'rsa-sha2-512' pubkey algorithm
+2026-01-19 17:26:14,055 - paramiko.transport - INFO - Authentication (publickey) failed.
+2026-01-19 17:26:14,055 - paramiko.transport - DEBUG - Trying discovered key b'836084bd492d7ccc3e108bcf18d8f178' in C:\Users\nhqrt/.ssh/id_ed25519
+2026-01-19 17:26:14,056 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:14,066 - paramiko.transport - INFO - Authentication (publickey) failed.
+2026-01-19 17:26:14,067 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:14,100 - paramiko.transport - INFO - Authentication (password) successful!
+2026-01-19 17:26:14,100 - pos_tool_new.utils.log_manager - INFO - 远程主机: 192.168.0.166, 文件路径: /opt/tomcat7/webapps/kpos/waitlist/cloudUrl.json
+2026-01-19 17:26:14,100 - paramiko.transport - DEBUG - [chan 0] Max packet in: 32768 bytes
+2026-01-19 17:26:14,141 - paramiko.transport - DEBUG - Received global request "hostkeys-00@openssh.com"
+2026-01-19 17:26:14,141 - paramiko.transport - DEBUG - Rejecting "hostkeys-00@openssh.com" global request from server.
+2026-01-19 17:26:14,185 - paramiko.transport - DEBUG - [chan 0] Max packet out: 32768 bytes
+2026-01-19 17:26:14,185 - paramiko.transport - DEBUG - Secsh channel 0 opened.
+2026-01-19 17:26:14,188 - paramiko.transport - DEBUG - [chan 0] Sesch channel 0 request ok
+2026-01-19 17:26:14,194 - paramiko.transport - DEBUG - [chan 0] EOF received (0)
+2026-01-19 17:26:14,194 - paramiko.transport - DEBUG - [chan 0] EOF sent (0)
+2026-01-19 17:26:14,195 - paramiko.transport - DEBUG - [chan 1] Max packet in: 32768 bytes
+2026-01-19 17:26:14,237 - paramiko.transport - DEBUG - [chan 1] Max packet out: 32768 bytes
+2026-01-19 17:26:14,237 - paramiko.transport - DEBUG - Secsh channel 1 opened.
+2026-01-19 17:26:14,240 - paramiko.transport - DEBUG - [chan 1] Sesch channel 1 request ok
+2026-01-19 17:26:14,247 - paramiko.transport - DEBUG - [chan 1] EOF received (1)
+2026-01-19 17:26:14,247 - paramiko.transport - DEBUG - [chan 1] EOF sent (1)
+2026-01-19 17:26:14,248 - pos_tool_new.utils.log_manager - DEBUG - 远程文件原始内容摘要: {
+  "cloudB": "https://cloud.menusifucloudqa.com/waitlist/{mid}/",
+  "cloudC": "https://epager.menusifucloudqa.com/{mid}/front/start"
+}
+2026-01-19 17:26:14,249 - pos_tool_new.utils.log_manager - INFO - 开始修改远程文件内容: kpos/waitlist/cloudUrl.json, 环境: QA
+2026-01-19 17:26:14,249 - pos_tool_new.utils.log_manager - DEBUG - 原始内容摘要: {
+  "cloudB": "https://cloud.menusifucloudqa.com/waitlist/{mid}/",
+  "cloudC": "https://epager.menusifucloudqa.com/{mid}/front/start"
+}
+2026-01-19 17:26:14,249 - pos_tool_new.utils.log_manager - DEBUG - JSON内容修改前摘要: {"cloudB": "https://cloud.menusifucloudqa.com/waitlist/{mid}/", "cloudC": "https://epager.menusifucloudqa.com/{mid}/front/start"}
+2026-01-19 17:26:14,249 - pos_tool_new.utils.log_manager - DEBUG - JSON内容修改后摘要: {"cloudB": "https://cloud.menusifucloudqa.com/waitlist/{mid}/", "cloudC": "https://epager.menusifucloudqa.com/{mid}/front/start"}
+2026-01-19 17:26:14,249 - pos_tool_new.utils.log_manager - DEBUG - 修改后内容摘要: {
+  "cloudB": "https://cloud.menusifucloudqa.com/waitlist/{mid}/",
+  "cloudC": "https://epager.menusifucloudqa.com/{mid}/front/start"
+}
+2026-01-19 17:26:14,249 - pos_tool_new.utils.log_manager - DEBUG - 远程文件修改后内容摘要: {
+  "cloudB": "https://cloud.menusifucloudqa.com/waitlist/{mid}/",
+  "cloudC": "https://epager.menusifucloudqa.com/{mid}/front/start"
+}
+2026-01-19 17:26:14,249 - pos_tool_new.utils.log_manager - INFO - 文件内容无需修改: /opt/tomcat7/webapps/kpos/waitlist/cloudUrl.json
+2026-01-19 17:26:14,249 - paramiko.transport - DEBUG - EOF in transport thread
+2026-01-19 17:26:14,254 - pos_tool_new.utils.log_manager - INFO - 配置执行成功: 文件内容无需修改
+2026-01-19 17:26:14,255 - paramiko.transport - DEBUG - starting thread (client mode): 0x13cffb0
+2026-01-19 17:26:14,256 - paramiko.transport - DEBUG - Local version/idstring: SSH-2.0-paramiko_3.5.1
+2026-01-19 17:26:14,292 - paramiko.transport - DEBUG - Remote version/idstring: SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.13
+2026-01-19 17:26:14,292 - paramiko.transport - INFO - Connected (version 2.0, client OpenSSH_8.9p1)
+2026-01-19 17:26:14,294 - paramiko.transport - DEBUG - === Key exchange possibilities ===
+2026-01-19 17:26:14,294 - paramiko.transport - DEBUG - kex algos: curve25519-sha256, curve25519-sha256@libssh.org, ecdh-sha2-nistp256, ecdh-sha2-nistp384, ecdh-sha2-nistp521, sntrup761x25519-sha512@openssh.com, diffie-hellman-group-exchange-sha256, diffie-hellman-group16-sha512, diffie-hellman-group18-sha512, diffie-hellman-group14-sha256, diffie-hellman-group1-sha1, kex-strict-s-v00@openssh.com
+2026-01-19 17:26:14,294 - paramiko.transport - DEBUG - server key: rsa-sha2-512, rsa-sha2-256, ecdsa-sha2-nistp256, ssh-ed25519
+2026-01-19 17:26:14,294 - paramiko.transport - DEBUG - client encrypt: chacha20-poly1305@openssh.com, aes128-ctr, aes192-ctr, aes256-ctr, aes128-gcm@openssh.com, aes256-gcm@openssh.com
+2026-01-19 17:26:14,294 - paramiko.transport - DEBUG - server encrypt: chacha20-poly1305@openssh.com, aes128-ctr, aes192-ctr, aes256-ctr, aes128-gcm@openssh.com, aes256-gcm@openssh.com
+2026-01-19 17:26:14,294 - paramiko.transport - DEBUG - client mac: umac-64-etm@openssh.com, umac-128-etm@openssh.com, hmac-sha2-256-etm@openssh.com, hmac-sha2-512-etm@openssh.com, hmac-sha1-etm@openssh.com, umac-64@openssh.com, umac-128@openssh.com, hmac-sha2-256, hmac-sha2-512, hmac-sha1
+2026-01-19 17:26:14,294 - paramiko.transport - DEBUG - server mac: umac-64-etm@openssh.com, umac-128-etm@openssh.com, hmac-sha2-256-etm@openssh.com, hmac-sha2-512-etm@openssh.com, hmac-sha1-etm@openssh.com, umac-64@openssh.com, umac-128@openssh.com, hmac-sha2-256, hmac-sha2-512, hmac-sha1
+2026-01-19 17:26:14,294 - paramiko.transport - DEBUG - client compress: none, zlib@openssh.com
+2026-01-19 17:26:14,294 - paramiko.transport - DEBUG - server compress: none, zlib@openssh.com
+2026-01-19 17:26:14,294 - paramiko.transport - DEBUG - client lang: <none>
+2026-01-19 17:26:14,294 - paramiko.transport - DEBUG - server lang: <none>
+2026-01-19 17:26:14,294 - paramiko.transport - DEBUG - kex follows: False
+2026-01-19 17:26:14,294 - paramiko.transport - DEBUG - === Key exchange agreements ===
+2026-01-19 17:26:14,295 - paramiko.transport - DEBUG - Strict kex mode: True
+2026-01-19 17:26:14,295 - paramiko.transport - DEBUG - Kex: curve25519-sha256@libssh.org
+2026-01-19 17:26:14,295 - paramiko.transport - DEBUG - HostKey: ssh-ed25519
+2026-01-19 17:26:14,295 - paramiko.transport - DEBUG - Cipher: aes128-ctr
+2026-01-19 17:26:14,295 - paramiko.transport - DEBUG - MAC: hmac-sha2-256
+2026-01-19 17:26:14,295 - paramiko.transport - DEBUG - Compression: none
+2026-01-19 17:26:14,295 - paramiko.transport - DEBUG - === End of kex handshake ===
+2026-01-19 17:26:14,309 - paramiko.transport - DEBUG - Resetting outbound seqno after NEWKEYS due to strict mode
+2026-01-19 17:26:14,309 - paramiko.transport - DEBUG - kex engine KexCurve25519 specified hash_algo <built-in function openssl_sha256>
+2026-01-19 17:26:14,310 - paramiko.transport - DEBUG - Switch to new keys ...
+2026-01-19 17:26:14,310 - paramiko.transport - DEBUG - Resetting inbound seqno after NEWKEYS due to strict mode
+2026-01-19 17:26:14,310 - paramiko.transport - DEBUG - Adding ssh-ed25519 host key for 192.168.0.166: b'3b25dd86de2ae7391e753e02d17a0937'
+2026-01-19 17:26:14,310 - paramiko.transport - DEBUG - Got EXT_INFO: {'server-sig-algs': b'ssh-ed25519,sk-ssh-ed25519@openssh.com,ssh-rsa,rsa-sha2-256,rsa-sha2-512,ssh-dss,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,sk-ecdsa-sha2-nistp256@openssh.com,webauthn-sk-ecdsa-sha2-nistp256@openssh.com', 'publickey-hostbound@openssh.com': b'0'}
+2026-01-19 17:26:14,322 - paramiko.transport - DEBUG - Trying SSH agent key b'836084bd492d7ccc3e108bcf18d8f178'
+2026-01-19 17:26:14,353 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:14,372 - paramiko.transport - INFO - Authentication (publickey) failed.
+2026-01-19 17:26:14,603 - paramiko.transport - DEBUG - Trying discovered key b'61bce1b9199918e7567e1aa0f519e72b' in C:\Users\nhqrt/.ssh/id_rsa
+2026-01-19 17:26:14,604 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:14,604 - paramiko.transport - DEBUG - Finalizing pubkey algorithm for key of type 'ssh-rsa'
+2026-01-19 17:26:14,604 - paramiko.transport - DEBUG - Our pubkey algorithm list: ['rsa-sha2-512', 'rsa-sha2-256', 'ssh-rsa']
+2026-01-19 17:26:14,604 - paramiko.transport - DEBUG - Server-side algorithm list: ['ssh-ed25519', 'sk-ssh-ed25519@openssh.com', 'ssh-rsa', 'rsa-sha2-256', 'rsa-sha2-512', 'ssh-dss', 'ecdsa-sha2-nistp256', 'ecdsa-sha2-nistp384', 'ecdsa-sha2-nistp521', 'sk-ecdsa-sha2-nistp256@openssh.com', 'webauthn-sk-ecdsa-sha2-nistp256@openssh.com']
+2026-01-19 17:26:14,604 - paramiko.transport - DEBUG - Agreed upon 'rsa-sha2-512' pubkey algorithm
+2026-01-19 17:26:14,616 - paramiko.transport - INFO - Authentication (publickey) failed.
+2026-01-19 17:26:14,616 - paramiko.transport - DEBUG - Trying discovered key b'836084bd492d7ccc3e108bcf18d8f178' in C:\Users\nhqrt/.ssh/id_ed25519
+2026-01-19 17:26:14,618 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:14,626 - paramiko.transport - INFO - Authentication (publickey) failed.
+2026-01-19 17:26:14,627 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:14,661 - paramiko.transport - INFO - Authentication (password) successful!
+2026-01-19 17:26:14,661 - pos_tool_new.utils.log_manager - INFO - 远程主机: 192.168.0.166, 文件路径: /opt/tomcat7/webapps/kpos/newwaitlist.json
+2026-01-19 17:26:14,662 - paramiko.transport - DEBUG - [chan 0] Max packet in: 32768 bytes
+2026-01-19 17:26:14,709 - paramiko.transport - DEBUG - Received global request "hostkeys-00@openssh.com"
+2026-01-19 17:26:14,709 - paramiko.transport - DEBUG - Rejecting "hostkeys-00@openssh.com" global request from server.
+2026-01-19 17:26:14,763 - paramiko.transport - DEBUG - [chan 0] Max packet out: 32768 bytes
+2026-01-19 17:26:14,763 - paramiko.transport - DEBUG - Secsh channel 0 opened.
+2026-01-19 17:26:14,766 - paramiko.transport - DEBUG - [chan 0] Sesch channel 0 request ok
+2026-01-19 17:26:14,775 - paramiko.transport - DEBUG - [chan 0] EOF received (0)
+2026-01-19 17:26:14,775 - paramiko.transport - DEBUG - [chan 0] EOF sent (0)
+2026-01-19 17:26:14,776 - paramiko.transport - DEBUG - [chan 1] Max packet in: 32768 bytes
+2026-01-19 17:26:14,817 - paramiko.transport - DEBUG - [chan 1] Max packet out: 32768 bytes
+2026-01-19 17:26:14,817 - paramiko.transport - DEBUG - Secsh channel 1 opened.
+2026-01-19 17:26:14,819 - paramiko.transport - DEBUG - [chan 1] Sesch channel 1 request ok
+2026-01-19 17:26:14,824 - paramiko.transport - DEBUG - [chan 1] EOF received (1)
+2026-01-19 17:26:14,824 - paramiko.transport - DEBUG - [chan 1] EOF sent (1)
+2026-01-19 17:26:14,824 - pos_tool_new.utils.log_manager - DEBUG - 远程文件原始内容摘要: {
+  "url": "https://cloud.menusifucloudqa.com/waitlist/{mid}/manage/waitlist"
+}
+2026-01-19 17:26:14,825 - pos_tool_new.utils.log_manager - INFO - 开始修改远程文件内容: kpos/newwaitlist.json, 环境: QA
+2026-01-19 17:26:14,826 - pos_tool_new.utils.log_manager - DEBUG - 原始内容摘要: {
+  "url": "https://cloud.menusifucloudqa.com/waitlist/{mid}/manage/waitlist"
+}
+2026-01-19 17:26:14,826 - pos_tool_new.utils.log_manager - DEBUG - JSON内容修改前摘要: {"url": "https://cloud.menusifucloudqa.com/waitlist/{mid}/manage/waitlist"}
+2026-01-19 17:26:14,826 - pos_tool_new.utils.log_manager - DEBUG - JSON内容修改后摘要: {"url": "https://cloud.menusifucloudqa.com/waitlist/{mid}/manage/waitlist"}
+2026-01-19 17:26:14,826 - pos_tool_new.utils.log_manager - DEBUG - 修改后内容摘要: {
+  "url": "https://cloud.menusifucloudqa.com/waitlist/{mid}/manage/waitlist"
+}
+2026-01-19 17:26:14,826 - pos_tool_new.utils.log_manager - DEBUG - 远程文件修改后内容摘要: {
+  "url": "https://cloud.menusifucloudqa.com/waitlist/{mid}/manage/waitlist"
+}
+2026-01-19 17:26:14,826 - pos_tool_new.utils.log_manager - INFO - 文件内容无需修改: /opt/tomcat7/webapps/kpos/newwaitlist.json
+2026-01-19 17:26:14,826 - paramiko.transport - DEBUG - EOF in transport thread
+2026-01-19 17:26:14,832 - pos_tool_new.utils.log_manager - INFO - 配置执行成功: 文件内容无需修改
+2026-01-19 17:26:26,962 - pos_tool_new.utils.log_manager - INFO - 正在尝试连接到 menu@192.168.0.166...
+2026-01-19 17:26:26,963 - paramiko.transport - DEBUG - starting thread (client mode): 0x13eeff0
+2026-01-19 17:26:26,963 - paramiko.transport - DEBUG - Local version/idstring: SSH-2.0-paramiko_3.5.1
+2026-01-19 17:26:26,979 - paramiko.transport - DEBUG - Remote version/idstring: SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.13
+2026-01-19 17:26:26,979 - paramiko.transport - INFO - Connected (version 2.0, client OpenSSH_8.9p1)
+2026-01-19 17:26:26,980 - paramiko.transport - DEBUG - === Key exchange possibilities ===
+2026-01-19 17:26:26,980 - paramiko.transport - DEBUG - kex algos: curve25519-sha256, curve25519-sha256@libssh.org, ecdh-sha2-nistp256, ecdh-sha2-nistp384, ecdh-sha2-nistp521, sntrup761x25519-sha512@openssh.com, diffie-hellman-group-exchange-sha256, diffie-hellman-group16-sha512, diffie-hellman-group18-sha512, diffie-hellman-group14-sha256, diffie-hellman-group1-sha1, kex-strict-s-v00@openssh.com
+2026-01-19 17:26:26,980 - paramiko.transport - DEBUG - server key: rsa-sha2-512, rsa-sha2-256, ecdsa-sha2-nistp256, ssh-ed25519
+2026-01-19 17:26:26,981 - paramiko.transport - DEBUG - client encrypt: chacha20-poly1305@openssh.com, aes128-ctr, aes192-ctr, aes256-ctr, aes128-gcm@openssh.com, aes256-gcm@openssh.com
+2026-01-19 17:26:26,981 - paramiko.transport - DEBUG - server encrypt: chacha20-poly1305@openssh.com, aes128-ctr, aes192-ctr, aes256-ctr, aes128-gcm@openssh.com, aes256-gcm@openssh.com
+2026-01-19 17:26:26,981 - paramiko.transport - DEBUG - client mac: umac-64-etm@openssh.com, umac-128-etm@openssh.com, hmac-sha2-256-etm@openssh.com, hmac-sha2-512-etm@openssh.com, hmac-sha1-etm@openssh.com, umac-64@openssh.com, umac-128@openssh.com, hmac-sha2-256, hmac-sha2-512, hmac-sha1
+2026-01-19 17:26:26,981 - paramiko.transport - DEBUG - server mac: umac-64-etm@openssh.com, umac-128-etm@openssh.com, hmac-sha2-256-etm@openssh.com, hmac-sha2-512-etm@openssh.com, hmac-sha1-etm@openssh.com, umac-64@openssh.com, umac-128@openssh.com, hmac-sha2-256, hmac-sha2-512, hmac-sha1
+2026-01-19 17:26:26,981 - paramiko.transport - DEBUG - client compress: none, zlib@openssh.com
+2026-01-19 17:26:26,981 - paramiko.transport - DEBUG - server compress: none, zlib@openssh.com
+2026-01-19 17:26:26,981 - paramiko.transport - DEBUG - client lang: <none>
+2026-01-19 17:26:26,981 - paramiko.transport - DEBUG - server lang: <none>
+2026-01-19 17:26:26,981 - paramiko.transport - DEBUG - kex follows: False
+2026-01-19 17:26:26,981 - paramiko.transport - DEBUG - === Key exchange agreements ===
+2026-01-19 17:26:26,981 - paramiko.transport - DEBUG - Strict kex mode: True
+2026-01-19 17:26:26,981 - paramiko.transport - DEBUG - Kex: curve25519-sha256@libssh.org
+2026-01-19 17:26:26,981 - paramiko.transport - DEBUG - HostKey: ssh-ed25519
+2026-01-19 17:26:26,981 - paramiko.transport - DEBUG - Cipher: aes128-ctr
+2026-01-19 17:26:26,981 - paramiko.transport - DEBUG - MAC: hmac-sha2-256
+2026-01-19 17:26:26,981 - paramiko.transport - DEBUG - Compression: none
+2026-01-19 17:26:26,981 - paramiko.transport - DEBUG - === End of kex handshake ===
+2026-01-19 17:26:26,992 - paramiko.transport - DEBUG - Resetting outbound seqno after NEWKEYS due to strict mode
+2026-01-19 17:26:26,993 - paramiko.transport - DEBUG - kex engine KexCurve25519 specified hash_algo <built-in function openssl_sha256>
+2026-01-19 17:26:26,993 - paramiko.transport - DEBUG - Switch to new keys ...
+2026-01-19 17:26:26,993 - paramiko.transport - DEBUG - Resetting inbound seqno after NEWKEYS due to strict mode
+2026-01-19 17:26:26,993 - paramiko.transport - DEBUG - Adding ssh-ed25519 host key for 192.168.0.166: b'3b25dd86de2ae7391e753e02d17a0937'
+2026-01-19 17:26:26,994 - paramiko.transport - DEBUG - Got EXT_INFO: {'server-sig-algs': b'ssh-ed25519,sk-ssh-ed25519@openssh.com,ssh-rsa,rsa-sha2-256,rsa-sha2-512,ssh-dss,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,sk-ecdsa-sha2-nistp256@openssh.com,webauthn-sk-ecdsa-sha2-nistp256@openssh.com', 'publickey-hostbound@openssh.com': b'0'}
+2026-01-19 17:26:27,006 - paramiko.transport - DEBUG - Trying SSH agent key b'836084bd492d7ccc3e108bcf18d8f178'
+2026-01-19 17:26:27,036 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:27,056 - paramiko.transport - INFO - Authentication (publickey) failed.
+2026-01-19 17:26:27,285 - paramiko.transport - DEBUG - Trying discovered key b'61bce1b9199918e7567e1aa0f519e72b' in C:\Users\nhqrt/.ssh/id_rsa
+2026-01-19 17:26:27,286 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:27,287 - paramiko.transport - DEBUG - Finalizing pubkey algorithm for key of type 'ssh-rsa'
+2026-01-19 17:26:27,287 - paramiko.transport - DEBUG - Our pubkey algorithm list: ['rsa-sha2-512', 'rsa-sha2-256', 'ssh-rsa']
+2026-01-19 17:26:27,287 - paramiko.transport - DEBUG - Server-side algorithm list: ['ssh-ed25519', 'sk-ssh-ed25519@openssh.com', 'ssh-rsa', 'rsa-sha2-256', 'rsa-sha2-512', 'ssh-dss', 'ecdsa-sha2-nistp256', 'ecdsa-sha2-nistp384', 'ecdsa-sha2-nistp521', 'sk-ecdsa-sha2-nistp256@openssh.com', 'webauthn-sk-ecdsa-sha2-nistp256@openssh.com']
+2026-01-19 17:26:27,287 - paramiko.transport - DEBUG - Agreed upon 'rsa-sha2-512' pubkey algorithm
+2026-01-19 17:26:27,299 - paramiko.transport - INFO - Authentication (publickey) failed.
+2026-01-19 17:26:27,299 - paramiko.transport - DEBUG - Trying discovered key b'836084bd492d7ccc3e108bcf18d8f178' in C:\Users\nhqrt/.ssh/id_ed25519
+2026-01-19 17:26:27,300 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:27,308 - paramiko.transport - INFO - Authentication (publickey) failed.
+2026-01-19 17:26:27,309 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:27,343 - paramiko.transport - INFO - Authentication (password) successful!
+2026-01-19 17:26:27,343 - paramiko.transport - DEBUG - [chan 0] Max packet in: 32768 bytes
+2026-01-19 17:26:27,383 - paramiko.transport - DEBUG - Received global request "hostkeys-00@openssh.com"
+2026-01-19 17:26:27,383 - paramiko.transport - DEBUG - Rejecting "hostkeys-00@openssh.com" global request from server.
+2026-01-19 17:26:27,439 - paramiko.transport - DEBUG - [chan 0] Max packet out: 32768 bytes
+2026-01-19 17:26:27,439 - paramiko.transport - DEBUG - Secsh channel 0 opened.
+2026-01-19 17:26:27,442 - paramiko.transport - DEBUG - [chan 0] Sesch channel 0 request ok
+2026-01-19 17:26:27,442 - paramiko.transport - DEBUG - [chan 0] EOF sent (0)
+2026-01-19 17:26:27,447 - paramiko.transport - DEBUG - [chan 0] EOF received (0)
+2026-01-19 17:26:27,447 - pos_tool_new.utils.log_manager - INFO - 连接成功!
+2026-01-19 17:26:27,448 - paramiko.transport - DEBUG - EOF in transport thread
+2026-01-19 17:26:27,452 - pos_tool_new.utils.log_manager - INFO - SSH连接测试结果 - 主机: 192.168.0.166, 用户: menu, 结果: SSH连接测试成功
+2026-01-19 17:26:28,846 - paramiko.transport - DEBUG - starting thread (client mode): 0x1408920
+2026-01-19 17:26:28,846 - paramiko.transport - DEBUG - Local version/idstring: SSH-2.0-paramiko_3.5.1
+2026-01-19 17:26:28,862 - paramiko.transport - DEBUG - Remote version/idstring: SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.13
+2026-01-19 17:26:28,862 - paramiko.transport - INFO - Connected (version 2.0, client OpenSSH_8.9p1)
+2026-01-19 17:26:28,863 - paramiko.transport - DEBUG - === Key exchange possibilities ===
+2026-01-19 17:26:28,863 - paramiko.transport - DEBUG - kex algos: curve25519-sha256, curve25519-sha256@libssh.org, ecdh-sha2-nistp256, ecdh-sha2-nistp384, ecdh-sha2-nistp521, sntrup761x25519-sha512@openssh.com, diffie-hellman-group-exchange-sha256, diffie-hellman-group16-sha512, diffie-hellman-group18-sha512, diffie-hellman-group14-sha256, diffie-hellman-group1-sha1, kex-strict-s-v00@openssh.com
+2026-01-19 17:26:28,863 - paramiko.transport - DEBUG - server key: rsa-sha2-512, rsa-sha2-256, ecdsa-sha2-nistp256, ssh-ed25519
+2026-01-19 17:26:28,863 - paramiko.transport - DEBUG - client encrypt: chacha20-poly1305@openssh.com, aes128-ctr, aes192-ctr, aes256-ctr, aes128-gcm@openssh.com, aes256-gcm@openssh.com
+2026-01-19 17:26:28,863 - paramiko.transport - DEBUG - server encrypt: chacha20-poly1305@openssh.com, aes128-ctr, aes192-ctr, aes256-ctr, aes128-gcm@openssh.com, aes256-gcm@openssh.com
+2026-01-19 17:26:28,863 - paramiko.transport - DEBUG - client mac: umac-64-etm@openssh.com, umac-128-etm@openssh.com, hmac-sha2-256-etm@openssh.com, hmac-sha2-512-etm@openssh.com, hmac-sha1-etm@openssh.com, umac-64@openssh.com, umac-128@openssh.com, hmac-sha2-256, hmac-sha2-512, hmac-sha1
+2026-01-19 17:26:28,863 - paramiko.transport - DEBUG - server mac: umac-64-etm@openssh.com, umac-128-etm@openssh.com, hmac-sha2-256-etm@openssh.com, hmac-sha2-512-etm@openssh.com, hmac-sha1-etm@openssh.com, umac-64@openssh.com, umac-128@openssh.com, hmac-sha2-256, hmac-sha2-512, hmac-sha1
+2026-01-19 17:26:28,863 - paramiko.transport - DEBUG - client compress: none, zlib@openssh.com
+2026-01-19 17:26:28,863 - paramiko.transport - DEBUG - server compress: none, zlib@openssh.com
+2026-01-19 17:26:28,864 - paramiko.transport - DEBUG - client lang: <none>
+2026-01-19 17:26:28,864 - paramiko.transport - DEBUG - server lang: <none>
+2026-01-19 17:26:28,864 - paramiko.transport - DEBUG - kex follows: False
+2026-01-19 17:26:28,864 - paramiko.transport - DEBUG - === Key exchange agreements ===
+2026-01-19 17:26:28,864 - paramiko.transport - DEBUG - Strict kex mode: True
+2026-01-19 17:26:28,864 - paramiko.transport - DEBUG - Kex: curve25519-sha256@libssh.org
+2026-01-19 17:26:28,864 - paramiko.transport - DEBUG - HostKey: ssh-ed25519
+2026-01-19 17:26:28,864 - paramiko.transport - DEBUG - Cipher: aes128-ctr
+2026-01-19 17:26:28,864 - paramiko.transport - DEBUG - MAC: hmac-sha2-256
+2026-01-19 17:26:28,864 - paramiko.transport - DEBUG - Compression: none
+2026-01-19 17:26:28,864 - paramiko.transport - DEBUG - === End of kex handshake ===
+2026-01-19 17:26:28,873 - paramiko.transport - DEBUG - Resetting outbound seqno after NEWKEYS due to strict mode
+2026-01-19 17:26:28,873 - paramiko.transport - DEBUG - kex engine KexCurve25519 specified hash_algo <built-in function openssl_sha256>
+2026-01-19 17:26:28,873 - paramiko.transport - DEBUG - Switch to new keys ...
+2026-01-19 17:26:28,873 - paramiko.transport - DEBUG - Resetting inbound seqno after NEWKEYS due to strict mode
+2026-01-19 17:26:28,873 - paramiko.transport - DEBUG - Got EXT_INFO: {'server-sig-algs': b'ssh-ed25519,sk-ssh-ed25519@openssh.com,ssh-rsa,rsa-sha2-256,rsa-sha2-512,ssh-dss,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,sk-ecdsa-sha2-nistp256@openssh.com,webauthn-sk-ecdsa-sha2-nistp256@openssh.com', 'publickey-hostbound@openssh.com': b'0'}
+2026-01-19 17:26:28,873 - paramiko.transport - DEBUG - Adding ssh-ed25519 host key for 192.168.0.166: b'3b25dd86de2ae7391e753e02d17a0937'
+2026-01-19 17:26:28,884 - paramiko.transport - DEBUG - Trying SSH agent key b'836084bd492d7ccc3e108bcf18d8f178'
+2026-01-19 17:26:28,915 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:28,927 - paramiko.transport - INFO - Authentication (publickey) failed.
+2026-01-19 17:26:29,155 - paramiko.transport - DEBUG - Trying discovered key b'61bce1b9199918e7567e1aa0f519e72b' in C:\Users\nhqrt/.ssh/id_rsa
+2026-01-19 17:26:29,156 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:29,156 - paramiko.transport - DEBUG - Finalizing pubkey algorithm for key of type 'ssh-rsa'
+2026-01-19 17:26:29,157 - paramiko.transport - DEBUG - Our pubkey algorithm list: ['rsa-sha2-512', 'rsa-sha2-256', 'ssh-rsa']
+2026-01-19 17:26:29,157 - paramiko.transport - DEBUG - Server-side algorithm list: ['ssh-ed25519', 'sk-ssh-ed25519@openssh.com', 'ssh-rsa', 'rsa-sha2-256', 'rsa-sha2-512', 'ssh-dss', 'ecdsa-sha2-nistp256', 'ecdsa-sha2-nistp384', 'ecdsa-sha2-nistp521', 'sk-ecdsa-sha2-nistp256@openssh.com', 'webauthn-sk-ecdsa-sha2-nistp256@openssh.com']
+2026-01-19 17:26:29,157 - paramiko.transport - DEBUG - Agreed upon 'rsa-sha2-512' pubkey algorithm
+2026-01-19 17:26:29,168 - paramiko.transport - INFO - Authentication (publickey) failed.
+2026-01-19 17:26:29,168 - paramiko.transport - DEBUG - Trying discovered key b'836084bd492d7ccc3e108bcf18d8f178' in C:\Users\nhqrt/.ssh/id_ed25519
+2026-01-19 17:26:29,169 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:29,179 - paramiko.transport - INFO - Authentication (publickey) failed.
+2026-01-19 17:26:29,180 - paramiko.transport - DEBUG - userauth is OK
+2026-01-19 17:26:29,214 - paramiko.transport - INFO - Authentication (password) successful!
+2026-01-19 17:26:29,214 - paramiko.transport - DEBUG - [chan 0] Max packet in: 32768 bytes
+2026-01-19 17:26:29,256 - paramiko.transport - DEBUG - Received global request "hostkeys-00@openssh.com"
+2026-01-19 17:26:29,256 - paramiko.transport - DEBUG - Rejecting "hostkeys-00@openssh.com" global request from server.
+2026-01-19 17:26:29,297 - paramiko.transport - DEBUG - [chan 0] Max packet out: 32768 bytes
+2026-01-19 17:26:29,298 - paramiko.transport - DEBUG - Secsh channel 0 opened.
+2026-01-19 17:26:29,299 - paramiko.transport - DEBUG - [chan 0] Sesch channel 0 request ok
+2026-01-19 17:26:29,309 - paramiko.transport - DEBUG - [chan 0] EOF received (0)
+2026-01-19 17:26:29,309 - paramiko.transport - DEBUG - [chan 0] EOF sent (0)
+2026-01-19 17:26:29,310 - pos_tool_new.utils.log_manager - INFO - POS应用版本: 4.0.8
+2026-01-19 17:26:37,364 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.162:22080
+2026-01-19 17:26:37,365 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.114:22080
+2026-01-19 17:26:37,366 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.198:22080
+2026-01-19 17:26:37,366 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.49:22080
+2026-01-19 17:26:37,367 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.57:22080
+2026-01-19 17:26:37,368 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.128:22080
+2026-01-19 17:26:37,369 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.47:22080
+2026-01-19 17:26:37,370 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.99:22080
+2026-01-19 17:26:37,370 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.143:22080
+2026-01-19 17:26:37,371 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.166:22080
+2026-01-19 17:26:37,372 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.83:22080
+2026-01-19 17:26:37,373 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.67:22080
+2026-01-19 17:26:37,374 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.44:22080
+2026-01-19 17:26:37,376 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.59:22080
+2026-01-19 17:26:37,376 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.64:22080
+2026-01-19 17:26:37,377 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.54:22080
+2026-01-19 17:26:37,378 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:22080
+2026-01-19 17:26:37,379 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.53:22080
+2026-01-19 17:26:37,380 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.46:22080
+2026-01-19 17:26:37,382 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.78:22080
+2026-01-19 17:26:37,414 - urllib3.connectionpool - DEBUG - http://192.168.0.49:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:37,418 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.49:22080
+2026-01-19 17:26:37,431 - urllib3.connectionpool - DEBUG - http://192.168.0.49:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:37,442 - urllib3.connectionpool - DEBUG - http://192.168.0.53:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:37,443 - urllib3.connectionpool - DEBUG - http://192.168.0.47:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:37,443 - urllib3.connectionpool - DEBUG - http://192.168.0.128:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:37,443 - urllib3.connectionpool - DEBUG - http://192.168.0.64:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:37,444 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.168:22080
+2026-01-19 17:26:37,448 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.47:22080
+2026-01-19 17:26:37,448 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.53:22080
+2026-01-19 17:26:37,449 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.128:22080
+2026-01-19 17:26:37,450 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.64:22080
+2026-01-19 17:26:37,452 - urllib3.connectionpool - DEBUG - http://192.168.0.128:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:37,453 - urllib3.connectionpool - DEBUG - http://192.168.0.53:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:37,453 - urllib3.connectionpool - DEBUG - http://192.168.0.64:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:37,455 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.199:22080
+2026-01-19 17:26:37,456 - urllib3.connectionpool - DEBUG - http://192.168.0.47:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:37,457 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.147:22080
+2026-01-19 17:26:37,457 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.115:22080
+2026-01-19 17:26:37,460 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.196:22080
+2026-01-19 17:26:37,462 - urllib3.connectionpool - DEBUG - http://192.168.0.50:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:37,464 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:22080
+2026-01-19 17:26:37,467 - urllib3.connectionpool - DEBUG - http://192.168.0.50:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:37,470 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.207:22080
+2026-01-19 17:26:37,482 - urllib3.connectionpool - DEBUG - http://192.168.0.67:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:37,485 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.67:22080
+2026-01-19 17:26:37,508 - urllib3.connectionpool - DEBUG - http://192.168.0.67:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:37,510 - urllib3.connectionpool - DEBUG - http://192.168.0.147:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:37,512 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.178:22080
+2026-01-19 17:26:37,513 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.147:22080
+2026-01-19 17:26:37,514 - urllib3.connectionpool - DEBUG - http://192.168.0.147:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:37,516 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.73:22080
+2026-01-19 17:26:37,532 - urllib3.connectionpool - DEBUG - http://192.168.0.168:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:37,533 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.168:22080
+2026-01-19 17:26:37,543 - urllib3.connectionpool - DEBUG - http://192.168.0.115:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:37,546 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.115:22080
+2026-01-19 17:26:37,548 - urllib3.connectionpool - DEBUG - http://192.168.0.115:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:37,551 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.164:22080
+2026-01-19 17:26:37,555 - urllib3.connectionpool - DEBUG - http://192.168.0.199:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:37,555 - urllib3.connectionpool - DEBUG - http://192.168.0.168:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:37,557 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.214:22080
+2026-01-19 17:26:37,558 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.199:22080
+2026-01-19 17:26:37,560 - urllib3.connectionpool - DEBUG - http://192.168.0.199:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:37,561 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.227:22080
+2026-01-19 17:26:37,588 - urllib3.connectionpool - DEBUG - http://192.168.0.73:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:37,589 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.73:22080
+2026-01-19 17:26:37,610 - urllib3.connectionpool - DEBUG - http://192.168.0.207:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:37,612 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.207:22080
+2026-01-19 17:26:37,625 - urllib3.connectionpool - DEBUG - http://192.168.0.73:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:37,628 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.228:22080
+2026-01-19 17:26:37,635 - urllib3.connectionpool - DEBUG - http://192.168.0.207:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:37,636 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.212:22080
+2026-01-19 17:26:37,675 - urllib3.connectionpool - DEBUG - http://192.168.0.228:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:37,676 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.228:22080
+2026-01-19 17:26:37,695 - urllib3.connectionpool - DEBUG - http://192.168.0.228:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:37,697 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.233:22080
+2026-01-19 17:26:37,699 - urllib3.connectionpool - DEBUG - http://192.168.0.164:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 404 649
+2026-01-19 17:26:37,700 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.164:22080
+2026-01-19 17:26:37,710 - urllib3.connectionpool - DEBUG - http://192.168.0.164:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 404 649
+2026-01-19 17:26:37,712 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.236:22080
+2026-01-19 17:26:37,725 - urllib3.connectionpool - DEBUG - http://192.168.0.212:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:37,726 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.212:22080
+2026-01-19 17:26:37,749 - urllib3.connectionpool - DEBUG - http://192.168.0.212:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:37,752 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.238:22080
+2026-01-19 17:26:37,786 - urllib3.connectionpool - DEBUG - http://192.168.0.236:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:37,787 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.236:22080
+2026-01-19 17:26:37,790 - urllib3.connectionpool - DEBUG - http://192.168.0.236:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:37,791 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.241:22080
+2026-01-19 17:26:37,858 - urllib3.connectionpool - DEBUG - http://192.168.0.59:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:37,861 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.59:22080
+2026-01-19 17:26:37,883 - urllib3.connectionpool - DEBUG - http://192.168.0.59:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:37,886 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.246:22080
+2026-01-19 17:26:37,959 - urllib3.connectionpool - DEBUG - http://192.168.0.54:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:37,960 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.54:22080
+2026-01-19 17:26:37,976 - urllib3.connectionpool - DEBUG - http://192.168.0.54:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:37,979 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.1.10:22080
+2026-01-19 17:26:37,988 - urllib3.connectionpool - DEBUG - http://192.168.0.46:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:37,990 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.46:22080
+2026-01-19 17:26:37,993 - urllib3.connectionpool - DEBUG - http://192.168.0.46:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:37,994 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.1.67:22080
+2026-01-19 17:26:37,997 - urllib3.connectionpool - DEBUG - http://192.168.1.67:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 404 1073
+2026-01-19 17:26:37,998 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.1.67:22080
+2026-01-19 17:26:38,001 - urllib3.connectionpool - DEBUG - http://192.168.1.67:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 404 1060
+2026-01-19 17:26:38,004 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.1.64:22080
+2026-01-19 17:26:38,013 - urllib3.connectionpool - DEBUG - http://192.168.0.78:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:38,014 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.78:22080
+2026-01-19 17:26:38,017 - urllib3.connectionpool - DEBUG - http://192.168.0.78:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:38,020 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.1.107:22080
+2026-01-19 17:26:38,033 - urllib3.connectionpool - DEBUG - http://192.168.0.143:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:38,034 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.143:22080
+2026-01-19 17:26:38,035 - urllib3.connectionpool - DEBUG - http://192.168.0.143:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:38,036 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.1.190:22080
+2026-01-19 17:26:38,046 - urllib3.connectionpool - DEBUG - http://192.168.0.57:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:38,048 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.57:22080
+2026-01-19 17:26:38,052 - urllib3.connectionpool - DEBUG - http://192.168.0.57:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:38,053 - urllib3.connectionpool - DEBUG - http://192.168.1.64:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:38,054 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.1.64:22080
+2026-01-19 17:26:38,070 - urllib3.connectionpool - DEBUG - http://192.168.1.64:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:38,103 - urllib3.connectionpool - DEBUG - http://192.168.1.190:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:38,104 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.1.190:22080
+2026-01-19 17:26:38,106 - urllib3.connectionpool - DEBUG - http://192.168.1.190:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:38,184 - urllib3.connectionpool - DEBUG - http://192.168.0.241:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:38,191 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.241:22080
+2026-01-19 17:26:38,210 - urllib3.connectionpool - DEBUG - http://192.168.0.241:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:38,379 - urllib3.connectionpool - DEBUG - http://192.168.0.233:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:38,380 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.233:22080
+2026-01-19 17:26:38,391 - urllib3.connectionpool - DEBUG - http://192.168.0.238:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:38,395 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.238:22080
+2026-01-19 17:26:38,395 - urllib3.connectionpool - DEBUG - http://192.168.0.233:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:38,397 - urllib3.connectionpool - DEBUG - http://192.168.0.238:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:38,424 - urllib3.connectionpool - DEBUG - http://192.168.0.198:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:38,425 - urllib3.connectionpool - DEBUG - http://192.168.0.166:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:38,426 - urllib3.connectionpool - DEBUG - http://192.168.0.99:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:38,426 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.198:22080
+2026-01-19 17:26:38,428 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.99:22080
+2026-01-19 17:26:38,429 - urllib3.connectionpool - DEBUG - http://192.168.0.99:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:38,429 - urllib3.connectionpool - DEBUG - http://192.168.0.198:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:38,430 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.166:22080
+2026-01-19 17:26:38,457 - urllib3.connectionpool - DEBUG - http://192.168.0.227:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:38,458 - urllib3.connectionpool - DEBUG - http://192.168.0.166:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:38,459 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.227:22080
+2026-01-19 17:26:38,461 - urllib3.connectionpool - DEBUG - http://192.168.0.227:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:38,516 - urllib3.connectionpool - DEBUG - http://192.168.0.178:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:38,519 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.178:22080
+2026-01-19 17:26:38,522 - urllib3.connectionpool - DEBUG - http://192.168.0.178:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:38,651 - urllib3.connectionpool - DEBUG - http://192.168.1.10:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:38,653 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.1.10:22080
+2026-01-19 17:26:38,677 - urllib3.connectionpool - DEBUG - http://192.168.1.10:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:38,737 - urllib3.connectionpool - DEBUG - http://192.168.0.83:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:38,739 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.83:22080
+2026-01-19 17:26:38,742 - urllib3.connectionpool - DEBUG - http://192.168.0.83:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:38,829 - urllib3.connectionpool - DEBUG - http://192.168.0.246:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:38,833 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.246:22080
+2026-01-19 17:26:38,836 - urllib3.connectionpool - DEBUG - http://192.168.0.246:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:38,854 - urllib3.connectionpool - DEBUG - http://192.168.1.107:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:38,856 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.1.107:22080
+2026-01-19 17:26:38,857 - urllib3.connectionpool - DEBUG - http://192.168.0.114:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:38,859 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.114:22080
+2026-01-19 17:26:38,879 - urllib3.connectionpool - DEBUG - http://192.168.0.114:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:38,880 - urllib3.connectionpool - DEBUG - http://192.168.1.107:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:39,684 - urllib3.connectionpool - DEBUG - http://192.168.0.162:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:39,685 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.162:22080
+2026-01-19 17:26:39,689 - urllib3.connectionpool - DEBUG - http://192.168.0.162:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:39,918 - urllib3.connectionpool - DEBUG - http://192.168.0.214:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:39,920 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.214:22080
+2026-01-19 17:26:39,945 - urllib3.connectionpool - DEBUG - http://192.168.0.214:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:40,256 - urllib3.connectionpool - DEBUG - http://192.168.0.196:22080 "GET /kpos/webapp/store/fetchCompanyProfile HTTP/1.1" 200 None
+2026-01-19 17:26:40,259 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.196:22080
+2026-01-19 17:26:40,261 - urllib3.connectionpool - DEBUG - http://192.168.0.196:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:42,389 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.44:22080
+2026-01-19 17:26:42,406 - urllib3.connectionpool - DEBUG - http://192.168.0.44:22080 "GET /kpos/webapp/os/getOSType HTTP/1.1" 200 None
+2026-01-19 17:26:53,247 - pos_tool_new.utils.log_manager - INFO - 发送消息成功: 01 I S 0000 G A1 01/19 05:26 PM   888-809-8867   Menu Sifu
+2026-01-19 17:26:54,071 - pos_tool_new.utils.log_manager - INFO - 发送消息成功: 01 I S 0000 G A1 01/19 05:26 PM   614-721-6854   Benjamin Brown
+2026-01-19 17:26:54,226 - pos_tool_new.utils.log_manager - INFO - 发送消息成功: 01 I S 0000 G A1 01/19 05:26 PM   602-526-8987   Isabella Rodriguez
+2026-01-19 17:26:54,362 - pos_tool_new.utils.log_manager - INFO - 发送消息成功: 01 I S 0000 G A1 01/19 05:26 PM   800-412-6270   Sophia Smith
+2026-01-19 17:32:08,424 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2026-01-19 17:32:08,446 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:5001
+2026-01-19 17:32:08,470 - pos_tool_new.utils.log_manager - INFO - 尝试连接到 ws://192.168.0.50:56789
+2026-01-19 17:32:08,477 - websocket - INFO - Websocket connected
+2026-01-19 17:32:08,478 - pos_tool_new.utils.log_manager - INFO - WebSocket连接已建立
+2026-01-19 17:32:11,795 - urllib3.connectionpool - DEBUG - http://192.168.0.50:5001 "GET /api/usable_phone_numbers HTTP/1.1" 200 180

@@ -1,0 +1,27 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: Run pos_tool_new as module",
+      "type": "python",
+      "request": "launch",
+      "module": "pos_tool_new.main",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      }
+    },
+    {
+      "name": "Python: Run main.py (file, project root cwd)",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/pos_tool_new/main.py",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      }
+    }
+  ]
+}
