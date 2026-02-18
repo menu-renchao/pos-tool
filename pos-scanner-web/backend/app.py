@@ -6,10 +6,14 @@ from concurrent.futures import ThreadPoolExecutor
 import json
 from config import Config
 import concurrent.futures
+from datetime import datetime, timedelta
+import logging
+
+logger = logging.getLogger(__name__)
 
 # 新增导入
 from extensions import db, jwt
-from models import User
+from models import User, ScanResult, ScanSession
 from routes.auth import auth_bp
 from routes.admin import admin_bp
 from flask_jwt_extended import JWTManager
@@ -63,6 +67,15 @@ executor = ThreadPoolExecutor(max_workers=1)
 _db_initialized = False
 
 
+def cleanup_old_results():
+    """清理超过24小时的扫描结果"""
+    threshold = datetime.utcnow() - timedelta(hours=24)
+    deleted = ScanResult.query.filter(ScanResult.scanned_at < threshold).delete()
+    if deleted > 0:
+        logger.info(f"已清理 {deleted} 条过期扫描结果")
+        db.session.commit()
+
+
 def init_db():
     """初始化数据库和默认管理员"""
     global _db_initialized
@@ -76,6 +89,13 @@ def init_db():
         admin.set_password('admin123')
         db.session.add(admin)
         db.session.commit()
+
+    # 初始化扫描会话
+    ScanSession.get_session()
+
+    # 清理过期数据
+    cleanup_old_results()
+
     _db_initialized = True
 
 
@@ -131,6 +151,10 @@ def perform_scan(local_ip):
     try:
         service = ScanPosService(local_ip=local_ip)
 
+        # 清空旧结果
+        ScanResult.query.delete()
+        db.session.commit()
+
         # 获取网络范围
         network = service._get_local_network()
         hosts = list(network.hosts())
@@ -155,6 +179,22 @@ def perform_scan(local_ip):
 
             result = service._fetch_and_process(ip, 22080)
             scan_status['results'].append(result)
+
+            # 保存每个结果到数据库
+            scan_result = ScanResult(
+                ip=result['ip'],
+                merchant_id=result.get('merchantId', ''),
+                name=result.get('name', ''),
+                version=result.get('version', ''),
+                type=result.get('type', ''),
+                full_data=json.dumps(result.get('fullData', {}))
+            )
+            db.session.add(scan_result)
+
+        # 更新扫描时间并提交
+        session = ScanSession.get_session()
+        session.last_scan_at = datetime.utcnow()
+        db.session.commit()
 
         scan_status['is_scanning'] = False
         scan_status['progress'] = 100
@@ -181,7 +221,14 @@ def stop_scan():
 @app.route('/api/devices', methods=['GET'])
 def get_devices():
     """获取所有设备列表"""
-    return jsonify({'success': True, 'devices': scan_status['results']})
+    results = ScanResult.query.all()
+    session = ScanSession.get_session()
+
+    return jsonify({
+        'success': True,
+        'devices': [r.to_dict() for r in results],
+        'lastScanAt': session.last_scan_at.isoformat() if session.last_scan_at else None
+    })
 
 
 @app.route('/api/device/<ip>/details', methods=['GET'])
