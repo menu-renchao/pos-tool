@@ -14,7 +14,7 @@ class ScanResult(db.Model):
     version = db.Column(db.String(50))
     type = db.Column(db.String(50))
     full_data = db.Column(db.Text)
-    scanned_at = db.Column(db.DateTime, default=datetime.utcnow)
+    scanned_at = db.Column(db.DateTime, default=datetime.now)
 
     def to_dict(self):
         return {
@@ -33,7 +33,7 @@ class ScanSession(db.Model):
     __tablename__ = 'scan_sessions'
 
     id = db.Column(db.Integer, primary_key=True, default=1)
-    last_scan_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_scan_at = db.Column(db.DateTime, default=datetime.now)
 
     @staticmethod
     def get_session():

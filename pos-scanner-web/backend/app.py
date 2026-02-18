@@ -6,7 +6,12 @@ from concurrent.futures import ThreadPoolExecutor
 import json
 from config import Config
 import concurrent.futures
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from datetime import datetime as dt
+
+def get_local_now():
+    """获取本地时间（处理时区）"""
+    return datetime.now()
 import logging
 
 logger = logging.getLogger(__name__)
@@ -70,7 +75,7 @@ _db_initialized = False
 def cleanup_old_results():
     """清理超过24小时的扫描结果"""
     try:
-        threshold = datetime.utcnow() - timedelta(hours=24)
+        threshold = get_local_now() - timedelta(hours=24)
         deleted = ScanResult.query.filter(ScanResult.scanned_at < threshold).delete()
         if deleted > 0:
             logger.info(f"已清理 {deleted} 条过期扫描结果")
@@ -200,7 +205,7 @@ def perform_scan(local_ip):
 
             # 更新扫描时间并提交
             session = ScanSession.get_session()
-            session.last_scan_at = datetime.utcnow()
+            session.last_scan_at = get_local_now()
             db.session.commit()
 
             scan_status['is_scanning'] = False
