@@ -152,41 +152,42 @@ def start_scan():
 def perform_scan(local_ip):
     """执行扫描任务"""
     global scan_status
-    try:
-        service = ScanPosService(local_ip=local_ip)
 
-        # 清空旧结果 (需要应用上下文)
-        with app.app_context():
+    # 整个扫描过程使用同一个应用上下文
+    with app.app_context():
+        try:
+            service = ScanPosService(local_ip=local_ip)
+
+            # 清空旧结果
             ScanResult.query.delete()
             db.session.commit()
 
-        # 获取网络范围
-        network = service._get_local_network()
-        hosts = list(network.hosts())
-        total_hosts = len(hosts)
+            # 获取网络范围
+            network = service._get_local_network()
+            hosts = list(network.hosts())
+            total_hosts = len(hosts)
 
-        # 扫描开放端口
-        open_ips = []
-        with concurrent.futures.ThreadPoolExecutor(max_workers=200) as port_executor:
-            futures = {port_executor.submit(service._scan_port, ip, 22080): ip for ip in hosts}
-            for i, future in enumerate(concurrent.futures.as_completed(futures)):
-                scan_status['progress'] = (i + 1) * 50 // total_hosts  # 端口扫描占50%
-                scan_status['current_ip'] = str(futures[future])
+            # 扫描开放端口
+            open_ips = []
+            with concurrent.futures.ThreadPoolExecutor(max_workers=200) as port_executor:
+                futures = {port_executor.submit(service._scan_port, ip, 22080): ip for ip in hosts}
+                for i, future in enumerate(concurrent.futures.as_completed(futures)):
+                    scan_status['progress'] = (i + 1) * 50 // total_hosts  # 端口扫描占50%
+                    scan_status['current_ip'] = str(futures[future])
 
-                if future.result():
-                    open_ips.append(str(future.result()))
+                    if future.result():
+                        open_ips.append(str(future.result()))
 
-        # 获取设备信息
-        total_open = len(open_ips) if open_ips else 1  # 避免除零
-        for i, ip in enumerate(open_ips):
-            scan_status['progress'] = 50 + (i + 1) * 50 // total_open  # 信息获取占50%
-            scan_status['current_ip'] = ip
+            # 获取设备信息
+            total_open = len(open_ips) if open_ips else 1  # 避免除零
+            for i, ip in enumerate(open_ips):
+                scan_status['progress'] = 50 + (i + 1) * 50 // total_open  # 信息获取占50%
+                scan_status['current_ip'] = ip
 
-            result = service._fetch_and_process(ip, 22080)
-            scan_status['results'].append(result)
+                result = service._fetch_and_process(ip, 22080)
+                scan_status['results'].append(result)
 
-            # 保存每个结果到数据库 (需要应用上下文)
-            with app.app_context():
+                # 保存每个结果到数据库
                 scan_result = ScanResult(
                     ip=result['ip'],
                     merchant_id=result.get('merchantId', ''),
@@ -197,21 +198,19 @@ def perform_scan(local_ip):
                 )
                 db.session.add(scan_result)
 
-        # 更新扫描时间并提交 (需要应用上下文)
-        with app.app_context():
+            # 更新扫描时间并提交
             session = ScanSession.get_session()
             session.last_scan_at = datetime.utcnow()
             db.session.commit()
 
-        scan_status['is_scanning'] = False
-        scan_status['progress'] = 100
+            scan_status['is_scanning'] = False
+            scan_status['progress'] = 100
 
-    except Exception as e:
-        with app.app_context():
+        except Exception as e:
             db.session.rollback()
-        scan_status['is_scanning'] = False
-        scan_status['error'] = str(e)
-        logger.error(f"扫描失败: {e}")
+            scan_status['is_scanning'] = False
+            scan_status['error'] = str(e)
+            logger.error(f"扫描失败: {e}")
 
 
 @app.route('/api/scan/status', methods=['GET'])
