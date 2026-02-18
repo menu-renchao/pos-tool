@@ -16,6 +16,7 @@ const MobileDevicesPage = () => {
   const { isAdmin, user } = useAuth();
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState('card'); // card or list
 
   // 弹窗状态
   const [showModal, setShowModal] = useState(false);
@@ -222,6 +223,32 @@ const MobileDevicesPage = () => {
           <p style={styles.subtitle}>管理测试用的移动设备</p>
         </div>
         <div style={styles.headerActions}>
+          <div style={styles.viewToggle}>
+            <button
+              onClick={() => setViewMode('card')}
+              style={{
+                ...styles.toggleBtn,
+                ...(viewMode === 'card' ? styles.toggleBtnActive : {})
+              }}
+              title="卡片视图"
+            >
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                <path d="M4 4h7v7H4zM4 13h7v7H4zM13 4h7v7h-7zM13 13h7v7h-7z"/>
+              </svg>
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              style={{
+                ...styles.toggleBtn,
+                ...(viewMode === 'list' ? styles.toggleBtnActive : {})
+              }}
+              title="列表视图"
+            >
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                <path d="M4 6h16v2H4zM4 11h16v2H4zM4 16h16v2H4z"/>
+              </svg>
+            </button>
+          </div>
           {isAdmin() && (
             <button onClick={openCreateModal} style={styles.createBtn}>
               + 添加设备
@@ -234,7 +261,7 @@ const MobileDevicesPage = () => {
         <div style={styles.loading}>加载中...</div>
       ) : devices.length === 0 ? (
         <div style={styles.empty}>暂无设备</div>
-      ) : (
+      ) : viewMode === 'card' ? (
         <div style={styles.grid}>
           {devices.map(device => (
             <div key={device.id} style={styles.card}>
@@ -309,6 +336,72 @@ const MobileDevicesPage = () => {
                   <>
                     <button onClick={() => openEditModal(device)} style={styles.editBtn}>编辑</button>
                     <button onClick={() => handleDelete(device.id)} style={styles.deleteBtn}>删除</button>
+                  </>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div style={styles.listContainer}>
+          <div style={styles.listHeader}>
+            <div style={styles.listHeaderImages}>图片</div>
+            <div style={styles.listHeaderName}>设备名称</div>
+            <div style={styles.listHeaderType}>类型</div>
+            <div style={styles.listHeaderVersion}>系统版本</div>
+            <div style={styles.listHeaderStatus}>占用状态</div>
+            <div style={styles.listHeaderEndTime}>释放时间</div>
+            <div style={styles.listHeaderActions}>操作</div>
+          </div>
+          {devices.map(device => (
+            <div key={device.id} style={styles.listRow}>
+              <div style={styles.listImages}>
+                {device.imageA ? (
+                  <img
+                    src={`/${device.imageA}`}
+                    alt="A面"
+                    style={{ ...styles.listImage, cursor: 'pointer' }}
+                    onClick={() => openImagePreview(`/${device.imageA}`)}
+                  />
+                ) : (
+                  <div style={styles.listNoImage}>A</div>
+                )}
+                {device.imageB ? (
+                  <img
+                    src={`/${device.imageB}`}
+                    alt="B面"
+                    style={{ ...styles.listImage, cursor: 'pointer' }}
+                    onClick={() => openImagePreview(`/${device.imageB}`)}
+                  />
+                ) : (
+                  <div style={styles.listNoImage}>B</div>
+                )}
+              </div>
+              <div style={styles.listName}>{device.name}</div>
+              <div style={styles.listType}>{device.deviceType || '未分类'}</div>
+              <div style={styles.listVersion}>{device.systemVersion || '——'}</div>
+              <div style={styles.listStatus}>
+                {device.isOccupied ? (
+                  <span style={styles.occupied}>{device.occupier}</span>
+                ) : (
+                  <span style={styles.free}>空闲</span>
+                )}
+              </div>
+              <div style={styles.listEndTime}>
+                {device.isOccupied ? formatTime(device.endTime) : '——'}
+              </div>
+              <div style={styles.listActions}>
+                {device.isOccupied ? (
+                  (isAdmin() || device.occupierId === user?.id) ? (
+                    <button onClick={() => handleRelease(device.id)} style={styles.listReleaseBtn}>释放</button>
+                  ) : null
+                ) : (
+                  <button onClick={() => openOccupyModal(device)} style={styles.listOccupyBtn}>占用</button>
+                )}
+                {isAdmin() && (
+                  <>
+                    <button onClick={() => openEditModal(device)} style={styles.listEditBtn}>编辑</button>
+                    <button onClick={() => handleDelete(device.id)} style={styles.listDeleteBtn}>删除</button>
                   </>
                 )}
               </div>
@@ -463,6 +556,29 @@ const styles = {
   headerActions: {
     display: 'flex',
     gap: '10px',
+    alignItems: 'center',
+  },
+  viewToggle: {
+    display: 'flex',
+    backgroundColor: '#F2F2F7',
+    borderRadius: '6px',
+    padding: '2px',
+  },
+  toggleBtn: {
+    padding: '6px 10px',
+    backgroundColor: 'transparent',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    color: '#86868B',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  toggleBtnActive: {
+    backgroundColor: 'white',
+    color: '#1D1D1F',
+    boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
   },
   createBtn: {
     padding: '8px 16px',
@@ -727,6 +843,126 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  // 列表视图样式
+  listContainer: {
+    backgroundColor: 'white',
+    borderRadius: '12px',
+    overflow: 'hidden',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+  },
+  listHeader: {
+    display: 'grid',
+    gridTemplateColumns: '100px 1fr 100px 120px 100px 140px 160px',
+    padding: '10px 16px',
+    backgroundColor: '#F9F9F9',
+    borderBottom: '1px solid #E5E5EA',
+    gap: '12px',
+    fontSize: '12px',
+    fontWeight: '500',
+    color: '#86868B',
+  },
+  listHeaderImages: {},
+  listHeaderName: {},
+  listHeaderType: {},
+  listHeaderVersion: {},
+  listHeaderStatus: {},
+  listHeaderEndTime: {},
+  listHeaderActions: {
+    textAlign: 'right',
+  },
+  listRow: {
+    display: 'grid',
+    gridTemplateColumns: '100px 1fr 100px 120px 100px 140px 160px',
+    alignItems: 'center',
+    padding: '12px 16px',
+    borderBottom: '1px solid #F2F2F7',
+    gap: '12px',
+  },
+  listImages: {
+    display: 'flex',
+    gap: '6px',
+  },
+  listImage: {
+    width: '40px',
+    height: '40px',
+    objectFit: 'cover',
+    borderRadius: '4px',
+  },
+  listNoImage: {
+    width: '40px',
+    height: '40px',
+    backgroundColor: '#F2F2F7',
+    borderRadius: '4px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '12px',
+    color: '#86868B',
+  },
+  listName: {
+    fontWeight: '500',
+    color: '#1D1D1F',
+    fontSize: '14px',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  listType: {
+    fontSize: '12px',
+    color: '#86868B',
+  },
+  listVersion: {
+    fontSize: '13px',
+    color: '#1D1D1F',
+  },
+  listStatus: {
+    fontSize: '13px',
+  },
+  listEndTime: {
+    fontSize: '13px',
+    color: '#86868B',
+  },
+  listActions: {
+    display: 'flex',
+    gap: '6px',
+    justifyContent: 'flex-end',
+  },
+  listOccupyBtn: {
+    padding: '5px 12px',
+    backgroundColor: '#007AFF',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    fontSize: '12px',
+    cursor: 'pointer',
+  },
+  listReleaseBtn: {
+    padding: '5px 12px',
+    backgroundColor: '#FF9500',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    fontSize: '12px',
+    cursor: 'pointer',
+  },
+  listEditBtn: {
+    padding: '5px 12px',
+    backgroundColor: '#F2F2F7',
+    color: '#1D1D1F',
+    border: 'none',
+    borderRadius: '4px',
+    fontSize: '12px',
+    cursor: 'pointer',
+  },
+  listDeleteBtn: {
+    padding: '5px 12px',
+    backgroundColor: '#FFEBE9',
+    color: '#FF3B30',
+    border: 'none',
+    borderRadius: '4px',
+    fontSize: '12px',
+    cursor: 'pointer',
   },
 };
 
