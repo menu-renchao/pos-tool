@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { scanAPI } from '../services/api';
+import { scanAPI, deviceAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { adminService } from '../services/authService';
 import ScanTable from '../components/ScanTable';
 import DetailModal from '../components/DetailModal';
 
 const ScanPage = () => {
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
   const [localIPs, setLocalIPs] = useState([]);
   const [selectedIP, setSelectedIP] = useState('');
   const [isScanning, setIsScanning] = useState(false);
@@ -21,6 +21,11 @@ const ScanPage = () => {
   // 设备性质编辑
   const [propertyModal, setPropertyModal] = useState({ show: false, device: null });
   const [propertyValue, setPropertyValue] = useState('');
+
+  // 设备占用编辑
+  const [occupancyModal, setOccupancyModal] = useState({ show: false, device: null });
+  const [occupancyPurpose, setOccupancyPurpose] = useState('');
+  const [occupancyEndTime, setOccupancyEndTime] = useState('');
 
   // 搜索条件
   const [searchConditions, setSearchConditions] = useState({
@@ -208,6 +213,84 @@ const ScanPage = () => {
     }
   };
 
+  // 编辑设备占用
+  const handleEditOccupancy = (device) => {
+    setOccupancyModal({ show: true, device });
+    setOccupancyPurpose(device.occupancy?.purpose || '');
+    // 默认结束时间为2小时后
+    if (device.occupancy?.endTime) {
+      setOccupancyEndTime(device.occupancy.endTime.slice(0, 16));
+    } else {
+      const defaultEnd = new Date(Date.now() + 2 * 60 * 60 * 1000);
+      setOccupancyEndTime(defaultEnd.toISOString().slice(0, 16));
+    }
+  };
+
+  // 保存设备占用
+  const handleSaveOccupancy = async () => {
+    if (!occupancyModal.device) return;
+    if (!occupancyEndTime) {
+      alert('请选择结束时间');
+      return;
+    }
+    try {
+      const result = await deviceAPI.setOccupancy(
+        occupancyModal.device.merchantId,
+        occupancyPurpose,
+        null, // start_time 使用当前时间
+        new Date(occupancyEndTime).toISOString()
+      );
+      if (result.success) {
+        // 刷新设备列表
+        const response = await scanAPI.getDevices();
+        if (response.data.success) {
+          setDevices(response.data.devices);
+          setFilteredDevices(response.data.devices);
+        }
+        setOccupancyModal({ show: false, device: null });
+      } else {
+        alert(result.error);
+      }
+    } catch (error) {
+      alert('保存失败');
+    }
+  };
+
+  // 释放设备占用
+  const handleReleaseOccupancy = async () => {
+    if (!occupancyModal.device) return;
+    if (!window.confirm('确定要释放此设备吗？')) return;
+    try {
+      const result = await deviceAPI.releaseOccupancy(occupancyModal.device.merchantId);
+      if (result.success) {
+        // 刷新设备列表
+        const response = await scanAPI.getDevices();
+        if (response.data.success) {
+          setDevices(response.data.devices);
+          setFilteredDevices(response.data.devices);
+        }
+        setOccupancyModal({ show: false, device: null });
+      } else {
+        alert(result.error);
+      }
+    } catch (error) {
+      alert('释放失败');
+    }
+  };
+
+  // 刷新设备列表
+  const refreshDevices = async () => {
+    try {
+      const response = await scanAPI.getDevices();
+      if (response.data.success) {
+        setDevices(response.data.devices);
+        setFilteredDevices(response.data.devices);
+      }
+    } catch (error) {
+      console.error('刷新设备列表失败:', error);
+    }
+  };
+
   return (
     <div style={styles.page}>
       {/* 合并的控制栏：扫描控制 + 搜索 */}
@@ -300,6 +383,7 @@ const ScanPage = () => {
           onOpenDevice={handleOpenDevice}
           onShowDetails={handleShowDetails}
           onEditProperty={handleEditProperty}
+          onEditOccupancy={handleEditOccupancy}
           isAdmin={isAdmin()}
         />
       </div>
@@ -339,6 +423,60 @@ const ScanPage = () => {
               <div style={styles.modalActions}>
                 <button onClick={() => setPropertyModal({ show: false, device: null })} style={styles.btnCancel}>取消</button>
                 <button onClick={handleSaveProperty} style={styles.btnSave}>保存</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 设备占用编辑弹窗 */}
+      {occupancyModal.show && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalContent}>
+            <div style={styles.modalHeader}>
+              <h3>{occupancyModal.device?.isOccupied ? '占用详情' : '占用设备'}</h3>
+              <button onClick={() => setOccupancyModal({ show: false, device: null })} style={styles.closeBtn}>×</button>
+            </div>
+            <div style={styles.modalBody}>
+              <p style={styles.modalInfo}>
+                商家ID: <strong>{occupancyModal.device?.merchantId}</strong>
+              </p>
+              <p style={styles.modalInfo}>
+                设备名称: <strong>{occupancyModal.device?.name || '——'}</strong>
+              </p>
+              <p style={styles.modalInfo}>
+                占用人: <strong style={{ color: '#007AFF' }}>{user?.username}</strong>
+              </p>
+
+              <div style={styles.fieldGroup}>
+                <label>用途</label>
+                <input
+                  type="text"
+                  value={occupancyPurpose}
+                  onChange={(e) => setOccupancyPurpose(e.target.value)}
+                  placeholder="请输入用途"
+                  style={styles.input}
+                />
+              </div>
+
+              <div style={styles.fieldGroup}>
+                <label>结束时间（释放时间）</label>
+                <input
+                  type="datetime-local"
+                  value={occupancyEndTime}
+                  onChange={(e) => setOccupancyEndTime(e.target.value)}
+                  style={styles.input}
+                />
+              </div>
+
+              <div style={styles.modalActions}>
+                <button onClick={() => setOccupancyModal({ show: false, device: null })} style={styles.btnCancel}>取消</button>
+                {occupancyModal.device?.isOccupied && (
+                  <button onClick={handleReleaseOccupancy} style={styles.btnDanger}>释放</button>
+                )}
+                <button onClick={handleSaveOccupancy} style={styles.btnSave}>
+                  {occupancyModal.device?.isOccupied ? '更新' : '占用'}
+                </button>
               </div>
             </div>
           </div>
@@ -561,6 +699,15 @@ const styles = {
   btnSave: {
     padding: '8px 16px',
     backgroundColor: '#007AFF',
+    color: 'white',
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: '14px',
+    cursor: 'pointer',
+  },
+  btnDanger: {
+    padding: '8px 16px',
+    backgroundColor: '#FF3B30',
     color: 'white',
     border: 'none',
     borderRadius: '8px',

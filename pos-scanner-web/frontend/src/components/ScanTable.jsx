@@ -1,6 +1,18 @@
 import React from 'react';
 
-const ScanTable = ({ devices, onOpenDevice, onShowDetails, onEditProperty, isAdmin }) => {
+const ScanTable = ({ devices, onOpenDevice, onShowDetails, onEditProperty, onEditOccupancy, isAdmin }) => {
+  // 格式化时间显示
+  const formatTime = (isoString) => {
+    if (!isoString) return '——';
+    const date = new Date(isoString);
+    return date.toLocaleString('zh-CN', {
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   return (
     <div className="scan-table-container">
       <table className="scan-table">
@@ -12,6 +24,8 @@ const ScanTable = ({ devices, onOpenDevice, onShowDetails, onEditProperty, isAdm
             <th>名称</th>
             <th>版本</th>
             <th>设备性质</th>
+            <th>占用状态</th>
+            <th>释放时间</th>
             <th>操作</th>
           </tr>
         </thead>
@@ -37,6 +51,32 @@ const ScanTable = ({ devices, onOpenDevice, onShowDetails, onEditProperty, isAdm
                   >
                     ✏️
                   </button>
+                )}
+              </td>
+              <td>
+                {device.isOccupied ? (
+                  <span
+                    className="occupancy-occupied"
+                    onClick={() => onEditOccupancy(device)}
+                    title={`用途: ${device.occupancy?.purpose || '无'}`}
+                  >
+                    {device.occupancy?.username}
+                  </span>
+                ) : (
+                  <span
+                    className="occupancy-free"
+                    onClick={() => device.merchantId && onEditOccupancy(device)}
+                    style={{ cursor: device.merchantId ? 'pointer' : 'default' }}
+                  >
+                    空闲
+                  </span>
+                )}
+              </td>
+              <td>
+                {device.isOccupied ? (
+                  <span className="release-time">{formatTime(device.occupancy?.endTime)}</span>
+                ) : (
+                  <span className="property-empty">——</span>
                 )}
               </td>
               <td>

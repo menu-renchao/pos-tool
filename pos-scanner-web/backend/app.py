@@ -18,9 +18,10 @@ logger = logging.getLogger(__name__)
 
 # 新增导入
 from extensions import db, jwt
-from models import User, ScanResult, ScanSession, DeviceProperty
+from models import User, ScanResult, ScanSession, DeviceProperty, DeviceOccupancy
 from routes.auth import auth_bp
 from routes.admin import admin_bp
+from routes.device import device_bp
 from flask_jwt_extended import JWTManager
 
 app = Flask(__name__)
@@ -55,6 +56,7 @@ def revoked_token_callback(jwt_header, jwt_payload):
 # 注册认证蓝图
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(admin_bp, url_prefix='/api/admin')
+app.register_blueprint(device_bp, url_prefix='/api/device')
 
 # 存储扫描状态和结果
 scan_status = {
@@ -235,6 +237,11 @@ def stop_scan():
 @app.route('/api/devices', methods=['GET'])
 def get_devices():
     """获取所有设备列表"""
+    from routes.device import cleanup_expired_occupancies
+
+    # 清理过期的占用记录
+    cleanup_expired_occupancies()
+
     results = ScanResult.query.all()
     session = ScanSession.get_session()
 
@@ -242,11 +249,26 @@ def get_devices():
     properties = DeviceProperty.query.all()
     property_map = {p.merchant_id: p.property for p in properties}
 
-    # 组装设备数据，关联设备性质
+    # 获取所有设备占用，构建 merchant_id -> occupancy 的映射
+    occupancies = DeviceOccupancy.query.all()
+    occupancy_map = {o.merchant_id: o for o in occupancies}
+
+    # 组装设备数据，关联设备性质和占用信息
     devices = []
+    now = datetime.now()
     for r in results:
         device_dict = r.to_dict()
         device_dict['property'] = property_map.get(r.merchant_id, '')
+
+        # 占用信息
+        occupancy = occupancy_map.get(r.merchant_id)
+        if occupancy and occupancy.end_time > now:
+            device_dict['occupancy'] = occupancy.to_dict()
+            device_dict['isOccupied'] = True
+        else:
+            device_dict['occupancy'] = None
+            device_dict['isOccupied'] = False
+
         devices.append(device_dict)
 
     return jsonify({
