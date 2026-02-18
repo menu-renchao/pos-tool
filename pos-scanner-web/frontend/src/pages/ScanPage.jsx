@@ -445,39 +445,55 @@ const ScanPage = () => {
                 设备名称: <strong>{occupancyModal.device?.name || '——'}</strong>
               </p>
               <p style={styles.modalInfo}>
-                占用人: <strong style={{ color: '#007AFF' }}>{user?.username}</strong>
+                占用人: <strong style={{ color: '#007AFF' }}>{occupancyModal.device?.occupancy?.username || user?.username}</strong>
               </p>
 
-              <div style={styles.fieldGroup}>
-                <label>用途</label>
-                <input
-                  type="text"
-                  value={occupancyPurpose}
-                  onChange={(e) => setOccupancyPurpose(e.target.value)}
-                  placeholder="请输入用途"
-                  style={styles.input}
-                />
-              </div>
+              {occupancyModal.device?.isOccupied && !isAdmin() && occupancyModal.device?.occupancy?.userId !== user?.id ? (
+                <>
+                  <p style={styles.modalInfo}>
+                    用途: <strong>{occupancyModal.device?.occupancy?.purpose || '——'}</strong>
+                  </p>
+                  <p style={styles.modalInfo}>
+                    释放时间: <strong>{occupancyModal.device?.occupancy?.endTime ? new Date(occupancyModal.device?.occupancy?.endTime).toLocaleString('zh-CN') : '——'}</strong>
+                  </p>
+                  <div style={styles.modalActions}>
+                    <button onClick={() => setOccupancyModal({ show: false, device: null })} style={styles.btnCancel}>关闭</button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div style={styles.fieldGroup}>
+                    <label>用途</label>
+                    <input
+                      type="text"
+                      value={occupancyPurpose}
+                      onChange={(e) => setOccupancyPurpose(e.target.value)}
+                      placeholder="请输入用途"
+                      style={styles.input}
+                    />
+                  </div>
 
-              <div style={styles.fieldGroup}>
-                <label>释放时间</label>
-                <input
-                  type="datetime-local"
-                  value={occupancyEndTime}
-                  onChange={(e) => setOccupancyEndTime(e.target.value)}
-                  style={styles.input}
-                />
-              </div>
+                  <div style={styles.fieldGroup}>
+                    <label>释放时间</label>
+                    <input
+                      type="datetime-local"
+                      value={occupancyEndTime}
+                      onChange={(e) => setOccupancyEndTime(e.target.value)}
+                      style={styles.input}
+                    />
+                  </div>
 
-              <div style={styles.modalActions}>
-                <button onClick={() => setOccupancyModal({ show: false, device: null })} style={styles.btnCancel}>取消</button>
-                {occupancyModal.device?.isOccupied && (
-                  <button onClick={handleReleaseOccupancy} style={styles.btnDanger}>释放</button>
-                )}
-                <button onClick={handleSaveOccupancy} style={styles.btnSave}>
-                  {occupancyModal.device?.isOccupied ? '更新' : '占用'}
-                </button>
-              </div>
+                  <div style={styles.modalActions}>
+                    <button onClick={() => setOccupancyModal({ show: false, device: null })} style={styles.btnCancel}>取消</button>
+                    {occupancyModal.device?.isOccupied && (
+                      <button onClick={handleReleaseOccupancy} style={styles.btnDanger}>释放</button>
+                    )}
+                    <button onClick={handleSaveOccupancy} style={styles.btnSave}>
+                      {occupancyModal.device?.isOccupied ? '更新' : '占用'}
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

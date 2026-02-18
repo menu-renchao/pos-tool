@@ -266,12 +266,16 @@ const MobileDevicesPage = () => {
 
               <div style={styles.cardActions}>
                 {device.isOccupied ? (
-                  <button
-                    onClick={() => handleRelease(device.id)}
-                    style={styles.releaseBtn}
-                  >
-                    释放
-                  </button>
+                  (isAdmin() || device.occupierId === user?.id) ? (
+                    <button
+                      onClick={() => handleRelease(device.id)}
+                      style={styles.releaseBtn}
+                    >
+                      释放
+                    </button>
+                  ) : (
+                    <span style={styles.occupiedLabel}>已被 {device.occupier} 占用</span>
+                  )
                 ) : (
                   <button
                     onClick={() => openOccupyModal(device)}
@@ -528,6 +532,13 @@ const styles = {
   free: {
     color: '#34C759',
     fontWeight: '500',
+  },
+  occupiedLabel: {
+    flex: 1,
+    padding: '8px',
+    color: '#86868B',
+    fontSize: '12px',
+    textAlign: 'center',
   },
   cardActions: {
     display: 'flex',
