@@ -8,6 +8,11 @@ from datetime import datetime
 device_bp = Blueprint('device', __name__)
 
 
+def get_local_now():
+    """获取本地时间"""
+    return datetime.now()
+
+
 @device_bp.route('/occupancy', methods=['GET'])
 @jwt_required()
 def get_occupancies():
@@ -42,8 +47,17 @@ def set_occupancy():
         return jsonify({'success': False, 'error': '结束时间不能为空'}), 400
 
     try:
-        start_time = datetime.fromisoformat(start_time_str) if start_time_str else datetime.now()
-        end_time = datetime.fromisoformat(end_time_str)
+        # 使用本地时间，避免时区问题
+        if start_time_str:
+            start_time = datetime.fromisoformat(start_time_str.replace('Z', '+00:00'))
+            if start_time.tzinfo is not None:
+                start_time = start_time.replace(tzinfo=None)
+        else:
+            start_time = get_local_now()
+
+        end_time = datetime.fromisoformat(end_time_str.replace('Z', '+00:00'))
+        if end_time.tzinfo is not None:
+            end_time = end_time.replace(tzinfo=None)
     except ValueError:
         return jsonify({'success': False, 'error': '时间格式错误'}), 400
 
@@ -100,10 +114,17 @@ def release_occupancy(merchant_id):
 
 def cleanup_expired_occupancies():
     """清理已过期的占用记录"""
-    now = datetime.now()
-    expired = DeviceOccupancy.query.filter(DeviceOccupancy.end_time < now).all()
+    now = get_local_now()
+    expired = DeviceOccupancy.query.all()
+    count = 0
     for occupancy in expired:
-        db.session.delete(occupancy)
-    if expired:
+        end_time = occupancy.end_time
+        # 处理时区问题
+        if end_time.tzinfo is not None:
+            end_time = end_time.replace(tzinfo=None)
+        if end_time < now:
+            db.session.delete(occupancy)
+            count += 1
+    if count > 0:
         db.session.commit()
-    return len(expired)
+    return count

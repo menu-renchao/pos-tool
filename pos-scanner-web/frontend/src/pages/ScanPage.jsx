@@ -460,7 +460,7 @@ const ScanPage = () => {
               </div>
 
               <div style={styles.fieldGroup}>
-                <label>结束时间（释放时间）</label>
+                <label>释放时间</label>
                 <input
                   type="datetime-local"
                   value={occupancyEndTime}

@@ -255,16 +255,25 @@ def get_devices():
 
     # 组装设备数据，关联设备性质和占用信息
     devices = []
-    now = datetime.now()
+    now = get_local_now()
     for r in results:
         device_dict = r.to_dict()
         device_dict['property'] = property_map.get(r.merchant_id, '')
 
         # 占用信息
         occupancy = occupancy_map.get(r.merchant_id)
-        if occupancy and occupancy.end_time > now:
-            device_dict['occupancy'] = occupancy.to_dict()
-            device_dict['isOccupied'] = True
+        if occupancy:
+            # 确保 end_time 也是 naive datetime
+            end_time = occupancy.end_time
+            if end_time.tzinfo is not None:
+                end_time = end_time.replace(tzinfo=None)
+
+            if end_time > now:
+                device_dict['occupancy'] = occupancy.to_dict()
+                device_dict['isOccupied'] = True
+            else:
+                device_dict['occupancy'] = None
+                device_dict['isOccupied'] = False
         else:
             device_dict['occupancy'] = None
             device_dict['isOccupied'] = False
