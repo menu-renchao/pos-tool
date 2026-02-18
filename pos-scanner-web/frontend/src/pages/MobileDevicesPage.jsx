@@ -232,14 +232,14 @@ const MobileDevicesPage = () => {
               <div style={styles.images}>
                 <div style={styles.imageBox}>
                   {device.imageA ? (
-                    <img src={`/uploads/${device.imageA}`} alt="A面" style={styles.image} />
+                    <img src={`/${device.imageA}`} alt="A面" style={styles.image} />
                   ) : (
                     <span style={styles.noImage}>A面</span>
                   )}
                 </div>
                 <div style={styles.imageBox}>
                   {device.imageB ? (
-                    <img src={`/uploads/${device.imageB}`} alt="B面" style={styles.image} />
+                    <img src={`/${device.imageB}`} alt="B面" style={styles.image} />
                   ) : (
                     <span style={styles.noImage}>B面</span>
                   )}
