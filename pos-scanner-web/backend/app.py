@@ -4,6 +4,7 @@ from scan_service import ScanPosService
 import threading
 from concurrent.futures import ThreadPoolExecutor
 import json
+import os
 from config import Config
 import concurrent.futures
 from datetime import datetime, timedelta, timezone
@@ -18,10 +19,11 @@ logger = logging.getLogger(__name__)
 
 # 新增导入
 from extensions import db, jwt
-from models import User, ScanResult, ScanSession, DeviceProperty, DeviceOccupancy
+from models import User, ScanResult, ScanSession, DeviceProperty, DeviceOccupancy, MobileDevice
 from routes.auth import auth_bp
 from routes.admin import admin_bp
 from routes.device import device_bp
+from routes.mobile_device import mobile_bp
 from flask_jwt_extended import JWTManager
 
 app = Flask(__name__)
@@ -57,6 +59,7 @@ def revoked_token_callback(jwt_header, jwt_payload):
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(admin_bp, url_prefix='/api/admin')
 app.register_blueprint(device_bp, url_prefix='/api/device')
+app.register_blueprint(mobile_bp, url_prefix='/api/mobile')
 
 # 存储扫描状态和结果
 scan_status = {
@@ -310,6 +313,15 @@ def get_device_details(ip):
         return jsonify({'success': True, 'data': filtered_data})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
+
+
+# 静态文件服务 - 用于上传的图片
+from flask import send_from_directory
+
+@app.route('/uploads/<path:filename>')
+def serve_upload(filename):
+    """服务上传的文件"""
+    return send_from_directory(os.path.join(app.root_path, 'uploads'), filename)
 
 
 if __name__ == '__main__':
