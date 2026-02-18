@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    container_name: pos-backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./data:/app/instance
+      - ./uploads:/app/uploads
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-me}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-your-jwt-secret-change-me}
+      - CORS_ORIGINS=http://localhost,http://localhost:80
+    restart: unless-stopped
+    network_mode: host  # Required for network scanning
+
+  frontend:
+    build: ./frontend
+    container_name: pos-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
