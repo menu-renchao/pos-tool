@@ -13,6 +13,27 @@ def get_local_now():
     return datetime.now()
 
 
+def parse_datetime(dt_str):
+    """解析时间字符串，处理多种格式"""
+    if not dt_str:
+        return None
+    try:
+        # 处理 ISO 格式 (如 2026-02-18T18:00:00.000Z 或 2026-02-18T18:00:00)
+        dt_str = dt_str.replace('Z', '+00:00')
+        # 移除毫秒
+        if '.' in dt_str:
+            parts = dt_str.split('.')
+            dt_str = parts[0] + parts[1][-6:]  # 保留时区信息
+        dt = datetime.fromisoformat(dt_str)
+        # 移除时区信息，转为 naive datetime
+        if dt.tzinfo is not None:
+            dt = dt.replace(tzinfo=None)
+        return dt
+    except Exception as e:
+        print(f"解析时间失败: {dt_str}, error: {e}")
+        return None
+
+
 @device_bp.route('/occupancy', methods=['GET'])
 @jwt_required()
 def get_occupancies():
@@ -46,20 +67,12 @@ def set_occupancy():
     if not end_time_str:
         return jsonify({'success': False, 'error': '结束时间不能为空'}), 400
 
-    try:
-        # 使用本地时间，避免时区问题
-        if start_time_str:
-            start_time = datetime.fromisoformat(start_time_str.replace('Z', '+00:00'))
-            if start_time.tzinfo is not None:
-                start_time = start_time.replace(tzinfo=None)
-        else:
-            start_time = get_local_now()
+    # 解析时间
+    start_time = parse_datetime(start_time_str) if start_time_str else get_local_now()
+    end_time = parse_datetime(end_time_str)
 
-        end_time = datetime.fromisoformat(end_time_str.replace('Z', '+00:00'))
-        if end_time.tzinfo is not None:
-            end_time = end_time.replace(tzinfo=None)
-    except ValueError:
-        return jsonify({'success': False, 'error': '时间格式错误'}), 400
+    if end_time is None:
+        return jsonify({'success': False, 'error': f'时间格式错误: {end_time_str}'}), 400
 
     if end_time <= start_time:
         return jsonify({'success': False, 'error': '结束时间必须大于开始时间'}), 400
