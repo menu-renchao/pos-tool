@@ -5,12 +5,10 @@ const ADMIN_BASE = '/api/admin';
 
 // 创建带认证的 axios 实例
 const createAuthAxios = () => {
-  const instance = axios.create();
   const token = localStorage.getItem('access_token');
-  if (token) {
-    instance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-  }
-  return instance;
+  return axios.create({
+    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+  });
 };
 
 // 认证 API
