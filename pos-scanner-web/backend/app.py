@@ -69,11 +69,15 @@ _db_initialized = False
 
 def cleanup_old_results():
     """清理超过24小时的扫描结果"""
-    threshold = datetime.utcnow() - timedelta(hours=24)
-    deleted = ScanResult.query.filter(ScanResult.scanned_at < threshold).delete()
-    if deleted > 0:
-        logger.info(f"已清理 {deleted} 条过期扫描结果")
-        db.session.commit()
+    try:
+        threshold = datetime.utcnow() - timedelta(hours=24)
+        deleted = ScanResult.query.filter(ScanResult.scanned_at < threshold).delete()
+        if deleted > 0:
+            logger.info(f"已清理 {deleted} 条过期扫描结果")
+            db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"清理过期数据失败: {e}")
 
 
 def init_db():
@@ -200,8 +204,10 @@ def perform_scan(local_ip):
         scan_status['progress'] = 100
 
     except Exception as e:
+        db.session.rollback()
         scan_status['is_scanning'] = False
         scan_status['error'] = str(e)
+        logger.error(f"扫描失败: {e}")
 
 
 @app.route('/api/scan/status', methods=['GET'])
