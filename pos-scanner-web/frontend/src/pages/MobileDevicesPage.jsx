@@ -107,18 +107,21 @@ const MobileDevicesPage = () => {
 
     try {
       const authAxios = createAuthAxios();
+      let deviceId = selectedDevice?.id;
+
       if (modalMode === 'create') {
-        await authAxios.post('/devices', formData);
+        const response = await authAxios.post('/devices', formData);
+        deviceId = response.data.device?.id;
       } else {
         await authAxios.put(`/devices/${selectedDevice.id}`, formData);
       }
 
       // 上传图片
-      if (imageA && selectedDevice?.id) {
-        await uploadImage(selectedDevice.id, imageA, 'a');
+      if (imageA && deviceId) {
+        await uploadImage(deviceId, imageA, 'a');
       }
-      if (imageB && selectedDevice?.id) {
-        await uploadImage(selectedDevice.id, imageB, 'b');
+      if (imageB && deviceId) {
+        await uploadImage(deviceId, imageB, 'b');
       }
 
       fetchDevices();
@@ -334,28 +337,24 @@ const MobileDevicesPage = () => {
                       placeholder="如：iOS 17.0, Android 14"
                     />
                   </div>
-                  {modalMode === 'edit' && (
-                    <>
-                      <div style={styles.field}>
-                        <label>A面图片</label>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={e => setImageA(e.target.files[0])}
-                          style={styles.fileInput}
-                        />
-                      </div>
-                      <div style={styles.field}>
-                        <label>B面图片</label>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={e => setImageB(e.target.files[0])}
-                          style={styles.fileInput}
-                        />
-                      </div>
-                    </>
-                  )}
+                  <div style={styles.field}>
+                    <label>A面图片</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={e => setImageA(e.target.files[0])}
+                      style={styles.fileInput}
+                    />
+                  </div>
+                  <div style={styles.field}>
+                    <label>B面图片</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={e => setImageB(e.target.files[0])}
+                      style={styles.fileInput}
+                    />
+                  </div>
                 </>
               )}
 
