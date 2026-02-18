@@ -37,6 +37,17 @@ const MobileDevicesPage = () => {
   const [imageA, setImageA] = useState(null);
   const [imageB, setImageB] = useState(null);
 
+  // 大图预览
+  const [previewImage, setPreviewImage] = useState(null);
+
+  const openImagePreview = (imageUrl) => {
+    setPreviewImage(imageUrl);
+  };
+
+  const closeImagePreview = () => {
+    setPreviewImage(null);
+  };
+
   useEffect(() => {
     fetchDevices();
   }, []);
@@ -235,14 +246,24 @@ const MobileDevicesPage = () => {
               <div style={styles.images}>
                 <div style={styles.imageBox}>
                   {device.imageA ? (
-                    <img src={`/${device.imageA}`} alt="A面" style={styles.image} />
+                    <img
+                      src={`/${device.imageA}`}
+                      alt="A面"
+                      style={{ ...styles.image, cursor: 'pointer' }}
+                      onClick={() => openImagePreview(`/${device.imageA}`)}
+                    />
                   ) : (
                     <span style={styles.noImage}>A面</span>
                   )}
                 </div>
                 <div style={styles.imageBox}>
                   {device.imageB ? (
-                    <img src={`/${device.imageB}`} alt="B面" style={styles.image} />
+                    <img
+                      src={`/${device.imageB}`}
+                      alt="B面"
+                      style={{ ...styles.image, cursor: 'pointer' }}
+                      onClick={() => openImagePreview(`/${device.imageB}`)}
+                    />
                   ) : (
                     <span style={styles.noImage}>B面</span>
                   )}
@@ -403,6 +424,14 @@ const MobileDevicesPage = () => {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* 图片预览弹窗 */}
+      {previewImage && (
+        <div style={styles.previewOverlay} onClick={closeImagePreview}>
+          <button style={styles.previewCloseBtn} onClick={closeImagePreview}>×</button>
+          <img src={previewImage} alt="预览" style={styles.previewImage} onClick={(e) => e.stopPropagation()} />
         </div>
       )}
     </div>
@@ -663,6 +692,41 @@ const styles = {
     borderRadius: '8px',
     fontSize: '14px',
     cursor: 'pointer',
+  },
+  previewOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 2000,
+    cursor: 'pointer',
+  },
+  previewImage: {
+    maxWidth: '90%',
+    maxHeight: '90%',
+    objectFit: 'contain',
+    borderRadius: '8px',
+  },
+  previewCloseBtn: {
+    position: 'absolute',
+    top: '20px',
+    right: '20px',
+    width: '40px',
+    height: '40px',
+    borderRadius: '50%',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    border: 'none',
+    color: 'white',
+    fontSize: '24px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 };
 
