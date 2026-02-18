@@ -39,7 +39,11 @@ class ScanSession(db.Model):
     def get_session():
         session = ScanSession.query.get(1)
         if not session:
-            session = ScanSession(id=1)
-            db.session.add(session)
-            db.session.commit()
+            session = ScanSession()
+            try:
+                db.session.add(session)
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+                session = ScanSession.query.get(1)
         return session
