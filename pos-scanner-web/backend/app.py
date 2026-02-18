@@ -258,7 +258,8 @@ def get_devices():
     now = get_local_now()
     for r in results:
         device_dict = r.to_dict()
-        device_dict['property'] = property_map.get(r.merchant_id, '')
+        # 设备性质默认值为"个人PC"
+        device_dict['property'] = property_map.get(r.merchant_id, '个人PC')
 
         # 占用信息
         occupancy = occupancy_map.get(r.merchant_id)
