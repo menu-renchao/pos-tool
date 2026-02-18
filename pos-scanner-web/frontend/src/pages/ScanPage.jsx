@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { scanAPI } from '../services/api';
-import ProgressBar from '../components/ProgressBar';
+import { useAuth } from '../contexts/AuthContext';
+import { adminService } from '../services/authService';
 import ScanTable from '../components/ScanTable';
 import DetailModal from '../components/DetailModal';
 
 const ScanPage = () => {
+  const { isAdmin } = useAuth();
   const [localIPs, setLocalIPs] = useState([]);
   const [selectedIP, setSelectedIP] = useState('');
   const [isScanning, setIsScanning] = useState(false);
@@ -15,6 +17,10 @@ const ScanPage = () => {
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [lastScanAt, setLastScanAt] = useState(null);
+
+  // 设备性质编辑
+  const [propertyModal, setPropertyModal] = useState({ show: false, device: null });
+  const [propertyValue, setPropertyValue] = useState('');
 
   // 搜索条件
   const [searchConditions, setSearchConditions] = useState({
@@ -172,6 +178,36 @@ const ScanPage = () => {
     setShowModal(true);
   };
 
+  // 编辑设备性质
+  const handleEditProperty = (device) => {
+    setPropertyModal({ show: true, device });
+    setPropertyValue(device.property || '');
+  };
+
+  // 保存设备性质
+  const handleSaveProperty = async () => {
+    if (!propertyModal.device) return;
+    try {
+      const result = await adminService.setDeviceProperty(
+        propertyModal.device.merchantId,
+        propertyValue
+      );
+      if (result.success) {
+        // 刷新设备列表
+        const response = await scanAPI.getDevices();
+        if (response.data.success) {
+          setDevices(response.data.devices);
+          setFilteredDevices(response.data.devices);
+        }
+        setPropertyModal({ show: false, device: null });
+      } else {
+        alert(result.error);
+      }
+    } catch (error) {
+      alert('保存失败');
+    }
+  };
+
   return (
     <div style={styles.page}>
       {/* 合并的控制栏：扫描控制 + 搜索 */}
@@ -263,6 +299,8 @@ const ScanPage = () => {
           devices={filteredDevices}
           onOpenDevice={handleOpenDevice}
           onShowDetails={handleShowDetails}
+          onEditProperty={handleEditProperty}
+          isAdmin={isAdmin()}
         />
       </div>
 
@@ -271,6 +309,40 @@ const ScanPage = () => {
           device={selectedDevice}
           onClose={() => setShowModal(false)}
         />
+      )}
+
+      {/* 设备性质编辑弹窗 */}
+      {propertyModal.show && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalContent}>
+            <div style={styles.modalHeader}>
+              <h3>编辑设备性质</h3>
+              <button onClick={() => setPropertyModal({ show: false, device: null })} style={styles.closeBtn}>×</button>
+            </div>
+            <div style={styles.modalBody}>
+              <p style={styles.modalInfo}>
+                商家ID: <strong>{propertyModal.device?.merchantId}</strong>
+              </p>
+              <p style={styles.modalInfo}>
+                设备名称: <strong>{propertyModal.device?.name || '——'}</strong>
+              </p>
+              <div style={styles.fieldGroup}>
+                <label>设备性质</label>
+                <input
+                  type="text"
+                  value={propertyValue}
+                  onChange={(e) => setPropertyValue(e.target.value)}
+                  placeholder="如：测试组专用、个人PC等"
+                  style={styles.input}
+                />
+              </div>
+              <div style={styles.modalActions}>
+                <button onClick={() => setPropertyModal({ show: false, device: null })} style={styles.btnCancel}>取消</button>
+                <button onClick={handleSaveProperty} style={styles.btnSave}>保存</button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -417,6 +489,83 @@ const styles = {
     borderRadius: '10px',
     boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
     overflow: 'hidden',
+  },
+  modalOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: '12px',
+    width: '360px',
+    maxWidth: '90%',
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+  },
+  modalHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '16px 20px',
+    borderBottom: '1px solid #E5E5EA',
+  },
+  closeBtn: {
+    background: 'none',
+    border: 'none',
+    fontSize: '20px',
+    cursor: 'pointer',
+    color: '#86868B',
+    padding: 0,
+  },
+  modalBody: {
+    padding: '20px',
+  },
+  modalInfo: {
+    fontSize: '13px',
+    color: '#86868B',
+    marginBottom: '8px',
+  },
+  fieldGroup: {
+    marginTop: '16px',
+    marginBottom: '20px',
+  },
+  input: {
+    width: '100%',
+    padding: '10px 12px',
+    border: '1px solid #D1D1D6',
+    borderRadius: '8px',
+    fontSize: '14px',
+    outline: 'none',
+    marginTop: '6px',
+  },
+  modalActions: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: '10px',
+  },
+  btnCancel: {
+    padding: '8px 16px',
+    backgroundColor: '#F2F2F7',
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: '14px',
+    cursor: 'pointer',
+  },
+  btnSave: {
+    padding: '8px 16px',
+    backgroundColor: '#007AFF',
+    color: 'white',
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: '14px',
+    cursor: 'pointer',
   },
 };
 

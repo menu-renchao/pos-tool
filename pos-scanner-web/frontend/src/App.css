@@ -333,6 +333,36 @@ body {
   border-radius: 4px;
 }
 
+.property-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  background: rgba(0, 122, 255, 0.1);
+  color: var(--apple-blue);
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.property-empty {
+  color: var(--apple-gray);
+  font-size: 13px;
+}
+
+.btn-edit-property {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 4px;
+  margin-left: 4px;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.btn-edit-property:hover {
+  opacity: 1;
+}
+
 /* Modal */
 .modal-overlay {
   position: fixed;

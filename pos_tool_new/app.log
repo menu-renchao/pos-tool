@@ -1,0 +1,430 @@
+2025-12-11 21:11:27,474 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-11 21:11:27,585 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-11 21:11:27,621 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 518 ms
+2025-12-11 21:11:27,622 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-11 21:11:27,695 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-11 21:11:29,676 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-11 21:11:31,365 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:5001
+2025-12-11 21:20:02,967 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-11 21:20:03,012 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-11 21:20:03,042 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 276 ms
+2025-12-11 21:20:03,043 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-11 21:20:03,115 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-11 21:20:04,184 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-11 21:20:12,741 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:5001
+2025-12-11 21:22:28,978 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:5001
+2025-12-11 21:24:20,411 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:5001
+2025-12-11 21:24:40,997 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-11 21:24:41,044 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-11 21:24:41,075 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 289 ms
+2025-12-11 21:24:41,077 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): https:80
+2025-12-11 21:24:41,149 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-11 21:24:44,561 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): https:80
+2025-12-11 21:24:45,102 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-11 21:25:13,365 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): https:80
+2025-12-11 21:29:24,833 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-11 21:29:24,898 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-11 21:29:24,946 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 328 ms
+2025-12-11 21:29:24,948 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): https:80
+2025-12-11 21:29:25,004 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-11 21:29:27,047 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-11 21:29:29,435 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): https:80
+2025-12-11 21:29:47,729 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:5001
+2025-12-11 21:34:13,526 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:5001
+2025-12-11 21:36:13,015 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:5001
+2025-12-12 20:30:02,693 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 20:30:02,750 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 20:30:02,786 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 389 ms
+2025-12-12 20:30:02,787 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 20:30:02,855 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 20:30:03,836 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 20:30:07,027 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:5001
+2025-12-12 21:19:18,784 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 21:19:18,849 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 21:19:18,888 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 352 ms
+2025-12-12 21:19:18,889 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 21:19:18,961 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 21:19:20,198 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 21:32:18,224 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 21:32:18,270 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 21:32:18,294 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 21:32:18,356 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 359 ms
+2025-12-12 21:32:18,404 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 21:32:22,750 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 21:32:49,960 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:5001
+2025-12-12 21:33:14,621 - pos_tool_new.utils.log_manager - ERROR - SSH连接失败，无法重启POS
+2025-12-12 21:33:29,194 - pos_tool_new.utils.log_manager - ERROR - SSH连接失败，无法重启POS
+2025-12-12 21:33:46,166 - pos_tool_new.utils.log_manager - ERROR - SSH连接失败，无法重启POS
+2025-12-12 21:34:08,319 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 21:34:08,364 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 21:34:08,387 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 21:34:08,446 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 341 ms
+2025-12-12 21:34:08,492 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 21:34:10,270 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 21:43:58,072 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 21:43:58,121 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 21:43:58,149 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 21:43:58,149 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 248 ms
+2025-12-12 21:43:58,228 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 21:43:59,475 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 21:44:58,114 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 21:51:02,359 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 21:51:02,402 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 277 ms
+2025-12-12 21:53:16,521 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 21:53:16,561 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 257 ms
+2025-12-12 21:55:33,212 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 21:55:33,253 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 271 ms
+2025-12-12 21:56:18,633 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 21:56:18,674 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 271 ms
+2025-12-12 21:58:51,295 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 21:58:51,335 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 278 ms
+2025-12-12 21:59:36,207 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 21:59:36,247 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 272 ms
+2025-12-12 21:59:55,172 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 21:59:55,220 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 510 ms
+2025-12-12 22:00:18,920 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:00:18,960 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 268 ms
+2025-12-12 22:01:11,349 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:01:11,389 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 268 ms
+2025-12-12 22:03:06,753 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:03:06,794 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 265 ms
+2025-12-12 22:06:38,743 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:06:38,782 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 265 ms
+2025-12-12 22:08:18,989 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:08:19,031 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 270 ms
+2025-12-12 22:08:30,412 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:08:30,454 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 267 ms
+2025-12-12 22:10:49,099 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:10:49,141 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 299 ms
+2025-12-12 22:11:17,905 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:11:17,946 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 270 ms
+2025-12-12 22:12:59,006 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:12:59,048 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 274 ms
+2025-12-12 22:15:11,171 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:15:11,213 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 272 ms
+2025-12-12 22:15:54,737 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:15:54,779 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 280 ms
+2025-12-12 22:16:52,646 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:16:52,695 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 275 ms
+2025-12-12 22:17:09,071 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:17:09,112 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 271 ms
+2025-12-12 22:18:01,112 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:18:01,153 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 273 ms
+2025-12-12 22:19:42,869 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:19:42,909 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 270 ms
+2025-12-12 22:20:27,467 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:20:27,510 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 270 ms
+2025-12-12 22:21:23,692 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:21:23,736 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 277 ms
+2025-12-12 22:21:45,037 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:21:45,079 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 277 ms
+2025-12-12 22:22:01,989 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:22:02,030 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 274 ms
+2025-12-12 22:22:21,910 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:22:21,951 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 274 ms
+2025-12-12 22:23:22,207 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:23:22,249 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 273 ms
+2025-12-12 22:23:32,072 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:23:32,116 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 277 ms
+2025-12-12 22:23:50,441 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:23:50,483 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 271 ms
+2025-12-12 22:23:59,228 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:23:59,268 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 277 ms
+2025-12-12 22:24:20,273 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:24:20,315 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 278 ms
+2025-12-12 22:24:30,319 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:24:30,362 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 274 ms
+2025-12-12 22:24:43,184 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:24:43,225 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 271 ms
+2025-12-12 22:25:13,156 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:25:13,197 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 270 ms
+2025-12-12 22:26:38,235 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:26:38,283 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 299 ms
+2025-12-12 22:27:16,368 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:27:16,411 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 281 ms
+2025-12-12 22:27:25,129 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:27:25,172 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 276 ms
+2025-12-12 22:37:22,284 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:37:22,344 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 305 ms
+2025-12-12 22:38:44,297 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:38:44,363 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 308 ms
+2025-12-12 22:39:56,778 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:39:56,839 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 294 ms
+2025-12-12 22:40:39,176 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:40:39,241 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 305 ms
+2025-12-12 22:41:08,098 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:41:08,141 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 22:41:08,151 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 22:41:08,246 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 22:41:10,078 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 22:42:46,262 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:42:46,310 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 22:42:46,321 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 22:42:46,382 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 359 ms
+2025-12-12 22:42:46,414 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 22:42:47,941 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 22:49:52,009 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:49:52,056 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 22:49:52,069 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 22:50:03,230 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:50:03,607 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab sms: No module named 'pyperclip'
+2025-12-12 22:50:24,114 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:50:24,161 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 22:50:24,189 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 22:50:24,224 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 339 ms
+2025-12-12 22:50:24,265 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 22:50:25,089 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 22:50:33,362 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:50:33,460 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab sms: No module named 'pyperclip'
+2025-12-12 22:50:33,510 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 380 ms
+2025-12-12 22:50:33,560 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 22:50:34,383 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 22:50:51,409 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:50:51,457 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 22:50:51,488 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 22:50:51,526 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 357 ms
+2025-12-12 22:50:51,562 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 22:50:53,222 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 22:51:01,457 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:51:01,557 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab sms: No module named 'pyperclip'
+2025-12-12 22:51:01,606 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 392 ms
+2025-12-12 22:51:01,658 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 22:51:15,478 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:51:15,526 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 22:51:15,557 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 22:51:15,592 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 342 ms
+2025-12-12 22:51:15,631 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 22:51:16,419 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 22:53:15,612 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:53:15,658 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 22:53:15,696 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 22:53:15,731 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 347 ms
+2025-12-12 22:53:15,763 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 22:53:17,488 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 22:54:59,674 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:54:59,724 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 22:54:59,761 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 22:54:59,805 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 367 ms
+2025-12-12 22:54:59,829 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 22:55:00,885 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 22:55:20,346 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:55:20,392 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 22:55:20,405 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 22:55:20,461 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 356 ms
+2025-12-12 22:55:20,497 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 22:55:22,055 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 22:55:31,612 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:55:31,711 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab sms: No module named 'pyperclip'
+2025-12-12 22:55:31,762 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 382 ms
+2025-12-12 22:55:31,811 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 22:56:22,490 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:56:22,535 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 22:56:22,562 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 22:56:22,597 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 338 ms
+2025-12-12 22:56:22,640 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 22:56:30,386 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:56:30,484 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab sms: No module named 'pyperclip'
+2025-12-12 22:56:30,538 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 385 ms
+2025-12-12 22:56:30,585 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 22:56:31,761 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 22:56:51,491 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:56:51,537 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 22:56:51,565 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 22:56:51,599 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 337 ms
+2025-12-12 22:56:51,642 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 22:56:52,719 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 22:59:16,173 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 22:59:16,221 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 22:59:16,251 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 22:59:16,286 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 359 ms
+2025-12-12 22:59:16,326 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 22:59:17,482 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 23:00:27,655 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 23:00:27,700 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 23:00:27,736 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 23:00:27,770 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 359 ms
+2025-12-12 23:00:27,806 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 23:00:30,472 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 23:00:43,543 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 23:00:43,589 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 23:00:43,620 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 23:00:43,661 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 348 ms
+2025-12-12 23:00:43,697 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 23:00:46,459 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 23:02:23,433 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 23:02:23,482 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 23:02:23,511 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 23:02:23,545 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 343 ms
+2025-12-12 23:02:23,587 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 23:02:24,413 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 23:02:37,012 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 23:02:37,109 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab sms: No module named 'pyperclip'
+2025-12-12 23:02:37,157 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 387 ms
+2025-12-12 23:02:37,211 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 23:03:52,402 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 23:03:52,447 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 23:03:52,475 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 23:03:52,509 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 343 ms
+2025-12-12 23:03:52,552 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 23:03:54,421 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 23:03:59,234 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 23:03:59,333 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab sms: No module named 'pyperclip'
+2025-12-12 23:03:59,382 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 377 ms
+2025-12-12 23:03:59,433 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 23:04:00,527 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 23:04:51,423 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 23:04:51,470 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 23:04:51,497 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 23:04:51,533 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 349 ms
+2025-12-12 23:04:51,574 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 23:04:59,082 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 23:04:59,182 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab sms: No module named 'pyperclip'
+2025-12-12 23:04:59,231 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 377 ms
+2025-12-12 23:04:59,283 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 23:05:00,174 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 23:05:18,841 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 23:05:18,890 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 23:05:18,921 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 23:05:18,956 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 354 ms
+2025-12-12 23:05:18,995 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 23:05:26,094 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 23:05:26,190 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab sms: No module named 'pyperclip'
+2025-12-12 23:05:26,238 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 371 ms
+2025-12-12 23:05:26,289 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 23:05:27,985 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 23:05:40,064 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 23:05:40,112 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 23:05:40,147 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 23:05:40,185 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 357 ms
+2025-12-12 23:05:40,216 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 23:05:42,058 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 23:05:46,511 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 23:05:46,612 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab sms: No module named 'pyperclip'
+2025-12-12 23:05:46,661 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 381 ms
+2025-12-12 23:05:46,712 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 23:06:10,727 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 23:06:10,789 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 23:06:10,802 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 23:06:10,865 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 431 ms
+2025-12-12 23:06:10,911 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 23:06:23,506 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 23:08:15,498 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 23:08:15,548 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 23:08:15,561 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 23:08:15,618 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 340 ms
+2025-12-12 23:08:15,653 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 23:08:17,932 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 23:10:02,113 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 23:10:02,161 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 23:10:02,190 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 23:10:02,226 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 342 ms
+2025-12-12 23:10:02,265 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 23:10:03,097 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 23:10:41,743 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 23:10:41,788 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 23:10:41,819 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 23:10:41,856 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 349 ms
+2025-12-12 23:10:41,892 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 23:10:44,005 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 23:11:41,773 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 23:11:41,818 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 23:11:41,848 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 23:11:41,881 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 350 ms
+2025-12-12 23:11:41,924 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 23:11:42,751 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 23:12:50,347 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 23:12:50,392 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 23:12:50,422 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 23:12:50,459 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 358 ms
+2025-12-12 23:12:50,497 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 23:12:51,678 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 23:13:44,726 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 23:13:44,776 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 23:13:44,804 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 23:13:44,838 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 378 ms
+2025-12-12 23:13:44,880 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 23:13:48,136 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 23:14:07,800 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 23:14:07,845 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 23:14:07,873 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 23:14:07,907 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 352 ms
+2025-12-12 23:14:07,950 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 23:14:08,774 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 23:14:19,462 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-12 23:14:19,506 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-12 23:14:19,534 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-12 23:14:19,567 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 340 ms
+2025-12-12 23:14:19,611 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-12 23:14:21,459 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-12 23:14:35,886 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-13 23:25:13,441 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-13 23:25:13,481 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-13 23:25:13,541 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 1016 ms
+2025-12-13 23:25:13,542 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-13 23:25:13,594 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-13 23:25:17,081 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-13 23:25:29,033 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-13 23:25:43,975 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-13 23:25:43,980 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-13 23:25:44,079 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-13 23:25:45,788 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-13 23:27:02,771 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-13 23:27:02,794 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 283 ms
+2025-12-13 23:27:02,795 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-13 23:27:02,877 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-13 23:27:06,788 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-13 23:27:12,569 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-13 23:28:44,607 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-13 23:28:44,611 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 148 ms
+2025-12-13 23:28:54,209 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-14 10:10:11,596 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-14 10:10:11,634 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-14 10:10:11,689 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 500 ms
+2025-12-14 10:10:11,690 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-14 10:10:11,741 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-14 10:10:12,554 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-14 10:10:15,392 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:5001
+2025-12-14 10:13:33,225 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-14 10:13:33,246 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-14 10:13:33,299 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 854 ms
+2025-12-14 10:13:33,300 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:8000
+2025-12-14 10:13:33,355 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2025-12-14 10:13:34,159 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2025-12-14 10:13:43,919 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-14 10:38:54,755 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-14 10:38:54,759 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 105 ms
+2025-12-14 10:39:02,578 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-14 10:39:13,661 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-14 10:39:13,673 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 829 ms
+2025-12-14 10:39:27,515 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-14 10:39:37,414 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-14 10:39:37,419 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 190 ms
+2025-12-14 10:39:42,012 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-14 10:46:16,425 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-14 10:46:16,429 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 109 ms
+2025-12-14 10:46:30,628 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-14 10:46:30,642 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-14 17:13:10,695 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-14 17:13:10,706 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2025-12-14 17:13:10,722 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 278 ms
+2025-12-18 20:32:03,704 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-18 20:32:03,802 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 874 ms
+2025-12-18 20:34:27,799 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-18 20:34:27,855 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 270 ms
+2025-12-18 20:34:35,049 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:5001
+2025-12-18 21:20:40,154 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-18 21:20:40,240 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 812 ms
+2025-12-19 22:44:21,930 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2025-12-19 22:44:22,016 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 925 ms
+2026-02-18 20:04:28,151 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2026-02-18 20:04:28,163 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab sms: No module named 'pyperclip'
+2026-02-18 20:04:28,168 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab lan_chat: No module named 'websocket'
+2026-02-18 20:04:28,303 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 800 ms
+2026-02-18 20:04:28,349 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443
+2026-02-18 20:04:30,180 - urllib3.connectionpool - DEBUG - https://api.mail.tm:443 "GET /messages?page=1 HTTP/1.1" 200 119
+2026-02-18 20:04:42,484 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab generate_img: No module named 'numpy'
+2026-02-18 20:04:42,490 - pos_tool_new.utils.log_manager - INFO - 加载文件配置项: 6 个
+2026-02-18 20:04:42,507 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.0.50:5001
+2026-02-18 20:04:42,508 - pos_tool_new.utils.log_manager - ERROR - Failed to load tab lan_chat: No module named 'websocket'
+2026-02-18 20:04:42,595 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 415 ms
+2026-02-18 20:04:42,655 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.mail.tm:443

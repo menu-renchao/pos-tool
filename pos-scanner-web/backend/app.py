@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 # 新增导入
 from extensions import db, jwt
-from models import User, ScanResult, ScanSession
+from models import User, ScanResult, ScanSession, DeviceProperty
 from routes.auth import auth_bp
 from routes.admin import admin_bp
 from flask_jwt_extended import JWTManager
@@ -238,9 +238,20 @@ def get_devices():
     results = ScanResult.query.all()
     session = ScanSession.get_session()
 
+    # 获取所有设备性质，构建 merchant_id -> property 的映射
+    properties = DeviceProperty.query.all()
+    property_map = {p.merchant_id: p.property for p in properties}
+
+    # 组装设备数据，关联设备性质
+    devices = []
+    for r in results:
+        device_dict = r.to_dict()
+        device_dict['property'] = property_map.get(r.merchant_id, '')
+        devices.append(device_dict)
+
     return jsonify({
         'success': True,
-        'devices': [r.to_dict() for r in results],
+        'devices': devices,
         'lastScanAt': session.last_scan_at.isoformat() if session.last_scan_at else None
     })
 

@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ScanTable = ({ devices, onOpenDevice, onShowDetails }) => {
+const ScanTable = ({ devices, onOpenDevice, onShowDetails, onEditProperty, isAdmin }) => {
   return (
     <div className="scan-table-container">
       <table className="scan-table">
@@ -11,6 +11,7 @@ const ScanTable = ({ devices, onOpenDevice, onShowDetails }) => {
             <th>商家ID</th>
             <th>名称</th>
             <th>版本</th>
+            <th>设备性质</th>
             <th>操作</th>
           </tr>
         </thead>
@@ -22,6 +23,22 @@ const ScanTable = ({ devices, onOpenDevice, onShowDetails }) => {
               <td>{device.merchantId || (device.name && device.version ? 'Free Trials' : '——')}</td>
               <td>{device.name || '——'}</td>
               <td>{device.version || '——'}</td>
+              <td>
+                {device.property ? (
+                  <span className="property-tag">{device.property}</span>
+                ) : (
+                  <span className="property-empty">——</span>
+                )}
+                {isAdmin && device.merchantId && (
+                  <button
+                    className="btn-edit-property"
+                    onClick={() => onEditProperty(device)}
+                    title="编辑设备性质"
+                  >
+                    ✏️
+                  </button>
+                )}
+              </td>
               <td>
                 <div className="action-buttons">
                   {device.merchantId || device.name ? (
