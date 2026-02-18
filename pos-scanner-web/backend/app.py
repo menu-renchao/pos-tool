@@ -7,9 +7,45 @@ import json
 from config import Config
 import concurrent.futures
 
+# 新增导入
+from extensions import db, jwt
+from models import User
+from routes.auth import auth_bp
+from routes.admin import admin_bp
+from flask_jwt_extended import JWTManager
+
 app = Flask(__name__)
 app.config.from_object(Config)
+
+# 初始化扩展
+db.init_app(app)
+jwt.init_app(app)
+
 CORS(app, origins=app.config['CORS_ORIGINS'])
+
+# JWT 错误处理器
+@jwt.invalid_token_loader
+def invalid_token_callback(error_string):
+    print(f"Invalid token: {error_string}")
+    return jsonify({'success': False, 'error': 'Invalid token', 'msg': error_string}), 422
+
+@jwt.unauthorized_loader
+def missing_token_callback(error_string):
+    print(f"Missing token: {error_string}")
+    return jsonify({'success': False, 'error': 'Token required', 'msg': error_string}), 401
+
+@jwt.expired_token_loader
+def expired_token_callback(jwt_header, jwt_payload):
+    print(f"Expired token: {jwt_payload}")
+    return jsonify({'success': False, 'error': 'Token expired'}), 401
+
+@jwt.revoked_token_loader
+def revoked_token_callback(jwt_header, jwt_payload):
+    return jsonify({'success': False, 'error': 'Token revoked'}), 401
+
+# 注册认证蓝图
+app.register_blueprint(auth_bp, url_prefix='/api/auth')
+app.register_blueprint(admin_bp, url_prefix='/api/admin')
 
 # 存储扫描状态和结果
 scan_status = {
@@ -21,6 +57,32 @@ scan_status = {
 }
 
 executor = ThreadPoolExecutor(max_workers=1)
+
+
+# 数据库初始化标志
+_db_initialized = False
+
+
+def init_db():
+    """初始化数据库和默认管理员"""
+    global _db_initialized
+    if _db_initialized:
+        return
+
+    db.create_all()
+    # 创建默认管理员
+    if not User.query.filter_by(username='admin').first():
+        admin = User(username='admin', email='admin@example.com', role='admin', status='approved')
+        admin.set_password('admin123')
+        db.session.add(admin)
+        db.session.commit()
+    _db_initialized = True
+
+
+@app.before_request
+def before_request():
+    """请求前初始化数据库"""
+    init_db()
 
 
 @app.route('/api/scan/ips', methods=['GET'])
@@ -147,4 +209,6 @@ def get_device_details(ip):
 
 
 if __name__ == '__main__':
+    with app.app_context():
+        init_db()
     app.run(debug=True, host='0.0.0.0', port=5000)

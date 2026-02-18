@@ -1,219 +1,221 @@
-import React, { useState, useEffect } from 'react';
-import { scanAPI } from './services/api';
-import ProgressBar from './components/ProgressBar';
-import SearchBar from './components/SearchBar';
-import ScanTable from './components/ScanTable';
-import DetailModal from './components/DetailModal';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { PrivateRoute, AdminRoute, PublicRoute } from './components/auth/PrivateRoute';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import AdminUsersPage from './pages/AdminUsersPage';
+import ScanPage from './pages/ScanPage';
 import './App.css';
 
-function App() {
-  const [localIPs, setLocalIPs] = useState([]);
-  const [selectedIP, setSelectedIP] = useState('');
-  const [isScanning, setIsScanning] = useState(false);
-  const [scanProgress, setScanProgress] = useState(0);
-  const [currentIP, setCurrentIP] = useState('');
-  const [devices, setDevices] = useState([]);
-  const [filteredDevices, setFilteredDevices] = useState([]);
-  const [selectedDevice, setSelectedDevice] = useState(null);
-  const [showModal, setShowModal] = useState(false);
+// 导航栏组件
+const Navbar = () => {
+  const { user, logout, isAdmin } = useAuth();
+  const navigate = useNavigate();
 
-  // 搜索条件
-  const [searchConditions, setSearchConditions] = useState({
-    ip: '',
-    id: '',
-    name: '',
-    version: ''
-  });
-
-  // 获取本地IP列表
-  useEffect(() => {
-    const fetchLocalIPs = async () => {
-      try {
-        const response = await scanAPI.getLocalIPs();
-        if (response.data.success) {
-          setLocalIPs(response.data.ips);
-          if (response.data.ips.length > 0) {
-            setSelectedIP(response.data.ips[0]);
-          }
-        }
-      } catch (error) {
-        console.error('获取本地IP失败:', error);
-      }
-    };
-
-    fetchLocalIPs();
-  }, []);
-
-  // 轮询扫描状态
-  useEffect(() => {
-    let intervalId;
-
-    if (isScanning) {
-      intervalId = setInterval(async () => {
-        try {
-          const response = await scanAPI.getScanStatus();
-          const status = response.data;
-
-          setScanProgress(status.progress);
-          setCurrentIP(status.current_ip);
-          setDevices(status.results);
-          setFilteredDevices(status.results);
-
-          if (!status.is_scanning) {
-            setIsScanning(false);
-            if (intervalId) clearInterval(intervalId);
-          }
-        } catch (error) {
-          console.error('获取扫描状态失败:', error);
-          setIsScanning(false);
-          if (intervalId) clearInterval(intervalId);
-        }
-      }, 1000);
-    }
-
-    return () => {
-      if (intervalId) clearInterval(intervalId);
-    };
-  }, [isScanning]);
-
-  // 开始扫描
-  const startScan = async () => {
-    if (!selectedIP) {
-      alert('请选择IP地址');
-      return;
-    }
-
-    try {
-      setIsScanning(true);
-      setDevices([]);
-      setFilteredDevices([]);
-      setScanProgress(0);
-
-      const response = await scanAPI.startScan(selectedIP);
-      if (!response.data.success) {
-        alert(response.data.error);
-        setIsScanning(false);
-      }
-    } catch (error) {
-      console.error('开始扫描失败:', error);
-      setIsScanning(false);
-    }
-  };
-
-  // 停止扫描
-  const stopScan = async () => {
-    try {
-      await scanAPI.stopScan();
-      setIsScanning(false);
-    } catch (error) {
-      console.error('停止扫描失败:', error);
-    }
-  };
-
-  // 搜索处理
-  const handleSearch = () => {
-    const filtered = devices.filter(device => {
-      const ipMatch = device.ip.toLowerCase().includes(searchConditions.ip.toLowerCase());
-      const idMatch = (device.merchantId || '').toLowerCase().includes(searchConditions.id.toLowerCase());
-      const nameMatch = (device.name || '').toLowerCase().includes(searchConditions.name.toLowerCase());
-      const versionMatch = (device.version || '').toLowerCase().includes(searchConditions.version.toLowerCase());
-
-      return ipMatch && idMatch && nameMatch && versionMatch;
-    });
-
-    setFilteredDevices(filtered);
-  };
-
-  // 清除搜索
-  const clearSearch = () => {
-    setSearchConditions({ ip: '', id: '', name: '', version: '' });
-    setFilteredDevices(devices);
-  };
-
-  // 打开设备
-  const handleOpenDevice = (ip) => {
-    window.open(`http://${ip}:22080`, '_blank');
-  };
-
-  // 显示详情
-  const handleShowDetails = (device) => {
-    setSelectedDevice(device);
-    setShowModal(true);
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
   };
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <h1>POS设备扫描工具</h1>
-      </header>
-
-      <main className="app-main">
-        <div className="control-panel">
-          <div className="scan-controls">
-            <div className="ip-selector">
-              <label>选择网段:</label>
-              <select
-                value={selectedIP}
-                onChange={(e) => setSelectedIP(e.target.value)}
-                disabled={isScanning}
-              >
-                {localIPs.map(ip => (
-                  <option key={ip} value={ip}>{ip}</option>
-                ))}
-              </select>
-            </div>
-
-            <button
-              className={`btn ${isScanning ? 'btn-stop' : 'btn-start'}`}
-              onClick={isScanning ? stopScan : startScan}
-              disabled={!selectedIP}
-            >
-              {isScanning ? '停止扫描' : '开始扫描'}
-            </button>
-          </div>
-
-          {isScanning && (
-            <ProgressBar
-              progress={scanProgress}
-              currentIP={currentIP}
-              isScanning={isScanning}
-            />
+    <nav style={navStyles.nav}>
+      <div style={navStyles.left}>
+        <div style={navStyles.brand}>
+          <svg style={navStyles.logo} viewBox="0 0 24 24" fill="none">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" fill="currentColor"/>
+          </svg>
+          <span style={navStyles.brandText}>POS Scanner</span>
+        </div>
+        <div style={navStyles.links}>
+          <Link to="/" style={navStyles.link}>
+            <svg style={navStyles.linkIcon} viewBox="0 0 24 24" fill="none">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" fill="currentColor"/>
+            </svg>
+            扫描
+          </Link>
+          {isAdmin() && (
+            <Link to="/admin/users" style={navStyles.link}>
+              <svg style={navStyles.linkIcon} viewBox="0 0 24 24" fill="none">
+                <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" fill="currentColor"/>
+              </svg>
+              用户管理
+            </Link>
           )}
         </div>
-
-        <SearchBar
-          searchIP={searchConditions.ip}
-          searchID={searchConditions.id}
-          searchName={searchConditions.name}
-          searchVersion={searchConditions.version}
-          onSearchChange={(field, value) => setSearchConditions(prev => ({
-            ...prev,
-            [field]: value
-          }))}
-          onSearch={handleSearch}
-          onClear={clearSearch}
-        />
-
-        <div className="results-info">
-          找到 {filteredDevices.length} 台设备
+      </div>
+      <div style={navStyles.right}>
+        <div style={navStyles.user}>
+          <div style={navStyles.avatar}>{user?.username?.charAt(0).toUpperCase()}</div>
+          <span style={navStyles.userName}>{user?.username}</span>
         </div>
+        <button onClick={handleLogout} style={navStyles.logoutBtn}>
+          <svg style={navStyles.logoutIcon} viewBox="0 0 24 24" fill="none">
+            <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" fill="currentColor"/>
+          </svg>
+          登出
+        </button>
+      </div>
+    </nav>
+  );
+};
 
-        <ScanTable
-          devices={filteredDevices}
-          onOpenDevice={handleOpenDevice}
-          onShowDetails={handleShowDetails}
-        />
-
-        {showModal && (
-          <DetailModal
-            device={selectedDevice}
-            onClose={() => setShowModal(false)}
-          />
-        )}
+// 主应用布局
+const MainLayout = ({ children }) => {
+  return (
+    <div className="app">
+      <Navbar />
+      <main className="app-main">
+        {children}
       </main>
     </div>
   );
+};
+
+function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* 公开路由 */}
+          <Route path="/login" element={
+            <PublicRoute><LoginPage /></PublicRoute>
+          } />
+          <Route path="/register" element={
+            <PublicRoute><RegisterPage /></PublicRoute>
+          } />
+
+          {/* 受保护路由 */}
+          <Route path="/" element={
+            <PrivateRoute>
+              <MainLayout>
+                <ScanPage />
+              </MainLayout>
+            </PrivateRoute>
+          } />
+
+          {/* 管理员路由 */}
+          <Route path="/admin/users" element={
+            <AdminRoute>
+              <MainLayout>
+                <AdminUsersPage />
+              </MainLayout>
+            </AdminRoute>
+          } />
+
+          {/* 默认重定向 */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
+  );
 }
 
-export default App;
+const navStyles = {
+  nav: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '0 16px',
+    height: '52px',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backdropFilter: 'blur(12px)',
+    borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
+    position: 'sticky',
+    top: 0,
+    zIndex: 100,
+  },
+  left: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '20px',
+  },
+  brand: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+  },
+  logo: {
+    width: '22px',
+    height: '22px',
+    color: '#007AFF',
+  },
+  brandText: {
+    fontSize: '15px',
+    fontWeight: '600',
+    color: '#1D1D1F',
+    letterSpacing: '-0.01em',
+  },
+  links: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+  },
+  link: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+    padding: '6px 10px',
+    color: '#1D1D1F',
+    textDecoration: 'none',
+    fontSize: '13px',
+    fontWeight: '500',
+    borderRadius: '6px',
+    transition: 'all 0.15s ease',
+  },
+  linkIcon: {
+    width: '15px',
+    height: '15px',
+    color: '#86868B',
+  },
+  right: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+  },
+  user: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '4px 8px 4px 4px',
+    backgroundColor: '#F2F2F7',
+    borderRadius: '14px',
+  },
+  avatar: {
+    width: '24px',
+    height: '24px',
+    borderRadius: '50%',
+    background: 'linear-gradient(135deg, #007AFF 0%, #5856D6 100%)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'white',
+    fontSize: '11px',
+    fontWeight: '600',
+  },
+  userName: {
+    fontSize: '12px',
+    fontWeight: '500',
+    color: '#1D1D1F',
+  },
+  logoutBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+    padding: '6px 10px',
+    backgroundColor: 'transparent',
+    color: '#FF3B30',
+    border: 'none',
+    borderRadius: '6px',
+    fontSize: '12px',
+    fontWeight: '500',
+    cursor: 'pointer',
+    transition: 'all 0.15s ease',
+  },
+  logoutIcon: {
+    width: '15px',
+    height: '15px',
+  },
+};
 
+export default App;

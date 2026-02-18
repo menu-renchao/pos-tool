@@ -1,9 +1,14 @@
 import concurrent.futures
 import ipaddress
 import json
+import logging
 import socket
 import requests
 from typing import List, Dict, Any
+
+# 配置日志
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class ScanPosService:
@@ -22,25 +27,44 @@ class ScanPosService:
         except Exception:
             return "Unknown"
 
-    def fetch_company_profile(self, ip, port=22080, timeout=5):
+    def fetch_company_profile(self, ip, port=22080, timeout=5, max_retries=2):
         url = f"http://{ip}:{port}/kpos/webapp/store/fetchCompanyProfile"
-        for _ in range(2):
+        last_error = None
+        for attempt in range(max_retries):
             try:
                 response = requests.get(url, timeout=timeout)
                 if response.status_code == 200:
                     return response.json()
-                return {"error": f"HTTP {response.status_code}"}
+                last_error = f"HTTP {response.status_code}"
+                logger.warning(f"获取设备信息失败 {ip}: {last_error} (尝试 {attempt + 1}/{max_retries})")
             except requests.exceptions.RequestException as e:
-                return {"error": f"Request error: {str(e)}"}
+                last_error = f"Request error: {str(e)}"
+                logger.warning(f"请求异常 {ip}: {last_error} (尝试 {attempt + 1}/{max_retries})")
             except json.JSONDecodeError as e:
-                return {"error": f"JSON decode error: {str(e)}"}
-        return {"error": "Failed after retries"}
+                last_error = f"JSON decode error: {str(e)}"
+                logger.warning(f"JSON解析失败 {ip}: {last_error} (尝试 {attempt + 1}/{max_retries})")
+        logger.error(f"获取设备信息最终失败 {ip}: {last_error}")
+        return {"error": f"Failed after {max_retries} retries: {last_error}"}
 
-    def _scan_port(self, ip, port, timeout=1):
+    def _scan_port(self, ip, port, timeout=2):
+        """扫描指定IP的端口是否开放
+
+        Args:
+            ip: 目标IP地址
+            port: 目标端口
+            timeout: 连接超时时间（秒），默认2秒
+        """
         try:
             with socket.create_connection((str(ip), port), timeout):
                 return ip
-        except:
+        except socket.timeout:
+            logger.debug(f"端口扫描超时: {ip}:{port}")
+            return None
+        except ConnectionRefusedError:
+            logger.debug(f"连接被拒绝: {ip}:{port}")
+            return None
+        except Exception as e:
+            logger.debug(f"端口扫描异常 {ip}:{port}: {type(e).__name__}")
             return None
 
     def _get_local_network(self):
@@ -62,12 +86,16 @@ class ScanPosService:
     def scan_network(self, port=22080):
         network = self._get_local_network()
         hosts = list(network.hosts())
+        logger.info(f"开始扫描网络 {network}，共 {len(hosts)} 个IP")
 
         # 扫描开放端口
         open_ips = self._scan_open_ips(hosts, port)
+        logger.info(f"端口扫描完成，发现 {len(open_ips)} 个开放端口")
 
         # 获取设备信息
         results = self._fetch_profiles(open_ips, port)
+        success_count = sum(1 for r in results if r.get("status") == "success")
+        logger.info(f"扫描完成，成功获取 {success_count}/{len(results)} 台设备信息")
         return results
 
     def _scan_open_ips(self, hosts, port):
@@ -77,6 +105,7 @@ class ScanPosService:
             for future in concurrent.futures.as_completed(futures):
                 if (result := future.result()):
                     open_ips.append(str(result))
+                    logger.debug(f"发现开放端口: {result}:{port}")
         return open_ips
 
     def _fetch_profiles(self, open_ips, port):
