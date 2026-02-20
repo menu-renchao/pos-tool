@@ -5,6 +5,7 @@ import { authService } from '../services/authService';
 const RegisterPage = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -24,7 +25,7 @@ const RegisterPage = () => {
     setLoading(true);
 
     try {
-      const result = await authService.register(username, password, email);
+      const result = await authService.register(username, password, email, name);
       if (result.success) {
         setSuccess(true);
       } else {
@@ -65,7 +66,7 @@ const RegisterPage = () => {
           </svg>
         </div>
         <h1 style={styles.title}>创建账户</h1>
-        <p style={styles.subtitle}>注册以使用 POS 设备扫描系统</p>
+        <p style={styles.subtitle}>注册以使用 Menusifu设备管理平台</p>
 
         <form onSubmit={handleSubmit} style={styles.form}>
           <div style={styles.field}>
@@ -81,14 +82,24 @@ const RegisterPage = () => {
             />
           </div>
           <div style={styles.field}>
+            <label style={styles.label}>姓名 *</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              style={styles.input}
+              placeholder="请输入真实姓名"
+              required
+            />
+          </div>
+          <div style={styles.field}>
             <label style={styles.label}>邮箱</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               style={styles.input}
-              placeholder="请输入邮箱地址"
-              required
+              placeholder="请输入邮箱地址（选填）"
             />
           </div>
           <div style={styles.field}>

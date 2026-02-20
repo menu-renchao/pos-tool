@@ -889,7 +889,7 @@ const LoginPage = () => {
   return (
     <div style={styles.container}>
       <div style={styles.form}>
-        <h2 style={styles.title}>POS 设备扫描系统</h2>
+        <h2 style={styles.title}>Menusifu设备管理平台</h2>
         <form onSubmit={handleSubmit}>
           <div style={styles.field}>
             <label style={styles.label}>用户名</label>
@@ -1499,7 +1499,7 @@ const Navbar = () => {
 
   return (
     <nav style={navStyles.nav}>
-      <div style={navStyles.brand}>POS 设备扫描系统</div>
+      <div style={navStyles.brand}>Menusifu设备管理平台</div>
       <div style={navStyles.links}>
         <Link to="/" style={navStyles.link}>扫描</Link>
         {isAdmin() && (

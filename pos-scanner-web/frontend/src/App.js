@@ -144,7 +144,7 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>POS设备扫描工具</h1>
+        <h1>Menusifu设备管理平台</h1>
       </header>
 
       <main className="app-main">

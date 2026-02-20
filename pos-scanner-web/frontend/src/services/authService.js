@@ -13,13 +13,14 @@ const createAuthAxios = () => {
 
 // 认证 API
 export const authService = {
-  register: async (username, password, email) => {
+  register: async (username, password, email, name = '') => {
     const response = await axios.post(`${API_BASE}/register`, {
       username,
       password,
-      email
+      email,
+      name
     });
-    return response.data;
+    return { success: response.data.success, message: response.data.message, error: response.data.error };
   },
 
   login: async (username, password) => {
@@ -27,10 +28,11 @@ export const authService = {
       username,
       password
     });
-    if (response.data.success) {
-      localStorage.setItem('access_token', response.data.access_token);
-      localStorage.setItem('refresh_token', response.data.refresh_token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+    if (response.data.success && response.data.data) {
+      localStorage.setItem('access_token', response.data.data.access_token);
+      localStorage.setItem('refresh_token', response.data.data.refresh_token);
+      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+      return { success: true, user: response.data.data.user };
     }
     return response.data;
   },
@@ -49,7 +51,7 @@ export const authService = {
   getProfile: async () => {
     const authAxios = createAuthAxios();
     const response = await authAxios.get(`${API_BASE}/profile`);
-    return response.data;
+    return response.data.data || response.data;
   },
 
   changePassword: async (oldPassword, newPassword) => {
@@ -76,7 +78,7 @@ export const adminService = {
   getUsers: async (status = 'all') => {
     const authAxios = createAuthAxios();
     const response = await authAxios.get(`${ADMIN_BASE}/users?status=${status}`);
-    return response.data;
+    return { success: response.data.success, data: response.data.data, error: response.data.error };
   },
 
   approveUser: async (userId) => {

@@ -8,7 +8,19 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(cd:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(ls:*)",
+      "Bash(sqlite3:*)",
+      "Bash(uvicorn:*)",
+      "Bash(git rm:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(dir:*)",
+      "Bash(go mod tidy:*)",
+      "Bash(where go)",
+      "Bash(go run:*)",
+      "Bash(del:*)",
+      "Bash(powershell -Command \"Remove-Item ''D:\\\\PycharmProjects\\\\pos_tool_new\\\\pos-scanner-web\\\\backend-go\\\\data.db'' -Force -ErrorAction SilentlyContinue; Write-Host ''done''\")"
     ]
   }
 }

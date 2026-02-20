@@ -15,8 +15,18 @@ const createAuthAxios = () => {
 const MobileDevicesPage = () => {
   const { isAdmin, user } = useAuth();
   const [devices, setDevices] = useState([]);
+  const [filteredDevices, setFilteredDevices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState('card'); // card or list
+  const [viewMode, setViewMode] = useState(() => localStorage.getItem('mobileViewMode') || 'card'); // card or list
+
+  // 保存视图模式到 localStorage
+  const handleViewModeChange = (mode) => {
+    setViewMode(mode);
+    localStorage.setItem('mobileViewMode', mode);
+  };
+
+  // 搜索条件
+  const [searchText, setSearchText] = useState('');
 
   // 弹窗状态
   const [showModal, setShowModal] = useState(false);
@@ -27,6 +37,7 @@ const MobileDevicesPage = () => {
   const [formData, setFormData] = useState({
     name: '',
     deviceType: '',
+    sn: '',
     systemVersion: ''
   });
   const [occupancyData, setOccupancyData] = useState({
@@ -58,8 +69,10 @@ const MobileDevicesPage = () => {
     try {
       const authAxios = createAuthAxios();
       const response = await authAxios.get('/devices');
-      if (response.data.success) {
-        setDevices(response.data.devices);
+      if (response.data.success && response.data.data) {
+        const deviceList = response.data.data.devices || [];
+        setDevices(deviceList);
+        setFilteredDevices(deviceList);
       }
     } catch (error) {
       console.error('获取设备列表失败:', error);
@@ -68,11 +81,27 @@ const MobileDevicesPage = () => {
     }
   };
 
+  // 搜索过滤
+  useEffect(() => {
+    if (!searchText.trim()) {
+      setFilteredDevices(devices);
+    } else {
+      const keyword = searchText.toLowerCase();
+      const filtered = devices.filter(device =>
+        (device.name || '').toLowerCase().includes(keyword) ||
+        (device.deviceType || '').toLowerCase().includes(keyword) ||
+        (device.sn || '').toLowerCase().includes(keyword) ||
+        (device.systemVersion || '').toLowerCase().includes(keyword)
+      );
+      setFilteredDevices(filtered);
+    }
+  }, [searchText, devices]);
+
   // 打开创建弹窗
   const openCreateModal = () => {
     setModalMode('create');
     setSelectedDevice(null);
-    setFormData({ name: '', deviceType: '', systemVersion: '' });
+    setFormData({ name: '', deviceType: '', sn: '', systemVersion: '' });
     setImageA(null);
     setImageB(null);
     setShowModal(true);
@@ -85,6 +114,7 @@ const MobileDevicesPage = () => {
     setFormData({
       name: device.name,
       deviceType: device.deviceType || '',
+      sn: device.sn || '',
       systemVersion: device.systemVersion || ''
     });
     setImageA(null);
@@ -171,10 +201,10 @@ const MobileDevicesPage = () => {
     }
   };
 
-  // 设置占用
+  // 设置借用
   const handleSetOccupancy = async () => {
     if (!occupancyData.endTime) {
-      alert('请选择释放时间');
+      alert('请选择归还时间');
       return;
     }
 
@@ -191,16 +221,16 @@ const MobileDevicesPage = () => {
     }
   };
 
-  // 释放设备
+  // 归还设备
   const handleRelease = async (deviceId) => {
-    if (!window.confirm('确定要释放此设备吗？')) return;
+    if (!window.confirm('确定要归还此设备吗？')) return;
 
     try {
       const authAxios = createAuthAxios();
       await authAxios.put(`/devices/${deviceId}/release`);
       fetchDevices();
     } catch (error) {
-      alert(error.response?.data?.error || '释放失败');
+      alert(error.response?.data?.error || '归还失败');
     }
   };
 
@@ -223,9 +253,16 @@ const MobileDevicesPage = () => {
           <p style={styles.subtitle}>管理测试用的移动设备</p>
         </div>
         <div style={styles.headerActions}>
+          <input
+            type="text"
+            placeholder="搜索名称/SN/类型..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            style={styles.searchInput}
+          />
           <div style={styles.viewToggle}>
             <button
-              onClick={() => setViewMode('card')}
+              onClick={() => handleViewModeChange('card')}
               style={{
                 ...styles.toggleBtn,
                 ...(viewMode === 'card' ? styles.toggleBtnActive : {})
@@ -237,7 +274,7 @@ const MobileDevicesPage = () => {
               </svg>
             </button>
             <button
-              onClick={() => setViewMode('list')}
+              onClick={() => handleViewModeChange('list')}
               style={{
                 ...styles.toggleBtn,
                 ...(viewMode === 'list' ? styles.toggleBtnActive : {})
@@ -259,11 +296,11 @@ const MobileDevicesPage = () => {
 
       {loading ? (
         <div style={styles.loading}>加载中...</div>
-      ) : devices.length === 0 ? (
-        <div style={styles.empty}>暂无设备</div>
+      ) : filteredDevices.length === 0 ? (
+        <div style={styles.empty}>{searchText ? '未找到匹配设备' : '暂无设备'}</div>
       ) : viewMode === 'card' ? (
         <div style={styles.grid}>
-          {devices.map(device => (
+          {filteredDevices.map(device => (
             <div key={device.id} style={styles.card}>
               <div style={styles.cardHeader}>
                 <h3 style={styles.deviceName}>{device.name}</h3>
@@ -274,10 +311,10 @@ const MobileDevicesPage = () => {
                 <div style={styles.imageBox}>
                   {device.imageA ? (
                     <img
-                      src={`/${device.imageA}`}
+                      src={`/uploads/${device.imageA}`}
                       alt="A面"
                       style={{ ...styles.image, cursor: 'pointer' }}
-                      onClick={() => openImagePreview(`/${device.imageA}`)}
+                      onClick={() => openImagePreview(`/uploads/${device.imageA}`)}
                     />
                   ) : (
                     <span style={styles.noImage}>A面</span>
@@ -286,10 +323,10 @@ const MobileDevicesPage = () => {
                 <div style={styles.imageBox}>
                   {device.imageB ? (
                     <img
-                      src={`/${device.imageB}`}
+                      src={`/uploads/${device.imageB}`}
                       alt="B面"
                       style={{ ...styles.image, cursor: 'pointer' }}
-                      onClick={() => openImagePreview(`/${device.imageB}`)}
+                      onClick={() => openImagePreview(`/uploads/${device.imageB}`)}
                     />
                   ) : (
                     <span style={styles.noImage}>B面</span>
@@ -298,17 +335,21 @@ const MobileDevicesPage = () => {
               </div>
 
               <div style={styles.cardInfo}>
+                <p>
+                  <span style={styles.label}>SN号:</span>{' '}
+                  <span style={styles.snValue} title={device.sn || ''}>{device.sn || '——'}</span>
+                </p>
                 <p><span style={styles.label}>系统版本:</span> {device.systemVersion || '——'}</p>
                 <p>
-                  <span style={styles.label}>占用状态:</span>{' '}
+                  <span style={styles.label}>借用状态:</span>{' '}
                   {device.isOccupied ? (
                     <span style={styles.occupied}>{device.occupier}</span>
                   ) : (
-                    <span style={styles.free}>空闲</span>
+                    <span style={styles.free}>可借用</span>
                   )}
                 </p>
                 {device.isOccupied && (
-                  <p><span style={styles.label}>释放时间:</span> {formatTime(device.endTime)}</p>
+                  <p><span style={styles.label}>归还时间:</span> {formatTime(device.endTime)}</p>
                 )}
               </div>
 
@@ -319,17 +360,17 @@ const MobileDevicesPage = () => {
                       onClick={() => handleRelease(device.id)}
                       style={styles.releaseBtn}
                     >
-                      释放
+                      归还
                     </button>
                   ) : (
-                    <span style={styles.occupiedLabel}>已被 {device.occupier} 占用</span>
+                    <span style={styles.occupiedLabel}>已被 {device.occupier} 借用</span>
                   )
                 ) : (
                   <button
                     onClick={() => openOccupyModal(device)}
                     style={styles.occupyBtn}
                   >
-                    占用
+                    借用
                   </button>
                 )}
                 {isAdmin() && (
@@ -348,30 +389,31 @@ const MobileDevicesPage = () => {
             <div style={styles.listHeaderImages}>图片</div>
             <div style={styles.listHeaderName}>设备名称</div>
             <div style={styles.listHeaderType}>类型</div>
+            <div style={styles.listHeaderSN}>SN号</div>
             <div style={styles.listHeaderVersion}>系统版本</div>
-            <div style={styles.listHeaderStatus}>占用状态</div>
-            <div style={styles.listHeaderEndTime}>释放时间</div>
+            <div style={styles.listHeaderStatus}>借用状态</div>
+            <div style={styles.listHeaderEndTime}>归还时间</div>
             <div style={styles.listHeaderActions}>操作</div>
           </div>
-          {devices.map(device => (
+          {filteredDevices.map(device => (
             <div key={device.id} style={styles.listRow}>
               <div style={styles.listImages}>
                 {device.imageA ? (
                   <img
-                    src={`/${device.imageA}`}
+                    src={`/uploads/${device.imageA}`}
                     alt="A面"
                     style={{ ...styles.listImage, cursor: 'pointer' }}
-                    onClick={() => openImagePreview(`/${device.imageA}`)}
+                    onClick={() => openImagePreview(`/uploads/${device.imageA}`)}
                   />
                 ) : (
                   <div style={styles.listNoImage}>A</div>
                 )}
                 {device.imageB ? (
                   <img
-                    src={`/${device.imageB}`}
+                    src={`/uploads/${device.imageB}`}
                     alt="B面"
                     style={{ ...styles.listImage, cursor: 'pointer' }}
-                    onClick={() => openImagePreview(`/${device.imageB}`)}
+                    onClick={() => openImagePreview(`/uploads/${device.imageB}`)}
                   />
                 ) : (
                   <div style={styles.listNoImage}>B</div>
@@ -379,12 +421,13 @@ const MobileDevicesPage = () => {
               </div>
               <div style={styles.listName}>{device.name}</div>
               <div style={styles.listType}>{device.deviceType || '未分类'}</div>
+              <div style={styles.listSN} title={device.sn || ''}>{device.sn || '——'}</div>
               <div style={styles.listVersion}>{device.systemVersion || '——'}</div>
               <div style={styles.listStatus}>
                 {device.isOccupied ? (
                   <span style={styles.occupied}>{device.occupier}</span>
                 ) : (
-                  <span style={styles.free}>空闲</span>
+                  <span style={styles.free}>可借用</span>
                 )}
               </div>
               <div style={styles.listEndTime}>
@@ -393,10 +436,10 @@ const MobileDevicesPage = () => {
               <div style={styles.listActions}>
                 {device.isOccupied ? (
                   (isAdmin() || device.occupierId === user?.id) ? (
-                    <button onClick={() => handleRelease(device.id)} style={styles.listReleaseBtn}>释放</button>
+                    <button onClick={() => handleRelease(device.id)} style={styles.listReleaseBtn}>归还</button>
                   ) : null
                 ) : (
-                  <button onClick={() => openOccupyModal(device)} style={styles.listOccupyBtn}>占用</button>
+                  <button onClick={() => openOccupyModal(device)} style={styles.listOccupyBtn}>借用</button>
                 )}
                 {isAdmin() && (
                   <>
@@ -418,7 +461,7 @@ const MobileDevicesPage = () => {
               <h3>
                 {modalMode === 'create' && '添加设备'}
                 {modalMode === 'edit' && '编辑设备'}
-                {modalMode === 'occupy' && '占用设备'}
+                {modalMode === 'occupy' && '借用设备'}
               </h3>
               <button onClick={closeModal} style={styles.closeBtn}>×</button>
             </div>
@@ -443,6 +486,16 @@ const MobileDevicesPage = () => {
                       onChange={e => setFormData({ ...formData, deviceType: e.target.value })}
                       style={styles.input}
                       placeholder="如：手机、平板等"
+                    />
+                  </div>
+                  <div style={styles.field}>
+                    <label>SN号</label>
+                    <input
+                      type="text"
+                      value={formData.sn}
+                      onChange={e => setFormData({ ...formData, sn: e.target.value })}
+                      style={styles.input}
+                      placeholder="设备序列号"
                     />
                   </div>
                   <div style={styles.field}>
@@ -482,7 +535,7 @@ const MobileDevicesPage = () => {
                     设备: <strong>{selectedDevice?.name}</strong>
                   </p>
                   <p style={styles.modalInfo}>
-                    占用人: <strong style={{ color: '#007AFF' }}>{user?.username}</strong>
+                    借用人: <strong style={{ color: '#007AFF' }}>{user?.name || user?.username}</strong>
                   </p>
                   <div style={styles.field}>
                     <label>用途</label>
@@ -495,7 +548,7 @@ const MobileDevicesPage = () => {
                     />
                   </div>
                   <div style={styles.field}>
-                    <label>释放时间</label>
+                    <label>归还时间</label>
                     <input
                       type="datetime-local"
                       value={occupancyData.endTime}
@@ -513,7 +566,7 @@ const MobileDevicesPage = () => {
                 onClick={modalMode === 'occupy' ? handleSetOccupancy : handleSaveDevice}
                 style={styles.saveBtn}
               >
-                {modalMode === 'create' ? '创建' : modalMode === 'edit' ? '保存' : '占用'}
+                {modalMode === 'create' ? '创建' : modalMode === 'edit' ? '保存' : '借用'}
               </button>
             </div>
           </div>
@@ -557,6 +610,14 @@ const styles = {
     display: 'flex',
     gap: '10px',
     alignItems: 'center',
+  },
+  searchInput: {
+    padding: '8px 12px',
+    border: '1px solid #D1D1D6',
+    borderRadius: '8px',
+    fontSize: '14px',
+    width: '200px',
+    outline: 'none',
   },
   viewToggle: {
     display: 'flex',
@@ -613,18 +674,23 @@ const styles = {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
     gap: '16px',
+    alignItems: 'stretch',
   },
   card: {
     backgroundColor: 'white',
     borderRadius: '12px',
     padding: '16px',
     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100%',
   },
   cardHeader: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: '12px',
+    flexShrink: 0,
   },
   deviceName: {
     fontSize: '16px',
@@ -643,6 +709,7 @@ const styles = {
     display: 'flex',
     gap: '8px',
     marginBottom: '12px',
+    flexShrink: 0,
   },
   imageBox: {
     flex: 1,
@@ -670,6 +737,11 @@ const styles = {
     color: '#86868B',
     fontSize: '13px',
   },
+  snValue: {
+    fontSize: '12px',
+    fontFeatureSettings: "'tnum'",
+    wordBreak: 'break-all',
+  },
   occupied: {
     color: '#FF9500',
     fontWeight: '500',
@@ -684,49 +756,69 @@ const styles = {
     color: '#86868B',
     fontSize: '12px',
     textAlign: 'center',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '36px',
   },
   cardActions: {
     display: 'flex',
     gap: '8px',
     flexWrap: 'wrap',
+    alignItems: 'stretch',
+    marginTop: 'auto',
   },
   occupyBtn: {
     flex: 1,
-    padding: '8px',
+    minHeight: '36px',
     backgroundColor: '#007AFF',
     color: 'white',
     border: 'none',
     borderRadius: '6px',
     fontSize: '13px',
     cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   releaseBtn: {
     flex: 1,
-    padding: '8px',
+    minHeight: '36px',
     backgroundColor: '#FF9500',
     color: 'white',
     border: 'none',
     borderRadius: '6px',
     fontSize: '13px',
     cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   editBtn: {
-    padding: '8px 12px',
+    minHeight: '36px',
+    padding: '0 12px',
     backgroundColor: '#F2F2F7',
     color: '#1D1D1F',
     border: 'none',
     borderRadius: '6px',
     fontSize: '13px',
     cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   deleteBtn: {
-    padding: '8px 12px',
+    minHeight: '36px',
+    padding: '0 12px',
     backgroundColor: '#FFEBE9',
     color: '#FF3B30',
     border: 'none',
     borderRadius: '6px',
     fontSize: '13px',
     cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   modalOverlay: {
     position: 'fixed',
@@ -848,23 +940,25 @@ const styles = {
   listContainer: {
     backgroundColor: 'white',
     borderRadius: '12px',
-    overflow: 'hidden',
+    overflowX: 'auto',
     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
   },
   listHeader: {
     display: 'grid',
-    gridTemplateColumns: '100px 1fr 100px 120px 100px 140px 160px',
+    gridTemplateColumns: '80px minmax(100px, 1fr) 80px 100px 100px 80px 110px 150px',
     padding: '10px 16px',
     backgroundColor: '#F9F9F9',
     borderBottom: '1px solid #E5E5EA',
-    gap: '12px',
+    gap: '10px',
     fontSize: '12px',
     fontWeight: '500',
     color: '#86868B',
+    minWidth: '800px',
   },
   listHeaderImages: {},
   listHeaderName: {},
   listHeaderType: {},
+  listHeaderSN: {},
   listHeaderVersion: {},
   listHeaderStatus: {},
   listHeaderEndTime: {},
@@ -873,11 +967,12 @@ const styles = {
   },
   listRow: {
     display: 'grid',
-    gridTemplateColumns: '100px 1fr 100px 120px 100px 140px 160px',
+    gridTemplateColumns: '80px minmax(100px, 1fr) 80px 100px 100px 80px 110px 150px',
     alignItems: 'center',
     padding: '12px 16px',
     borderBottom: '1px solid #F2F2F7',
-    gap: '12px',
+    gap: '10px',
+    minWidth: '800px',
   },
   listImages: {
     display: 'flex',
@@ -912,6 +1007,14 @@ const styles = {
     fontSize: '12px',
     color: '#86868B',
   },
+  listSN: {
+    fontSize: '12px',
+    color: '#1D1D1F',
+    fontFeatureSettings: "'tnum'",
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
   listVersion: {
     fontSize: '13px',
     color: '#1D1D1F',
@@ -927,6 +1030,7 @@ const styles = {
     display: 'flex',
     gap: '6px',
     justifyContent: 'flex-end',
+    flexWrap: 'nowrap',
   },
   listOccupyBtn: {
     padding: '5px 12px',
@@ -936,6 +1040,7 @@ const styles = {
     borderRadius: '4px',
     fontSize: '12px',
     cursor: 'pointer',
+    whiteSpace: 'nowrap',
   },
   listReleaseBtn: {
     padding: '5px 12px',
@@ -945,6 +1050,7 @@ const styles = {
     borderRadius: '4px',
     fontSize: '12px',
     cursor: 'pointer',
+    whiteSpace: 'nowrap',
   },
   listEditBtn: {
     padding: '5px 12px',
@@ -954,6 +1060,7 @@ const styles = {
     borderRadius: '4px',
     fontSize: '12px',
     cursor: 'pointer',
+    whiteSpace: 'nowrap',
   },
   listDeleteBtn: {
     padding: '5px 12px',
@@ -963,6 +1070,7 @@ const styles = {
     borderRadius: '4px',
     fontSize: '12px',
     cursor: 'pointer',
+    whiteSpace: 'nowrap',
   },
 };
 

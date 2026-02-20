@@ -177,6 +177,15 @@ body {
   background: #2DB84E;
 }
 
+.btn-danger {
+  background: var(--apple-red);
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #E6342A;
+}
+
 .btn-sm {
   padding: 4px 10px;
   font-size: 12px;
@@ -331,6 +340,7 @@ body {
   padding: 4px 8px;
   background: rgba(255, 59, 48, 0.1);
   border-radius: 4px;
+  white-space: nowrap;
 }
 
 .property-tag {
@@ -371,6 +381,8 @@ body {
   border-radius: 4px;
   font-size: 12px;
   font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
 }
 
 .occupancy-occupied {
@@ -382,6 +394,7 @@ body {
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .occupancy-occupied:hover {
@@ -391,6 +404,97 @@ body {
 .release-time {
   font-size: 12px;
   color: #86868B;
+}
+
+/* IP Cell - Online/Offline Status */
+.ip-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.ip-address {
+  font-weight: 500;
+  flex-shrink: 0;
+  font-feature-settings: 'tnum';
+}
+
+.online-indicator {
+  width: 8px;
+  height: 8px;
+  background: var(--apple-green);
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 4px rgba(52, 199, 89, 0.5);
+}
+
+.error-indicator {
+  width: 8px;
+  height: 8px;
+  background: var(--apple-red);
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 4px rgba(255, 59, 48, 0.5);
+}
+
+.service-unavailable {
+  display: inline-block;
+  padding: 2px 8px;
+  background: rgba(255, 59, 48, 0.1);
+  color: var(--apple-red);
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.offline-label {
+  font-size: 11px;
+  color: var(--apple-gray);
+  background: var(--apple-gray-5);
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Owner Cell - Claim/Reset */
+.owner-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.owner-name {
+  font-weight: 500;
+  color: var(--apple-text);
+}
+
+.btn-reset-owner {
+  background: none;
+  border: none;
+  color: var(--apple-gray);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0 4px;
+  line-height: 1;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.btn-reset-owner:hover {
+  opacity: 1;
+  color: var(--apple-red);
+}
+
+.btn-claim {
+  background: rgba(0, 122, 255, 0.1);
+  color: var(--apple-blue);
+  border: 1px solid rgba(0, 122, 255, 0.3);
+}
+
+.btn-claim:hover {
+  background: rgba(0, 122, 255, 0.2);
 }
 
 /* Modal */

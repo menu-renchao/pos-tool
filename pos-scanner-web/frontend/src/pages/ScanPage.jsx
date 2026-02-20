@@ -18,6 +18,12 @@ const ScanPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [lastScanAt, setLastScanAt] = useState(null);
 
+  // 分页状态
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
+  const [totalDevices, setTotalDevices] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
   // 设备性质编辑
   const [propertyModal, setPropertyModal] = useState({ show: false, device: null });
   const [propertyValue, setPropertyValue] = useState('');
@@ -28,22 +34,18 @@ const ScanPage = () => {
   const [occupancyEndTime, setOccupancyEndTime] = useState('');
 
   // 搜索条件
-  const [searchConditions, setSearchConditions] = useState({
-    ip: '',
-    id: '',
-    name: '',
-    version: ''
-  });
+  const [searchText, setSearchText] = useState('');
 
   // 获取本地IP列表
   useEffect(() => {
     const fetchLocalIPs = async () => {
       try {
         const response = await scanAPI.getLocalIPs();
-        if (response.data.success) {
-          setLocalIPs(response.data.ips);
-          if (response.data.ips.length > 0) {
-            setSelectedIP(response.data.ips[0]);
+        if (response.data.success && response.data.data) {
+          const ips = response.data.data.ips || [];
+          setLocalIPs(ips);
+          if (ips.length > 0) {
+            setSelectedIP(ips[0]);
           }
         }
       } catch (error) {
@@ -53,22 +55,39 @@ const ScanPage = () => {
     fetchLocalIPs();
   }, []);
 
-  // 加载已有扫描结果
-  useEffect(() => {
-    const loadDevices = async () => {
-      try {
-        const response = await scanAPI.getDevices();
-        if (response.data.success) {
-          setDevices(response.data.devices);
-          setFilteredDevices(response.data.devices);
-          setLastScanAt(response.data.lastScanAt);
-        }
-      } catch (error) {
-        console.error('加载设备列表失败:', error);
+  // 加载设备列表（分页+搜索）
+  const loadDevices = async (page = currentPage, size = pageSize, search = searchText) => {
+    try {
+      const response = await scanAPI.getDevices(page, size, search);
+      if (response.data.success && response.data.data) {
+        setDevices(response.data.data.devices || []);
+        setFilteredDevices(response.data.data.devices || []);
+        setTotalDevices(response.data.data.total || 0);
+        setTotalPages(response.data.data.totalPages || 0);
+        setLastScanAt(response.data.data.lastScanAt);
       }
-    };
-    loadDevices();
+    } catch (error) {
+      console.error('加载设备列表失败:', error);
+    }
+  };
+
+  // 初始加载
+  useEffect(() => {
+    loadDevices(1, pageSize, '');
   }, []);
+
+  // 页码改变
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+    loadDevices(newPage, pageSize, searchText);
+  };
+
+  // 每页数量改变
+  const handlePageSizeChange = (newSize) => {
+    setPageSize(newSize);
+    setCurrentPage(1);
+    loadDevices(1, newSize, searchText);
+  };
 
   // 轮询扫描状态
   useEffect(() => {
@@ -77,22 +96,18 @@ const ScanPage = () => {
       intervalId = setInterval(async () => {
         try {
           const response = await scanAPI.getScanStatus();
-          const status = response.data;
-          setScanProgress(status.progress);
-          setCurrentIP(status.current_ip);
-          setDevices(status.results);
-          setFilteredDevices(status.results);
+          const status = response.data.data || response.data;
+          setScanProgress(status.progress || 0);
+          setCurrentIP(status.current_ip || '');
+          if (status.results) {
+            setDevices(status.results);
+            setFilteredDevices(status.results);
+          }
           if (!status.is_scanning) {
             setIsScanning(false);
-            // 重新获取最后扫描时间
-            try {
-              const devicesRes = await scanAPI.getDevices();
-              if (devicesRes.data.success) {
-                setLastScanAt(devicesRes.data.lastScanAt);
-              }
-            } catch (e) {
-              console.error('更新扫描时间失败:', e);
-            }
+            // 扫描完成后重新获取设备列表
+            loadDevices(1, pageSize, searchText);
+            setCurrentPage(1);
             if (intervalId) clearInterval(intervalId);
           }
         } catch (error) {
@@ -139,22 +154,17 @@ const ScanPage = () => {
     }
   };
 
-  // 搜索处理
+  // 搜索处理（后端搜索）
   const handleSearch = () => {
-    const filtered = devices.filter(device => {
-      const ipMatch = device.ip.toLowerCase().includes(searchConditions.ip.toLowerCase());
-      const idMatch = (device.merchantId || '').toLowerCase().includes(searchConditions.id.toLowerCase());
-      const nameMatch = (device.name || '').toLowerCase().includes(searchConditions.name.toLowerCase());
-      const versionMatch = (device.version || '').toLowerCase().includes(searchConditions.version.toLowerCase());
-      return ipMatch && idMatch && nameMatch && versionMatch;
-    });
-    setFilteredDevices(filtered);
+    setCurrentPage(1);
+    loadDevices(1, pageSize, searchText);
   };
 
   // 清除搜索
   const clearSearch = () => {
-    setSearchConditions({ ip: '', id: '', name: '', version: '' });
-    setFilteredDevices(devices);
+    setSearchText('');
+    setCurrentPage(1);
+    loadDevices(1, pageSize, '');
   };
 
   // 打开设备
@@ -164,8 +174,9 @@ const ScanPage = () => {
 
   // 格式化最后扫描时间
   const formatLastScanTime = (isoString) => {
-    if (!isoString) return '';
+    if (!isoString || isoString === '') return '';
     const date = new Date(isoString);
+    if (isNaN(date.getTime())) return '';
     const now = new Date();
     const diffMs = now - date;
     const diffMins = Math.floor(diffMs / 60000);
@@ -199,11 +210,7 @@ const ScanPage = () => {
       );
       if (result.success) {
         // 刷新设备列表
-        const response = await scanAPI.getDevices();
-        if (response.data.success) {
-          setDevices(response.data.devices);
-          setFilteredDevices(response.data.devices);
-        }
+        loadDevices(currentPage, pageSize, searchText);
         setPropertyModal({ show: false, device: null });
       } else {
         alert(result.error);
@@ -242,11 +249,7 @@ const ScanPage = () => {
       );
       if (result.success) {
         // 刷新设备列表
-        const response = await scanAPI.getDevices();
-        if (response.data.success) {
-          setDevices(response.data.devices);
-          setFilteredDevices(response.data.devices);
-        }
+        loadDevices(currentPage, pageSize, searchText);
         setOccupancyModal({ show: false, device: null });
       } else {
         alert(result.error);
@@ -264,11 +267,7 @@ const ScanPage = () => {
       const result = await deviceAPI.releaseOccupancy(occupancyModal.device.merchantId);
       if (result.success) {
         // 刷新设备列表
-        const response = await scanAPI.getDevices();
-        if (response.data.success) {
-          setDevices(response.data.devices);
-          setFilteredDevices(response.data.devices);
-        }
+        loadDevices(currentPage, pageSize, searchText);
         setOccupancyModal({ show: false, device: null });
       } else {
         alert(result.error);
@@ -280,14 +279,63 @@ const ScanPage = () => {
 
   // 刷新设备列表
   const refreshDevices = async () => {
+    loadDevices(currentPage, pageSize);
+  };
+
+  // 删除离线设备（仅管理员）
+  const handleDeleteDevice = async (device) => {
+    if (!device.merchantId) return;
+    if (!window.confirm(`确定要删除设备 ${device.name || device.merchantId} 吗？\n此操作不可恢复。`)) return;
+
     try {
-      const response = await scanAPI.getDevices();
-      if (response.data.success) {
-        setDevices(response.data.devices);
-        setFilteredDevices(response.data.devices);
+      const response = await deviceAPI.deleteDevice(device.merchantId);
+      if (response.success) {
+        // 刷新设备列表
+        loadDevices(currentPage, pageSize, searchText);
+      } else {
+        alert(response.error || '删除失败');
       }
     } catch (error) {
-      console.error('刷新设备列表失败:', error);
+      console.error('删除设备失败:', error);
+      alert('删除失败');
+    }
+  };
+
+  // 认领设备
+  const handleClaimDevice = async (device) => {
+    if (!device.merchantId) return;
+    if (!window.confirm(`确定要认领设备 ${device.name || device.merchantId} 吗？\n认领申请将提交给管理员审核。`)) return;
+
+    try {
+      const response = await deviceAPI.submitClaim(device.merchantId);
+      if (response.success) {
+        alert(response.message || '认领申请已提交');
+      } else {
+        alert(response.error || '提交失败');
+      }
+    } catch (error) {
+      console.error('认领设备失败:', error);
+      const errorMsg = error.response?.data?.error || error.message || '提交失败';
+      alert(errorMsg);
+    }
+  };
+
+  // 重置认领状态（仅管理员）
+  const handleResetOwner = async (device) => {
+    if (!device.merchantId) return;
+    if (!window.confirm(`确定要重置设备 ${device.name || device.merchantId} 的认领状态吗？`)) return;
+
+    try {
+      const response = await deviceAPI.resetOwner(device.merchantId);
+      if (response.success) {
+        // 刷新设备列表
+        loadDevices(currentPage, pageSize, searchText);
+      } else {
+        alert(response.error || '重置失败');
+      }
+    } catch (error) {
+      console.error('重置认领状态失败:', error);
+      alert('重置失败');
     }
   };
 
@@ -304,7 +352,7 @@ const ScanPage = () => {
               disabled={isScanning}
               style={styles.select}
             >
-              {localIPs.map(ip => (
+              {(localIPs || []).map(ip => (
                 <option key={ip} value={ip}>{ip}</option>
               ))}
             </select>
@@ -325,41 +373,23 @@ const ScanPage = () => {
         <div style={styles.toolbarCenter}>
           <input
             type="text"
-            placeholder="IP"
-            value={searchConditions.ip}
-            onChange={(e) => setSearchConditions(prev => ({ ...prev, ip: e.target.value }))}
-            style={styles.searchInput}
-          />
-          <input
-            type="text"
-            placeholder="ID"
-            value={searchConditions.id}
-            onChange={(e) => setSearchConditions(prev => ({ ...prev, id: e.target.value }))}
-            style={styles.searchInput}
-          />
-          <input
-            type="text"
-            placeholder="名称"
-            value={searchConditions.name}
-            onChange={(e) => setSearchConditions(prev => ({ ...prev, name: e.target.value }))}
-            style={styles.searchInput}
-          />
-          <input
-            type="text"
-            placeholder="版本"
-            value={searchConditions.version}
-            onChange={(e) => setSearchConditions(prev => ({ ...prev, version: e.target.value }))}
+            placeholder="搜索IP/ID/名称/版本..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             style={styles.searchInput}
           />
           <button onClick={handleSearch} style={styles.searchBtn}>搜索</button>
-          <button onClick={clearSearch} style={styles.clearBtn}>清除</button>
+          {searchText && (
+            <button onClick={clearSearch} style={styles.clearBtn}>清除</button>
+          )}
         </div>
 
         <div style={styles.toolbarRight}>
           {lastScanAt && (
-            <span style={styles.lastScan}>上次更新: {formatLastScanTime(lastScanAt)}</span>
+            <span style={styles.lastScan}>上次扫描: {formatLastScanTime(lastScanAt)}</span>
           )}
-          <span style={styles.count}>{filteredDevices.length} 台设备</span>
+          <span style={styles.count}>{totalDevices} 台设备</span>
         </div>
       </div>
 
@@ -384,9 +414,66 @@ const ScanPage = () => {
           onShowDetails={handleShowDetails}
           onEditProperty={handleEditProperty}
           onEditOccupancy={handleEditOccupancy}
+          onDeleteDevice={handleDeleteDevice}
+          onClaimDevice={handleClaimDevice}
+          onResetOwner={handleResetOwner}
           isAdmin={isAdmin()}
+          currentUserId={user?.id}
         />
       </div>
+
+      {/* 分页 */}
+      {totalDevices > 0 && (
+        <div style={styles.pagination}>
+          <div style={styles.paginationInfo}>
+            共 {totalDevices} 条，每页
+            <select
+              value={pageSize}
+              onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+              style={styles.pageSizeSelect}
+            >
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+              <option value={200}>200</option>
+            </select>
+            条
+          </div>
+          <div style={styles.paginationBtns}>
+            <button
+              onClick={() => handlePageChange(1)}
+              disabled={currentPage === 1}
+              style={{ ...styles.pageBtn, ...(currentPage === 1 ? styles.pageBtnDisabled : {}) }}
+            >
+              首页
+            </button>
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              style={{ ...styles.pageBtn, ...(currentPage === 1 ? styles.pageBtnDisabled : {}) }}
+            >
+              上一页
+            </button>
+            <span style={styles.pageNum}>
+              {currentPage} / {totalPages}
+            </span>
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              style={{ ...styles.pageBtn, ...(currentPage === totalPages ? styles.pageBtnDisabled : {}) }}
+            >
+              下一页
+            </button>
+            <button
+              onClick={() => handlePageChange(totalPages)}
+              disabled={currentPage === totalPages}
+              style={{ ...styles.pageBtn, ...(currentPage === totalPages ? styles.pageBtnDisabled : {}) }}
+            >
+              末页
+            </button>
+          </div>
+        </div>
+      )}
 
       {showModal && (
         <DetailModal
@@ -395,12 +482,12 @@ const ScanPage = () => {
         />
       )}
 
-      {/* 设备性质编辑弹窗 */}
+      {/* 设备分类编辑弹窗 */}
       {propertyModal.show && (
         <div style={styles.modalOverlay}>
           <div style={styles.modalContent}>
             <div style={styles.modalHeader}>
-              <h3>编辑设备性质</h3>
+              <h3>编辑分类</h3>
               <button onClick={() => setPropertyModal({ show: false, device: null })} style={styles.closeBtn}>×</button>
             </div>
             <div style={styles.modalBody}>
@@ -411,12 +498,12 @@ const ScanPage = () => {
                 设备名称: <strong>{propertyModal.device?.name || '——'}</strong>
               </p>
               <div style={styles.fieldGroup}>
-                <label>设备性质</label>
+                <label>分类</label>
                 <input
                   type="text"
                   value={propertyValue}
                   onChange={(e) => setPropertyValue(e.target.value)}
-                  placeholder="如：测试组专用、个人PC等"
+                  placeholder="如：测试组专用、PC等"
                   style={styles.input}
                 />
               </div>
@@ -429,12 +516,12 @@ const ScanPage = () => {
         </div>
       )}
 
-      {/* 设备占用编辑弹窗 */}
+      {/* 设备借用编辑弹窗 */}
       {occupancyModal.show && (
         <div style={styles.modalOverlay}>
           <div style={styles.modalContent}>
             <div style={styles.modalHeader}>
-              <h3>{occupancyModal.device?.isOccupied ? '占用详情' : '占用设备'}</h3>
+              <h3>{occupancyModal.device?.isOccupied ? '借用详情' : '借用设备'}</h3>
               <button onClick={() => setOccupancyModal({ show: false, device: null })} style={styles.closeBtn}>×</button>
             </div>
             <div style={styles.modalBody}>
@@ -445,7 +532,7 @@ const ScanPage = () => {
                 设备名称: <strong>{occupancyModal.device?.name || '——'}</strong>
               </p>
               <p style={styles.modalInfo}>
-                占用人: <strong style={{ color: '#007AFF' }}>{occupancyModal.device?.occupancy?.username || user?.username}</strong>
+                借用人: <strong style={{ color: '#007AFF' }}>{occupancyModal.device?.occupancy?.username || user?.name || user?.username}</strong>
               </p>
 
               {occupancyModal.device?.isOccupied && !isAdmin() && occupancyModal.device?.occupancy?.userId !== user?.id ? (
@@ -454,7 +541,7 @@ const ScanPage = () => {
                     用途: <strong>{occupancyModal.device?.occupancy?.purpose || '——'}</strong>
                   </p>
                   <p style={styles.modalInfo}>
-                    释放时间: <strong>{occupancyModal.device?.occupancy?.endTime ? new Date(occupancyModal.device?.occupancy?.endTime).toLocaleString('zh-CN') : '——'}</strong>
+                    归还时间: <strong>{occupancyModal.device?.occupancy?.endTime ? new Date(occupancyModal.device?.occupancy?.endTime).toLocaleString('zh-CN') : '——'}</strong>
                   </p>
                   <div style={styles.modalActions}>
                     <button onClick={() => setOccupancyModal({ show: false, device: null })} style={styles.btnCancel}>关闭</button>
@@ -474,7 +561,7 @@ const ScanPage = () => {
                   </div>
 
                   <div style={styles.fieldGroup}>
-                    <label>释放时间</label>
+                    <label>归还时间</label>
                     <input
                       type="datetime-local"
                       value={occupancyEndTime}
@@ -486,10 +573,10 @@ const ScanPage = () => {
                   <div style={styles.modalActions}>
                     <button onClick={() => setOccupancyModal({ show: false, device: null })} style={styles.btnCancel}>取消</button>
                     {occupancyModal.device?.isOccupied && (
-                      <button onClick={handleReleaseOccupancy} style={styles.btnDanger}>释放</button>
+                      <button onClick={handleReleaseOccupancy} style={styles.btnDanger}>归还</button>
                     )}
                     <button onClick={handleSaveOccupancy} style={styles.btnSave}>
-                      {occupancyModal.device?.isOccupied ? '更新' : '占用'}
+                      {occupancyModal.device?.isOccupied ? '更新' : '借用'}
                     </button>
                   </div>
                 </>
@@ -571,11 +658,11 @@ const styles = {
     flexWrap: 'wrap',
   },
   searchInput: {
-    padding: '6px 10px',
+    padding: '6px 12px',
     border: '1px solid #D1D1D6',
     borderRadius: '6px',
     fontSize: '13px',
-    width: '90px',
+    width: '200px',
     outline: 'none',
   },
   searchBtn: {
@@ -729,6 +816,53 @@ const styles = {
     borderRadius: '8px',
     fontSize: '14px',
     cursor: 'pointer',
+  },
+  pagination: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '12px 16px',
+    backgroundColor: 'white',
+    borderRadius: '10px',
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
+  },
+  paginationInfo: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    fontSize: '13px',
+    color: '#86868B',
+  },
+  pageSizeSelect: {
+    padding: '4px 8px',
+    border: '1px solid #D1D1D6',
+    borderRadius: '6px',
+    fontSize: '13px',
+    margin: '0 4px',
+  },
+  paginationBtns: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+  },
+  pageBtn: {
+    padding: '6px 12px',
+    backgroundColor: '#F2F2F7',
+    border: 'none',
+    borderRadius: '6px',
+    fontSize: '13px',
+    cursor: 'pointer',
+    transition: 'all 0.15s ease',
+  },
+  pageBtnDisabled: {
+    opacity: 0.5,
+    cursor: 'not-allowed',
+  },
+  pageNum: {
+    padding: '0 12px',
+    fontSize: '13px',
+    color: '#1D1D1F',
+    fontWeight: '500',
   },
 };
 

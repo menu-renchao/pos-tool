@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { adminService } from '../services/authService';
+import { deviceAPI } from '../services/api';
 import axios from 'axios';
 
 const API_BASE = '/api/admin';
@@ -14,10 +14,17 @@ const createAuthAxios = () => {
 };
 
 const AdminUsersPage = () => {
+  const [activeTab, setActiveTab] = useState('users'); // 'users' or 'claims'
   const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [searchText, setSearchText] = useState('');
   const [error, setError] = useState('');
+
+  // 认领申请相关状态
+  const [claims, setClaims] = useState([]);
+  const [claimsLoading, setClaimsLoading] = useState(false);
 
   // 弹窗状态
   const [showModal, setShowModal] = useState(false);
@@ -26,6 +33,7 @@ const AdminUsersPage = () => {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
+    name: '',
     password: '',
     role: 'user',
     status: 'approved'
@@ -35,8 +43,10 @@ const AdminUsersPage = () => {
     setLoading(true);
     try {
       const result = await adminService.getUsers(statusFilter);
-      if (result.success) {
-        setUsers(result.users);
+      if (result.success && result.data) {
+        const userList = result.data.users || result.users || [];
+        setUsers(userList);
+        setFilteredUsers(userList);
       } else {
         setError(result.error);
       }
@@ -47,9 +57,48 @@ const AdminUsersPage = () => {
     }
   };
 
+  // 搜索过滤
+  useEffect(() => {
+    if (!searchText.trim()) {
+      setFilteredUsers(users);
+    } else {
+      const keyword = searchText.toLowerCase();
+      const filtered = users.filter(user =>
+        (user.username || '').toLowerCase().includes(keyword) ||
+        (user.email || '').toLowerCase().includes(keyword) ||
+        (user.name || '').toLowerCase().includes(keyword)
+      );
+      setFilteredUsers(filtered);
+    }
+  }, [searchText, users]);
+
+  const fetchClaims = async () => {
+    setClaimsLoading(true);
+    try {
+      const result = await deviceAPI.getClaims('pending');
+      console.log('认领申请结果:', result);
+      if (result.success) {
+        setClaims(result.data?.claims || result.claims || []);
+      } else {
+        console.error('获取失败:', result.error);
+      }
+    } catch (err) {
+      console.error('获取认领申请失败:', err);
+    } finally {
+      setClaimsLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
+    fetchClaims(); // 同时获取认领申请，用于显示数量
   }, [statusFilter]);
+
+  useEffect(() => {
+    if (activeTab === 'claims') {
+      fetchClaims(); // 切换到认领审核tab时刷新
+    }
+  }, [activeTab]);
 
   // 打开创建弹窗
   const openCreateModal = () => {
@@ -58,6 +107,7 @@ const AdminUsersPage = () => {
     setFormData({
       username: '',
       email: '',
+      name: '',
       password: '',
       role: 'user',
       status: 'approved'
@@ -72,6 +122,7 @@ const AdminUsersPage = () => {
     setFormData({
       username: user.username,
       email: user.email,
+      name: user.name || '',
       password: '',
       role: user.role,
       status: user.status
@@ -87,8 +138,8 @@ const AdminUsersPage = () => {
 
   // 创建/更新用户
   const handleSaveUser = async () => {
-    if (!formData.username || !formData.email) {
-      alert('用户名和邮箱不能为空');
+    if (!formData.username || !formData.name) {
+      alert('用户名和姓名不能为空');
       return;
     }
 
@@ -109,6 +160,7 @@ const AdminUsersPage = () => {
         await authAxios.post('/users', {
           username: formData.username,
           email: formData.email,
+          name: formData.name,
           password: formData.password,
           role: formData.role,
           status: formData.status
@@ -117,6 +169,7 @@ const AdminUsersPage = () => {
         const updateData = {
           username: formData.username,
           email: formData.email,
+          name: formData.name,
           role: formData.role,
           status: formData.status
         };
@@ -176,6 +229,36 @@ const AdminUsersPage = () => {
     }
   };
 
+  // 认领审核处理
+  const handleApproveClaim = async (claimId) => {
+    try {
+      const result = await deviceAPI.approveClaim(claimId);
+      if (result.success) {
+        alert(result.message || '审核通过');
+        fetchClaims();
+      } else {
+        alert(result.error || '操作失败');
+      }
+    } catch (err) {
+      alert('操作失败');
+    }
+  };
+
+  const handleRejectClaim = async (claimId) => {
+    if (!window.confirm('确定要拒绝此认领申请吗？')) return;
+    try {
+      const result = await deviceAPI.rejectClaim(claimId);
+      if (result.success) {
+        alert(result.message || '已拒绝');
+        fetchClaims();
+      } else {
+        alert(result.error || '操作失败');
+      }
+    } catch (err) {
+      alert('操作失败');
+    }
+  };
+
   const getStatusBadge = (status) => {
     const configs = {
       pending: { bg: 'rgba(255, 149, 0, 0.12)', color: '#FF9500', label: '待审核' },
@@ -197,107 +280,212 @@ const AdminUsersPage = () => {
     );
   };
 
+  const formatTime = (isoString) => {
+    if (!isoString) return '——';
+    const date = new Date(isoString);
+    return date.toLocaleString('zh-CN', {
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   return (
     <div style={styles.container}>
       <div style={styles.header}>
         <div>
-          <h1 style={styles.title}>用户管理</h1>
-          <p style={styles.subtitle}>审核注册申请和管理用户账户</p>
+          <h1 style={styles.title}>管理中心</h1>
+          <p style={styles.subtitle}>审核注册申请、设备认领和管理用户账户</p>
         </div>
         <div style={styles.headerActions}>
-          <button onClick={openCreateModal} style={styles.createBtn}>
-            + 添加用户
-          </button>
-          <Link to="/" style={styles.backButton}>
-            <svg style={styles.backIcon} viewBox="0 0 24 24" fill="none">
-              <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" fill="currentColor"/>
-            </svg>
-            返回主页
-          </Link>
+          {activeTab === 'users' && (
+            <button onClick={openCreateModal} style={styles.createBtn}>
+              + 添加用户
+            </button>
+          )}
         </div>
+      </div>
+
+      {/* Tab 切换 */}
+      <div style={styles.tabContainer}>
+        <button
+          style={{...styles.tab, ...(activeTab === 'users' ? styles.tabActive : {})}}
+          onClick={() => setActiveTab('users')}
+        >
+          用户管理
+        </button>
+        <button
+          style={{...styles.tab, ...(activeTab === 'claims' ? styles.tabActive : {})}}
+          onClick={() => setActiveTab('claims')}
+        >
+          认领审核 {(claims || []).length > 0 && <span style={styles.badge}>{(claims || []).length}</span>}
+        </button>
       </div>
 
       {error && <div style={styles.error}>{error}</div>}
 
-      <div style={styles.filterCard}>
-        <div style={styles.filter}>
-          <label style={styles.filterLabel}>筛选状态</label>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            style={styles.select}
-          >
-            <option value="all">全部</option>
-            <option value="pending">待审核</option>
-            <option value="approved">已通过</option>
-            <option value="rejected">已拒绝</option>
-          </select>
-        </div>
-        <div style={styles.stats}>
-          <span style={styles.statItem}>共 {users.length} 个用户</span>
-        </div>
-      </div>
+      {/* 用户管理 Tab */}
+      {activeTab === 'users' && (
+        <>
+          <div style={styles.filterCard}>
+            <div style={styles.filterGroup}>
+              <div style={styles.filter}>
+                <label style={styles.filterLabel}>筛选状态</label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  style={styles.select}
+                >
+                  <option value="all">全部</option>
+                  <option value="pending">待审核</option>
+                  <option value="approved">已通过</option>
+                  <option value="rejected">已拒绝</option>
+                </select>
+              </div>
+              <input
+                type="text"
+                placeholder="搜索用户名/邮箱..."
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                style={styles.searchInput}
+              />
+            </div>
+            <div style={styles.stats}>
+              <span style={styles.statItem}>共 {(filteredUsers || []).length} 个用户</span>
+            </div>
+          </div>
 
-      {loading ? (
-        <div style={styles.loading}>
-          <div style={styles.spinner}></div>
-          <span>加载中...</span>
-        </div>
-      ) : users.length === 0 ? (
-        <div style={styles.empty}>
-          <svg style={styles.emptyIcon} viewBox="0 0 24 24" fill="none">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="currentColor"/>
-          </svg>
-          <p>暂无用户数据</p>
-        </div>
-      ) : (
-        <div style={styles.tableContainer}>
-          <table style={styles.table}>
-            <thead>
-              <tr>
-                <th style={styles.th}>ID</th>
-                <th style={styles.th}>用户名</th>
-                <th style={styles.th}>邮箱</th>
-                <th style={styles.th}>角色</th>
-                <th style={styles.th}>状态</th>
-                <th style={styles.th}>注册时间</th>
-                <th style={styles.th}>操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr key={user.id} style={styles.tr}>
-                  <td style={styles.td}>{user.id}</td>
-                  <td style={{...styles.td, fontWeight: '500'}}>{user.username}</td>
-                  <td style={styles.td}>{user.email}</td>
-                  <td style={styles.td}>
-                    <span style={{
-                      ...styles.roleBadge,
-                      backgroundColor: user.role === 'admin' ? 'rgba(88, 86, 214, 0.12)' : 'rgba(0, 122, 255, 0.12)',
-                      color: user.role === 'admin' ? '#5856D6' : '#007AFF',
-                    }}>
-                      {user.role === 'admin' ? '管理员' : '用户'}
-                    </span>
-                  </td>
-                  <td style={styles.td}>{getStatusBadge(user.status)}</td>
-                  <td style={styles.td}>{new Date(user.created_at).toLocaleString('zh-CN')}</td>
-                  <td style={styles.td}>
-                    <div style={styles.actions}>
-                      <button onClick={() => openEditModal(user)} style={styles.btnEdit}>编辑</button>
-                      {user.status === 'pending' && (
-                        <>
-                          <button onClick={() => handleApprove(user.id)} style={styles.btnApprove}>通过</button>
-                          <button onClick={() => handleReject(user.id)} style={styles.btnReject}>拒绝</button>
-                        </>
-                      )}
-                      <button onClick={() => handleDelete(user.id)} style={styles.btnDelete}>删除</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+          {loading ? (
+            <div style={styles.loading}>
+              <div style={styles.spinner}></div>
+              <span>加载中...</span>
+            </div>
+          ) : (filteredUsers || []).length === 0 ? (
+            <div style={styles.empty}>
+              <svg style={styles.emptyIcon} viewBox="0 0 24 24" fill="none">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="currentColor"/>
+              </svg>
+              <p>{searchText ? '未找到匹配用户' : '暂无用户数据'}</p>
+            </div>
+          ) : (
+            <div style={styles.tableContainer}>
+              <table style={styles.table}>
+                <thead>
+                  <tr>
+                    <th style={styles.th}>ID</th>
+                    <th style={styles.th}>姓名</th>
+                    <th style={styles.th}>用户名</th>
+                    <th style={styles.th}>邮箱</th>
+                    <th style={styles.th}>角色</th>
+                    <th style={styles.th}>状态</th>
+                    <th style={styles.th}>注册时间</th>
+                    <th style={styles.th}>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredUsers.map((user) => (
+                    <tr key={user.id} style={styles.tr}>
+                      <td style={styles.td}>{user.id}</td>
+                      <td style={{...styles.td, fontWeight: '500'}}>{user.name || user.username}</td>
+                      <td style={styles.td}>{user.username}</td>
+                      <td style={styles.td}>{user.email || '——'}</td>
+                      <td style={styles.td}>
+                        <span style={{
+                          ...styles.roleBadge,
+                          backgroundColor: user.role === 'admin' ? 'rgba(88, 86, 214, 0.12)' : 'rgba(0, 122, 255, 0.12)',
+                          color: user.role === 'admin' ? '#5856D6' : '#007AFF',
+                        }}>
+                          {user.role === 'admin' ? '管理员' : '用户'}
+                        </span>
+                      </td>
+                      <td style={styles.td}>{getStatusBadge(user.status)}</td>
+                      <td style={styles.td}>{new Date(user.created_at).toLocaleString('zh-CN')}</td>
+                      <td style={styles.td}>
+                        <div style={styles.actions}>
+                          <button onClick={() => openEditModal(user)} style={styles.btnEdit}>编辑</button>
+                          {user.status === 'pending' && (
+                            <>
+                              <button onClick={() => handleApprove(user.id)} style={styles.btnApprove}>通过</button>
+                              <button onClick={() => handleReject(user.id)} style={styles.btnReject}>拒绝</button>
+                            </>
+                          )}
+                          <button onClick={() => handleDelete(user.id)} style={styles.btnDelete}>删除</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* 认领审核 Tab */}
+      {activeTab === 'claims' && (
+        <>
+          <div style={styles.filterCard}>
+            <div style={styles.filter}>
+              <span style={styles.filterLabel}>待审核的设备认领申请</span>
+            </div>
+            <div style={styles.stats}>
+              <span style={styles.statItem}>共 {(claims || []).length} 条申请</span>
+            </div>
+          </div>
+
+          {claimsLoading ? (
+            <div style={styles.loading}>
+              <div style={styles.spinner}></div>
+              <span>加载中...</span>
+            </div>
+          ) : (claims || []).length === 0 ? (
+            <div style={styles.empty}>
+              <svg style={styles.emptyIcon} viewBox="0 0 24 24" fill="none">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="currentColor"/>
+              </svg>
+              <p>暂无待审核的认领申请</p>
+            </div>
+          ) : (
+            <div style={styles.tableContainer}>
+              <table style={styles.table}>
+                <thead>
+                  <tr>
+                    <th style={styles.th}>商家ID</th>
+                    <th style={styles.th}>设备名称</th>
+                    <th style={styles.th}>申请人</th>
+                    <th style={styles.th}>申请时间</th>
+                    <th style={styles.th}>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {claims.map((claim) => (
+                    <tr key={claim.id} style={styles.tr}>
+                      <td style={{...styles.td, fontWeight: '500'}}>{claim.merchantId}</td>
+                      <td style={styles.td}>{claim.deviceName}</td>
+                      <td style={styles.td}>
+                        <span style={{
+                          ...styles.roleBadge,
+                          backgroundColor: 'rgba(0, 122, 255, 0.12)',
+                          color: '#007AFF',
+                        }}>
+                          {claim.username}
+                        </span>
+                      </td>
+                      <td style={styles.td}>{formatTime(claim.createdAt)}</td>
+                      <td style={styles.td}>
+                        <div style={styles.actions}>
+                          <button onClick={() => handleApproveClaim(claim.id)} style={styles.btnApprove}>通过</button>
+                          <button onClick={() => handleRejectClaim(claim.id)} style={styles.btnReject}>拒绝</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
       )}
 
       {/* 用户编辑弹窗 */}
@@ -320,13 +508,23 @@ const AdminUsersPage = () => {
                 />
               </div>
               <div style={styles.field}>
-                <label>邮箱 *</label>
+                <label>姓名 *</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={e => setFormData({ ...formData, name: e.target.value })}
+                  style={styles.input}
+                  placeholder="真实姓名"
+                />
+              </div>
+              <div style={styles.field}>
+                <label>邮箱</label>
                 <input
                   type="email"
                   value={formData.email}
                   onChange={e => setFormData({ ...formData, email: e.target.value })}
                   style={styles.input}
-                  placeholder="user@example.com"
+                  placeholder="user@example.com（选填）"
                 />
               </div>
               <div style={styles.field}>
@@ -414,22 +612,40 @@ const styles = {
     fontSize: '13px',
     color: '#86868B',
   },
-  backButton: {
+  tabContainer: {
+    display: 'flex',
+    gap: '4px',
+    marginBottom: '12px',
+    backgroundColor: '#F2F2F7',
+    padding: '4px',
+    borderRadius: '10px',
+    width: 'fit-content',
+  },
+  tab: {
+    padding: '8px 16px',
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: '14px',
+    fontWeight: '500',
+    cursor: 'pointer',
+    backgroundColor: 'transparent',
+    color: '#86868B',
     display: 'flex',
     alignItems: 'center',
-    gap: '4px',
-    padding: '6px 12px',
-    backgroundColor: '#F2F2F7',
-    borderRadius: '8px',
-    color: '#1D1D1F',
-    textDecoration: 'none',
-    fontSize: '13px',
-    fontWeight: '500',
-    transition: 'all 0.2s ease',
+    gap: '6px',
   },
-  backIcon: {
-    width: '16px',
-    height: '16px',
+  tabActive: {
+    backgroundColor: 'white',
+    color: '#1D1D1F',
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)',
+  },
+  badge: {
+    backgroundColor: '#FF3B30',
+    color: 'white',
+    fontSize: '11px',
+    padding: '2px 6px',
+    borderRadius: '10px',
+    fontWeight: '600',
   },
   error: {
     padding: '10px 14px',
@@ -454,6 +670,19 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
+  },
+  filterGroup: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+  },
+  searchInput: {
+    padding: '6px 12px',
+    border: '1px solid #D1D1D6',
+    borderRadius: '8px',
+    fontSize: '14px',
+    width: '180px',
+    outline: 'none',
   },
   filterLabel: {
     fontSize: '13px',
