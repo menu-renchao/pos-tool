@@ -14,7 +14,7 @@ from pos_tool_new.utils.app_config_utils import (
     get_app_config_value
 )
 
-LOCAL_VERSION = "1.5.1.7"  # 当前本地版本号，建议后续自动生成
+LOCAL_VERSION = "1.5.1.8"  # 当前本地版本号，建议后续自动生成
 EXE_NAME_PREFIX = "PosTestUtil_v"
 EXE_SUFFIX = ".exe"
 # 获取exe运行目录

@@ -389,7 +389,7 @@ class MainWindow(QMainWindow):
     def _setup_window_properties(self):
         """设置窗口属性"""
         self.setWindowIcon(QIcon(resource_path('UI/app.ico')))
-        self.setWindowTitle("POS测试工具 v1.5.1.7 by Mansuper")
+        self.setWindowTitle("POS测试工具 v1.5.1.8 by Mansuper")
         self.resize(900, 580)
 
     def _create_central_widget(self) -> QWidget:

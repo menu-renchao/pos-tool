@@ -8,7 +8,14 @@ from PyQt6.QtWidgets import (
 from pos_tool_new.base_tab import BaseTabWidget
 from pos_tool_new.download_war.download_war_service import DownloadWarService
 from pos_tool_new.windows_pos.windows_service import WindowsService
-from pos_tool_new.work_threads import RestartPosThreadWindows, ReplaceWarThreadWindows, DownloadWarWorker
+from pos_tool_new.work_threads import (
+    RestartPosThreadWindows,
+    ReplaceWarThreadWindows,
+    DownloadWarWorker,
+    DeployJacocoThread,
+    RestoreJacocoThread,
+    GenerateJacocoReportThread,
+)
 
 
 class WindowsTabWidget(BaseTabWidget):
@@ -24,7 +31,9 @@ class WindowsTabWidget(BaseTabWidget):
         self._setup_env_selector()
         self._setup_path_selector()
         self._setup_war_selector()
+        self._setup_jacoco_selector()
         self._setup_buttons()
+        self._setup_jacoco_buttons()
         self.layout.addStretch()
 
     def _setup_env_selector(self):
@@ -59,6 +68,17 @@ class WindowsTabWidget(BaseTabWidget):
         upload_layout.addWidget(self.btn_download_net)
         self.layout.addWidget(upload_group)
 
+    def _setup_jacoco_selector(self):
+        jacoco_group = QGroupBox("选择JaCoCo压缩包")
+        jacoco_layout = QHBoxLayout(jacoco_group)
+        self.jacoco_zip_path = QLineEdit()
+        self.jacoco_zip_path.setPlaceholderText("请选择 jacoco-*.zip 文件路径...")
+        btn_select_jacoco = QPushButton("选择...")
+        btn_select_jacoco.clicked.connect(self.upload_jacoco_zip_file)
+        jacoco_layout.addWidget(self.jacoco_zip_path)
+        jacoco_layout.addWidget(btn_select_jacoco)
+        self.layout.addWidget(jacoco_group)
+
     def _setup_buttons(self):
         btn_group = QGroupBox()
         btn_layout = QHBoxLayout(btn_group)
@@ -76,6 +96,22 @@ class WindowsTabWidget(BaseTabWidget):
         btn_layout.addStretch()
         self.layout.addWidget(btn_group)
 
+    def _setup_jacoco_buttons(self):
+        jacoco_btn_group = QGroupBox("JaCoCo")
+        jacoco_btn_layout = QHBoxLayout(jacoco_btn_group)
+        buttons = [
+            ("JaCoCo一键部署", self.on_deploy_jacoco),
+            ("JaCoCo卸载/恢复", self.on_restore_jacoco),
+            ("生成覆盖率报告", self.on_generate_jacoco_report),
+        ]
+        for text, slot in buttons:
+            btn = QPushButton(text)
+            btn.clicked.connect(slot)
+            btn.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+            jacoco_btn_layout.addWidget(btn)
+        jacoco_btn_layout.addStretch()
+        self.layout.addWidget(jacoco_btn_group)
+
     def browse_directory(self):
         dir_path = QFileDialog.getExistingDirectory(self, "选择基础目录", self.base_path.text())
         if dir_path:
@@ -85,6 +121,11 @@ class WindowsTabWidget(BaseTabWidget):
         file, _ = QFileDialog.getOpenFileName(self, "选择kpos.war包", "", "WAR文件 (*.war)")
         if file:
             self.war_path.setText(file)
+
+    def upload_jacoco_zip_file(self):
+        file, _ = QFileDialog.getOpenFileName(self, "选择JaCoCo压缩包", "", "ZIP文件 (*.zip)")
+        if file:
+            self.jacoco_zip_path.setText(file)
 
     def on_scan_local(self):
         self.service.scan_local(self.base_path.text(), self.get_selected_env(self.env_group))
@@ -123,6 +164,25 @@ class WindowsTabWidget(BaseTabWidget):
         except Exception as e:
             QMessageBox.critical(self, "操作异常", f"换包操作异常：{str(e)}")
 
+    def on_deploy_jacoco(self):
+        zip_path = self.jacoco_zip_path.text().strip()
+        if not zip_path or not os.path.isfile(zip_path):
+            QMessageBox.warning(self, "提示", "请先选择本地 JaCoCo 压缩包！")
+            return
+        selected_version = self._select_version_for_action()
+        if selected_version:
+            self._start_thread(DeployJacocoThread, selected_version, zip_path)
+
+    def on_restore_jacoco(self):
+        selected_version = self._select_version_for_action()
+        if selected_version:
+            self._start_thread(RestoreJacocoThread, selected_version)
+
+    def on_generate_jacoco_report(self):
+        selected_version = self._select_version_for_action()
+        if selected_version:
+            self._start_thread(GenerateJacocoReportThread, selected_version)
+
     def _get_versions(self):
         try:
             # 获取目录并按名称倒序排列
@@ -133,6 +193,22 @@ class WindowsTabWidget(BaseTabWidget):
         except Exception as e:
             QMessageBox.warning(self, "提示", f"读取目录失败：{str(e)}")
             return []
+
+    def _validate_base_directory(self):
+        base_dir = self.base_path.text().strip()
+        if not base_dir or not os.path.isdir(base_dir):
+            QMessageBox.warning(self, "提示", "基础目录无效或不存在！")
+            return None
+        return base_dir
+
+    def _select_version_for_action(self):
+        if not self._validate_base_directory():
+            return None
+        versions = self._get_versions()
+        if not versions:
+            QMessageBox.warning(self, "提示", "未找到任何版本目录！")
+            return None
+        return self.select_version(versions)
 
     def _start_thread(self, thread_class, *args):
         if self._current_thread is not None and self._current_thread.isRunning():

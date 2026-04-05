@@ -1,0 +1,15 @@
+2026-03-26 17:06:53,198 - pos_tool_new.utils.log_manager - INFO - 准备保存文件配置到: D:\menusifu\PythonProject\rc\pos_tool_new\dist\file_config.json
+2026-03-26 17:06:53,198 - pos_tool_new.utils.log_manager - DEBUG - 保存内容摘要: []
+2026-03-26 17:06:53,198 - pos_tool_new.utils.log_manager - INFO - 文件配置已保存
+2026-03-26 17:06:53,349 - pos_tool_new.utils.log_manager - INFO - 尝试连接到 ws://127.0.0.1:56789
+2026-03-26 17:06:53,417 - pos_tool_new.utils.log_manager - INFO - 应用启动耗时: 634 ms
+2026-03-26 17:06:55,404 - pos_tool_new.utils.log_manager - ERROR - WebSocket错误: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+2026-03-26 17:06:55,405 - websocket - ERROR - [WinError 10061] 由于目标计算机积极拒绝，无法连接。 - goodbye
+2026-03-26 17:06:55,405 - pos_tool_new.utils.log_manager - INFO - WebSocket连接已关闭: None - None
+2026-03-26 17:06:55,405 - pos_tool_new.utils.log_manager - INFO - 3秒后尝试重连...
+2026-03-26 17:06:58,406 - pos_tool_new.utils.log_manager - INFO - 尝试连接到 ws://127.0.0.1:56789
+2026-03-26 17:07:00,430 - pos_tool_new.utils.log_manager - ERROR - WebSocket错误: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+2026-03-26 17:07:00,430 - websocket - ERROR - [WinError 10061] 由于目标计算机积极拒绝，无法连接。 - goodbye
+2026-03-26 17:07:00,431 - pos_tool_new.utils.log_manager - INFO - WebSocket连接已关闭: None - None
+2026-03-26 17:07:00,431 - pos_tool_new.utils.log_manager - INFO - 3秒后尝试重连...
+2026-03-26 17:07:03,432 - pos_tool_new.utils.log_manager - INFO - 尝试连接到 ws://127.0.0.1:56789

@@ -1,13 +1,27 @@
 import os
 import re
 import shutil
+import subprocess
 import tempfile
 import zipfile
+from dataclasses import dataclass
+from pathlib import Path
 
 from pos_tool_new.backend import Backend
 
 
+@dataclass
+class JacocoActionResult:
+    success: bool
+    message: str
+    data: dict | None = None
+
+
 class WindowsService(Backend):
+    JACOCO_AGENT_MARKER = "jacocoagent.jar"
+    JACOCO_REPORT_SCRIPT = "buildReport.bat"
+    JACOCO_BACKUP_SUFFIX = ".jacoco.bak"
+
     def __init__(self):
         super().__init__()
         self.file_patterns = [
@@ -234,9 +248,249 @@ class WindowsService(Backend):
         except Exception as e:
             self.log(f"重启 POS 出错: {str(e)}", level="error")
 
+    def get_version_path(self, base_path, selected_version):
+        return Path(base_path) / selected_version
+
+    def get_setenv_path(self, version_path):
+        return Path(version_path) / "tomcat" / "bin" / "setenv.bat"
+
+    def get_jacoco_backup_path(self, setenv_path):
+        return Path(f"{setenv_path}{self.JACOCO_BACKUP_SUFFIX}")
+
+    def get_jacoco_dirs(self, version_path):
+        version_dir = Path(version_path)
+        if not version_dir.exists():
+            return []
+        return sorted(
+            [path for path in version_dir.iterdir() if path.is_dir() and path.name.lower().startswith("jacoco-")],
+            reverse=True,
+        )
+
+    def has_jacoco_agent(self, content):
+        return self.JACOCO_AGENT_MARKER in content
+
+    def deploy_jacoco(self, base_path, selected_version, zip_path):
+        version_path = self.get_version_path(base_path, selected_version)
+        setenv_path = self.get_setenv_path(version_path)
+        archive_path = Path(zip_path)
+
+        if not version_path.is_dir():
+            return JacocoActionResult(False, f"版本目录不存在: {version_path}")
+        if not archive_path.is_file():
+            return JacocoActionResult(False, f"JaCoCo 压缩包不存在: {archive_path}")
+        if not setenv_path.is_file():
+            return JacocoActionResult(False, f"setenv.bat 不存在: {setenv_path}")
+
+        jacoco_root = self.extract_jacoco_zip(archive_path, version_path)
+        if not jacoco_root:
+            return JacocoActionResult(False, "JaCoCo 压缩包中未找到有效目录")
+
+        backup_path = self.get_jacoco_backup_path(setenv_path)
+        if not backup_path.exists():
+            shutil.copy2(setenv_path, backup_path)
+            self.log(f"已备份 setenv.bat: {backup_path}", level="info")
+
+        content = setenv_path.read_text(encoding="utf-8")
+        if self.has_jacoco_agent(content):
+            self.log("JaCoCo 已部署，跳过重复注入", level="warning")
+        else:
+            updated_content = self.inject_jacoco_agent(content, jacoco_root)
+            setenv_path.write_text(updated_content, encoding="utf-8")
+            self.log(f"已写入 JaCoCo agent 配置: {setenv_path}", level="success")
+
+        report_script_path = jacoco_root / "lib" / self.JACOCO_REPORT_SCRIPT
+        report_script_path.parent.mkdir(parents=True, exist_ok=True)
+        report_script_path.write_text(
+            self.build_report_script_content(version_path, jacoco_root),
+            encoding="utf-8",
+        )
+        self.log(f"已生成覆盖率脚本: {report_script_path}", level="success")
+        return JacocoActionResult(
+            True,
+            "JaCoCo 部署完成，请重启 POS 后执行用例再生成覆盖率报告",
+            {"jacoco_root": str(jacoco_root), "report_script": str(report_script_path)},
+        )
+
+    def restore_jacoco(self, base_path, selected_version):
+        version_path = self.get_version_path(base_path, selected_version)
+        setenv_path = self.get_setenv_path(version_path)
+        backup_path = self.get_jacoco_backup_path(setenv_path)
+
+        if not version_path.is_dir():
+            return JacocoActionResult(False, f"版本目录不存在: {version_path}")
+        if not backup_path.is_file():
+            return JacocoActionResult(False, f"未找到 JaCoCo 备份文件: {backup_path}")
+
+        shutil.copy2(backup_path, setenv_path)
+        self.log(f"已恢复 setenv.bat: {setenv_path}", level="success")
+
+        removed_scripts = []
+        for jacoco_dir in self.get_jacoco_dirs(version_path):
+            report_script = jacoco_dir / "lib" / self.JACOCO_REPORT_SCRIPT
+            if report_script.exists():
+                report_script.unlink()
+                removed_scripts.append(str(report_script))
+
+        message = "JaCoCo 恢复完成"
+        if removed_scripts:
+            message += f"，已删除 {len(removed_scripts)} 个报告脚本"
+        return JacocoActionResult(True, message, {"removed_scripts": removed_scripts})
+
+    def validate_jacoco_report_requirements(self, version_path, jacoco_root):
+        version_dir = Path(version_path)
+        jacoco_dir = Path(jacoco_root)
+        checks = {
+            "java.exe": version_dir / "jre" / "bin" / "java.exe",
+            "jacococli.jar": jacoco_dir / "lib" / "jacococli.jar",
+            "WEB-INF\\classes": version_dir / "tomcat" / "webapps" / "kpos" / "WEB-INF" / "classes",
+            self.JACOCO_REPORT_SCRIPT: jacoco_dir / "lib" / self.JACOCO_REPORT_SCRIPT,
+        }
+        missing = [name for name, path in checks.items() if not path.exists()]
+        if missing:
+            return JacocoActionResult(False, f"缺少运行覆盖率报告所需文件: {', '.join(missing)}")
+        return JacocoActionResult(True, "JaCoCo 报告依赖校验通过", {"paths": {k: str(v) for k, v in checks.items()}})
+
+    def generate_jacoco_report(self, base_path, selected_version):
+        version_path = self.get_version_path(base_path, selected_version)
+        jacoco_dirs = self.get_jacoco_dirs(version_path)
+        if not jacoco_dirs:
+            return JacocoActionResult(False, f"未找到 JaCoCo 目录: {version_path}")
+
+        jacoco_root = jacoco_dirs[0]
+        validation = self.validate_jacoco_report_requirements(version_path, jacoco_root)
+        if not validation.success:
+            return validation
+
+        report_script = jacoco_root / "lib" / self.JACOCO_REPORT_SCRIPT
+        process = subprocess.run(
+            ["cmd", "/c", str(report_script), "--no-open", "--no-pause"],
+            cwd=report_script.parent,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if process.returncode != 0:
+            stderr = process.stderr.strip() or process.stdout.strip() or "未知错误"
+            return JacocoActionResult(False, f"生成覆盖率报告失败: {stderr}")
+
+        report_index = jacoco_root / "lib" / "jacocoreport" / "index.html"
+        if not report_index.exists():
+            return JacocoActionResult(False, f"覆盖率报告未生成: {report_index}")
+
+        os.startfile(str(report_index))
+        return JacocoActionResult(True, f"覆盖率报告已生成: {report_index}", {"report_index": str(report_index)})
+
+    def extract_jacoco_zip(self, archive_path, version_path):
+        with zipfile.ZipFile(archive_path, "r") as archive:
+            roots = []
+            has_top_level_lib = False
+            for name in archive.namelist():
+                normalized = name.strip("/\\")
+                if not normalized:
+                    continue
+                root = normalized.split("/", 1)[0].split("\\", 1)[0]
+                if root.lower().startswith("jacoco-"):
+                    roots.append(root)
+                if normalized.lower().startswith("lib/") or normalized.lower().startswith("lib\\"):
+                    has_top_level_lib = True
+
+            if roots:
+                archive.extractall(version_path)
+                return Path(version_path) / sorted(set(roots))[0]
+
+            target_root = Path(version_path) / Path(archive_path).stem
+            if has_top_level_lib and target_root.name.lower().startswith("jacoco-"):
+                target_root.mkdir(parents=True, exist_ok=True)
+                archive.extractall(target_root)
+                return target_root
+
+            return None
+
+    def inject_jacoco_agent(self, content, jacoco_root):
+        agent_path = (Path(jacoco_root) / "lib" / "jacocoagent.jar").as_posix()
+        agent_line = (
+            f"set JAVA_OPTS=%JAVA_OPTS%  -javaagent:{agent_path}"
+            "=includes=com.wisdomount.*,output=tcpserver,port=9527,address=127.0.0.1,append=true -Xverify:none"
+        )
+        lines = content.splitlines(keepends=True)
+        for index, line in enumerate(lines):
+            if line.strip().lower().startswith("set java_opts"):
+                lines.insert(index + 1, agent_line + "\n")
+                return "".join(lines)
+
+        suffix = "" if content.endswith(("\n", "\r")) else "\n"
+        return content + suffix + ":: JaCoCo agent configuration\n" + agent_line + "\n"
+
+    def build_report_script_content(self, version_path, jacoco_root):
+        version_dir = Path(version_path)
+        jacoco_dir = Path(jacoco_root)
+        jre_home = self._to_windows_path(version_dir / "jre")
+        tomcat_home = self._to_windows_path(version_dir / "tomcat")
+        jacoco_lib = self._to_windows_path(jacoco_dir / "lib")
+        return (
+            "@echo off\n"
+            "setlocal enabledelayedexpansion\n\n"
+            ":: ============== Environment Variables ==============\n"
+            f'set "JRE_HOME={jre_home}"\n'
+            f'set "TOMCAT_HOME={tomcat_home}"\n'
+            f'set "JACOCO_LIB={jacoco_lib}"\n'
+            'set "REPORT_DIR=%JACOCO_LIB%\\jacocoreport"\n'
+            'set "PORT=9527"\n'
+            'set "ADDRESS=127.0.0.1"\n\n'
+            'set "NO_OPEN=0"\n'
+            'set "NO_PAUSE=0"\n'
+            'if /I "%~1"=="--no-open" set "NO_OPEN=1"\n'
+            'if /I "%~1"=="--no-pause" set "NO_PAUSE=1"\n'
+            'if /I "%~2"=="--no-open" set "NO_OPEN=1"\n'
+            'if /I "%~2"=="--no-pause" set "NO_PAUSE=1"\n\n'
+            ":: ============== Clean Report Directory ==============\n"
+            'if exist "%REPORT_DIR%" (\n'
+            '    echo [INFO] Deleting directory: %REPORT_DIR%\n'
+            '    rd /s /q "%REPORT_DIR%" >nul 2>&1\n'
+            '    timeout /t 2 >nul\n'
+            '    if exist "%REPORT_DIR%" (\n'
+            '        echo [ERROR] Failed to delete directory. Check permissions or file locks.\n'
+            '        if "%NO_PAUSE%"=="0" pause\n'
+            '        exit /b 1\n'
+            '    )\n'
+            ') else (\n'
+            '    echo [INFO] Directory does not exist: %REPORT_DIR%\n'
+            ')\n'
+            'if not exist "%REPORT_DIR%" mkdir "%REPORT_DIR%"\n'
+            ":: ============== TCP Dump ==============\n"
+            'echo [INFO] Dumping coverage data from %ADDRESS%:%PORT%...\n'
+            '"%JRE_HOME%\\bin\\java" -jar "%JACOCO_LIB%\\jacococli.jar" dump ^\n'
+            '    --address %ADDRESS% --port %PORT% ^\n'
+            '    --destfile "%REPORT_DIR%\\jacoco.exec"\n'
+            "if errorlevel 1 (\n"
+            '    echo [ERROR] Failed to get coverage data. Check if TCP service is running.\n'
+            '    if "%NO_PAUSE%"=="0" pause\n'
+            '    exit /b 1\n'
+            ')\n\n'
+            ":: ============== Generate HTML Report ==============\n"
+            'echo [INFO] Generating HTML report in %REPORT_DIR%...\n'
+            '"%JRE_HOME%\\bin\\java" -jar "%JACOCO_LIB%\\jacococli.jar" report ^\n'
+            '    "%REPORT_DIR%\\jacoco.exec" ^\n'
+            '    --classfiles "%TOMCAT_HOME%\\webapps\\kpos\\WEB-INF\\classes" ^\n'
+            '    --html "%REPORT_DIR%"\n'
+            "if errorlevel 1 (\n"
+            '    echo [ERROR] Report generation failed. Check file paths.\n'
+            '    if "%NO_PAUSE%"=="0" pause\n'
+            '    exit /b 1\n'
+            ')\n\n'
+            ":: ============== Display Result ==============\n"
+            'echo [SUCCESS] Report generated: %REPORT_DIR%\\index.html\n'
+            'if "%NO_OPEN%"=="0" start "" "%REPORT_DIR%\\index.html"\n'
+            'if "%NO_PAUSE%"=="0" pause\n'
+        )
+
+    @staticmethod
+    def _to_windows_path(path):
+        return str(Path(path)).replace("/", "\\")
+
     # 效期管理
     def fix_expiration_management_url(self, base_path, env):
-        """
+        r"""
         根据env修正 front2\json\cloudUrlConfig.json 里的 expiration-management 地址：
         QA/DEV -> https://wms.balamxqa.com/expiration-management
         PROD   -> https://wms.balamx.com/expiration-management

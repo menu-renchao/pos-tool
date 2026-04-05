@@ -149,6 +149,76 @@ class ReplaceWarThreadWindows(BaseWorkerThread):
         self.finished_updated.emit(True, "Windows WAR包替换完成")
 
 
+class DeployJacocoThread(BaseWorkerThread):
+    def __init__(self, service: WindowsService, base_path: str, selected_version: str, zip_path: str):
+        super().__init__()
+        self.service = service
+        self.base_path = base_path
+        self.selected_version = selected_version
+        self.zip_path = zip_path
+
+    def _run_impl(self):
+        self.progress_text_updated.emit("正在部署 JaCoCo...")
+        result = self.run_with_error_handling(
+            self.service.deploy_jacoco,
+            self.base_path, self.selected_version, self.zip_path
+        )
+        if not result.success:
+            self.service.log(result.message, level="error")
+            self.error_occurred.emit(result.message)
+            self.finished_updated.emit(False, result.message)
+            return
+        self.service.log(result.message, level="success")
+        self.progress_text_updated.emit("JaCoCo 部署完成")
+        self.finished_updated.emit(True, result.message)
+
+
+class RestoreJacocoThread(BaseWorkerThread):
+    def __init__(self, service: WindowsService, base_path: str, selected_version: str):
+        super().__init__()
+        self.service = service
+        self.base_path = base_path
+        self.selected_version = selected_version
+
+    def _run_impl(self):
+        self.progress_text_updated.emit("正在恢复 JaCoCo 配置...")
+        result = self.run_with_error_handling(
+            self.service.restore_jacoco,
+            self.base_path, self.selected_version
+        )
+        if not result.success:
+            self.service.log(result.message, level="error")
+            self.error_occurred.emit(result.message)
+            self.finished_updated.emit(False, result.message)
+            return
+        self.service.log(result.message, level="success")
+        self.progress_text_updated.emit("JaCoCo 恢复完成")
+        self.finished_updated.emit(True, result.message)
+
+
+class GenerateJacocoReportThread(BaseWorkerThread):
+    def __init__(self, service: WindowsService, base_path: str, selected_version: str):
+        super().__init__()
+        self.service = service
+        self.base_path = base_path
+        self.selected_version = selected_version
+
+    def _run_impl(self):
+        self.progress_text_updated.emit("正在生成 JaCoCo 覆盖率报告...")
+        result = self.run_with_error_handling(
+            self.service.generate_jacoco_report,
+            self.base_path, self.selected_version
+        )
+        if not result.success:
+            self.service.log(result.message, level="error")
+            self.error_occurred.emit(result.message)
+            self.finished_updated.emit(False, result.message)
+            return
+        self.service.log(result.message, level="success")
+        self.progress_text_updated.emit("JaCoCo 覆盖率报告生成完成")
+        self.finished_updated.emit(True, result.message)
+
+
 class UpgradeThread(BaseWorkerThread):
     def __init__(self, service: LinuxService, ssh, local_package_path: str, remote_target_path: str):
         super().__init__()
